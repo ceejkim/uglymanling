@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { getThreadById } from "@/lib/chat";
+import { getOfferByThreadId } from "@/lib/offers";
 
 type ThreadPageProps = {
   params: Promise<{ threadId: string }>;
@@ -10,6 +11,7 @@ type ThreadPageProps = {
 export default async function ThreadPage({ params }: ThreadPageProps) {
   const { threadId } = await params;
   const thread = getThreadById(threadId);
+  const relatedOffer = getOfferByThreadId(threadId);
 
   if (!thread) {
     notFound();
@@ -65,6 +67,22 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
           <p className="mt-1 text-sm text-[var(--color-muted)]">
             Realtime send and persistence wiring will land next in S2-04.
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {relatedOffer && (
+              <Link
+                href={`/offers/${relatedOffer.id}`}
+                className="inline-flex h-9 items-center rounded-lg bg-[var(--color-accent)] px-3 text-xs font-semibold text-white"
+              >
+                View Related Offer
+              </Link>
+            )}
+            <Link
+              href="/bookings"
+              className="inline-flex h-9 items-center rounded-lg border border-[var(--color-line)] bg-white px-3 text-xs font-semibold"
+            >
+              Open Bookings
+            </Link>
+          </div>
         </div>
       </Card>
     </div>

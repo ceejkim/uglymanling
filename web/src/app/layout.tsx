@@ -9,9 +9,14 @@ export const metadata: Metadata = {
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/auth/signup", label: "Sign Up" },
-  { href: "/auth/login", label: "Log In" },
+  { href: "/discover", label: "Discover" },
   { href: "/chat", label: "Chat" },
+  { href: "/offers", label: "Offers" },
+  { href: "/bookings", label: "Bookings" },
+  { href: "/profile", label: "Profile" },
+  { href: "/guide/dashboard", label: "Guide" },
+  { href: "/settings", label: "Settings" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export default function RootLayout({
@@ -27,9 +32,13 @@ export default function RootLayout({
             <Link href="/" className="text-lg font-semibold tracking-tight">
               Rekkoe
             </Link>
-            <nav className="flex items-center gap-5 text-sm text-[var(--color-muted)]">
+            <nav className="flex items-center gap-4 overflow-x-auto text-sm text-[var(--color-muted)]">
               {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-[var(--color-ink)]">
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="whitespace-nowrap hover:text-[var(--color-ink)]"
+                >
                   {item.label}
                 </Link>
               ))}
