@@ -1,23 +1,14 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { auth } from "@/auth";
 import { Card } from "@/components/ui/card";
-import { trackEvent } from "@/lib/analytics";
+import { ChatStartTracker } from "@/components/chat/chat-start-tracker";
 import { listChatThreads } from "@/lib/chat";
-import { getSession } from "@/lib/session";
 
-export default function ChatPage() {
-  const session = useMemo(() => getSession(), []);
+export default async function ChatPage() {
+  const session = await auth();
   const threads = listChatThreads();
 
-  useEffect(() => {
-    if (session) {
-      trackEvent("chat_started", { role: session.role });
-    }
-  }, [session]);
-
-  if (!session) {
+  if (!session?.user) {
     return (
       <Card className="mx-auto max-w-xl">
         <h1 className="text-2xl font-semibold tracking-tight">Your chat inbox is empty</h1>
@@ -44,6 +35,8 @@ export default function ChatPage() {
 
   return (
     <div className="grid gap-4 md:grid-cols-[340px_1fr]">
+      <ChatStartTracker role="authenticated_user" />
+
       <Card className="p-4">
         <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-muted)] uppercase">
           Inbox

@@ -1,26 +1,25 @@
 "use client";
 
+import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldLabel, SelectField, TextField } from "@/components/ui/field";
 import { trackEvent } from "@/lib/analytics";
-import { saveGuideProfile } from "@/lib/session";
+import { type OnboardingActionState, saveGuideOnboarding } from "@/app/actions/onboarding";
+
+const initialState: OnboardingActionState = { ok: false };
 
 export default function GuideOnboardingPage() {
   const router = useRouter();
-  const [expertise, setExpertise] = useState("");
-  const [serviceType, setServiceType] = useState("Guided experience");
-  const [priceRange, setPriceRange] = useState("$50-$150");
-  const [availability, setAvailability] = useState("Evenings");
+  const [state, formAction, isPending] = useActionState(saveGuideOnboarding, initialState);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    saveGuideProfile({ expertise, serviceType, priceRange, availability });
-    trackEvent("onboarding_completed", { role: "guide" });
-    router.push("/chat");
-  }
+  useEffect(() => {
+    if (state.ok) {
+      trackEvent("onboarding_completed", { role: "guide" });
+      router.push("/chat");
+    }
+  }, [router, state.ok]);
 
   return (
     <Card className="mx-auto max-w-xl">
@@ -29,25 +28,20 @@ export default function GuideOnboardingPage() {
         Tell explorers what you know best and how you like to help.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
+      <form action={formAction} className="mt-6 space-y-4">
         <div>
           <FieldLabel htmlFor="expertise">Primary expertise</FieldLabel>
           <TextField
             id="expertise"
+            name="expertise"
             required
             placeholder="Local food tours, endurance training, surf coaching"
-            value={expertise}
-            onChange={(event) => setExpertise(event.target.value)}
           />
         </div>
 
         <div>
           <FieldLabel htmlFor="serviceType">Service style</FieldLabel>
-          <SelectField
-            id="serviceType"
-            value={serviceType}
-            onChange={(event) => setServiceType(event.target.value)}
-          >
+          <SelectField id="serviceType" name="serviceType" defaultValue="Guided experience">
             <option>Guided experience</option>
             <option>Self-guided playbook</option>
             <option>Chat coaching</option>
@@ -57,11 +51,7 @@ export default function GuideOnboardingPage() {
 
         <div>
           <FieldLabel htmlFor="priceRange">Typical price range</FieldLabel>
-          <SelectField
-            id="priceRange"
-            value={priceRange}
-            onChange={(event) => setPriceRange(event.target.value)}
-          >
+          <SelectField id="priceRange" name="priceRange" defaultValue="$50-$150">
             <option>$0-$50</option>
             <option>$50-$150</option>
             <option>$150-$300</option>
@@ -71,11 +61,7 @@ export default function GuideOnboardingPage() {
 
         <div>
           <FieldLabel htmlFor="availability">Availability</FieldLabel>
-          <SelectField
-            id="availability"
-            value={availability}
-            onChange={(event) => setAvailability(event.target.value)}
-          >
+          <SelectField id="availability" name="availability" defaultValue="Evenings">
             <option>Mornings</option>
             <option>Afternoons</option>
             <option>Evenings</option>
@@ -84,8 +70,10 @@ export default function GuideOnboardingPage() {
           </SelectField>
         </div>
 
-        <Button type="submit" className="w-full">
-          Finish and open chat
+        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Saving..." : "Finish and open chat"}
         </Button>
       </form>
     </Card>
