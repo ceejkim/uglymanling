@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { trackEvent } from "@/lib/analytics";
+import { listChatThreads } from "@/lib/chat";
 import { getSession } from "@/lib/session";
 
 export default function ChatPage() {
   const session = useMemo(() => getSession(), []);
+  const threads = listChatThreads();
 
   useEffect(() => {
     if (session) {
@@ -41,34 +43,42 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-[300px_1fr]">
-      <Card className="h-fit p-4">
+    <div className="grid gap-4 md:grid-cols-[340px_1fr]">
+      <Card className="p-4">
         <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-muted)] uppercase">
-          Session
+          Inbox
         </p>
-        <h2 className="mt-2 text-lg font-semibold">{session.name}</h2>
-        <p className="text-sm text-[var(--color-muted)]">{session.email}</p>
-        <p className="mt-2 inline-flex rounded-full bg-[var(--color-surface-soft)] px-2.5 py-1 text-xs font-semibold capitalize">
-          {session.role}
-        </p>
+        <div className="mt-3 space-y-2">
+          {threads.map((thread) => (
+            <Link
+              key={thread.id}
+              href={`/chat/${thread.id}`}
+              className="block rounded-xl border border-[var(--color-line)] bg-white p-3 transition hover:bg-[var(--color-surface-soft)]"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold tracking-tight">{thread.title}</p>
+                <span className="text-xs text-[var(--color-muted)]">{thread.lastMessageAt}</span>
+              </div>
+              <p className="mt-1 text-xs text-[var(--color-muted)] line-clamp-2">
+                {thread.lastMessagePreview}
+              </p>
+              <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--color-muted)]">
+                {thread.status.replace("_", " ")}
+              </p>
+            </Link>
+          ))}
+        </div>
       </Card>
 
-      <Card className="min-h-[400px] p-6">
+      <Card className="min-h-[420px] p-6">
         <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-muted)] uppercase">
-          Chat MVP
+          Thread Preview
         </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Conversation workspace</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Select a conversation</h1>
         <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--color-muted)]">
-          Sprint 1 includes the shell for onboarding and activation. Sprint 2 will implement
-          persistent thread inbox, realtime messaging, and guide matching.
+          Sprint 2 turns chat into a true inbox and thread model. Choose a thread from the left
+          to open `/chat/[threadId]`.
         </p>
-
-        <div className="mt-8 rounded-2xl border border-dashed border-[var(--color-line)] bg-[var(--color-surface-soft)] p-5">
-          <p className="text-sm font-medium">Suggested opening prompt</p>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
-            &quot;I want the best local morning routine in my neighborhood this weekend.&quot;
-          </p>
-        </div>
       </Card>
     </div>
   );
