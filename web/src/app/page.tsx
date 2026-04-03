@@ -1,54 +1,59 @@
+import Link from "next/link";
+import { Card } from "@/components/ui/card";
+
+const pillars = [
+  {
+    title: "Conversation-first",
+    detail: "Talk to real locals and experts in real time instead of searching static listings.",
+  },
+  {
+    title: "Trust by design",
+    detail: "Verification, transparent feedback, and profile context guide every decision.",
+  },
+  {
+    title: "Chat to experience",
+    detail: "Convert recommendations into guided or self-guided experiences without leaving the thread.",
+  },
+];
+
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col bg-[radial-gradient(circle_at_10%_20%,#fff8e7_0%,#f7efe2_45%,#f6f1ea_100%)] text-zinc-900">
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-14 px-6 py-16 md:px-10 md:py-20">
-        <section className="space-y-6">
-          <p className="inline-flex rounded-full border border-zinc-300 bg-white/70 px-3 py-1 text-xs font-semibold tracking-[0.12em] text-zinc-700 uppercase">
-            Rekkoe • Vision Starter
-          </p>
-          <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-tight md:text-6xl">
-            Conversation is the product.
-          </h1>
-          <p className="max-w-2xl text-lg leading-relaxed text-zinc-700">
-            Rekkoe helps people discover places, routines, and experiences by
-            talking directly with locals and experts in real time.
-          </p>
-        </section>
+    <div className="space-y-8 md:space-y-10">
+      <section className="rounded-3xl border border-[var(--color-line)] bg-[var(--color-surface)] p-8 md:p-12">
+        <p className="text-xs font-semibold tracking-[0.12em] text-[var(--color-muted)] uppercase">
+          Rekkoe • Sprint 1 shell
+        </p>
+        <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl">
+          Discovery through people, not platforms.
+        </h1>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--color-muted)] md:text-lg">
+          Rekkoe helps explorers connect with locals and experts through real-time chat,
+          then turn those conversations into meaningful experiences.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/auth/signup"
+            className="inline-flex h-11 items-center rounded-xl bg-[var(--color-accent)] px-4 text-sm font-semibold text-white"
+          >
+            Start As Explorer
+          </Link>
+          <Link
+            href="/auth/signup?role=guide"
+            className="inline-flex h-11 items-center rounded-xl border border-[var(--color-line)] bg-white px-4 text-sm font-semibold"
+          >
+            Become a Guide
+          </Link>
+        </div>
+      </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border border-zinc-300 bg-white/80 p-5 shadow-sm">
-            <h2 className="text-base font-semibold">Chat-First Discovery</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-700">
-              Personalized recommendations through live conversation instead of
-              static search results.
-            </p>
-          </article>
-          <article className="rounded-2xl border border-zinc-300 bg-white/80 p-5 shadow-sm">
-            <h2 className="text-base font-semibold">Local Knowledge Network</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-700">
-              Connect explorers with locals, enthusiasts, and professionals who
-              have real context.
-            </p>
-          </article>
-          <article className="rounded-2xl border border-zinc-300 bg-white/80 p-5 shadow-sm">
-            <h2 className="text-base font-semibold">From Chat to Experience</h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-700">
-              Convert conversations into guided or self-guided experiences with
-              seamless booking and payments.
-            </p>
-          </article>
-        </section>
-
-        <section className="rounded-2xl border border-zinc-300 bg-white/80 p-6 shadow-sm">
-          <h2 className="text-lg font-semibold">Suggested first build slices</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-700">
-            <li>Authentication + verified profiles (explorers and locals)</li>
-            <li>Conversation inbox and real-time chat thread UI</li>
-            <li>Experience proposal card generated from chat</li>
-            <li>Booking flow with schedule and payment handoff</li>
-          </ul>
-        </section>
-      </main>
+      <section className="grid gap-4 md:grid-cols-3">
+        {pillars.map((pillar) => (
+          <Card key={pillar.title} className="p-5">
+            <h2 className="text-lg font-semibold tracking-tight">{pillar.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{pillar.detail}</p>
+          </Card>
+        ))}
+      </section>
     </div>
   );
 }
