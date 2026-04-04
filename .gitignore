@@ -1,20 +1,11 @@
-
 .local/
-web/node_modules/
-web/.next/
+node_modules/
+.next/
+dist/
+build/
+coverage/
 *.log
-# env files (VERY important)
 .env
 .env.local
 .env.*.local
-
-# prisma / database
-*.db
-web/prisma/dev.db
-
-# OS junk
 .DS_Store
-
-# build output (optional but good)
-dist/
-
