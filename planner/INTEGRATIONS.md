@@ -134,6 +134,9 @@ Use Stripe for:
 4. Affiliate or service revenue collection
 5. Subscription or membership experiments later
 
+Detailed backend activation plan:
+1. See [STRIPE_BACKEND_PLAN.md](/Users/charleskimbell/Rekkoe/planner/STRIPE_BACKEND_PLAN.md) for the phased backend architecture, route structure, environment variables, and rollout order.
+
 ### 4. Shop and Catalog Infrastructure
 ### Recommended: `Shopify`
 Use Shopify as the commerce operating system for physical products.
