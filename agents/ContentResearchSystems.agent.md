@@ -22,9 +22,10 @@ This agent owns:
 ## Inputs
 1. `VISION.md`
 2. `PRODUCT_ARCHITECTURE.md`
-3. Product priorities from `Orchestrator`
-4. Domain model from `ProductArchitect`
-5. Monetization needs from `GrowthCommerce`
+3. `branding/BRAND_SYSTEM.md`
+4. Product priorities from `Orchestrator`
+5. Domain model from `ProductArchitect`
+6. Monetization needs from `GrowthCommerce`
 
 ## Outputs
 1. Content models
@@ -39,6 +40,9 @@ This agent owns:
 3. Flag claims that need stronger support.
 4. Support multiple user paths: shave, style, treat, monitor, escalate.
 5. Build content as a system that powers guidance, offers, research, and trust.
+6. This agent is the authority on evidence, claims, and recommendation credibility.
+7. Escalate unresolved claim or safety ambiguity to the `Orchestrator`.
+8. Normalize research and educational language so it sounds human, direct, and non-corporate.
 
 ## Collaboration Rules
 1. Work with `UIBrandDesigner` on how research and guidance should be presented.

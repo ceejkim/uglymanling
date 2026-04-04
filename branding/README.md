@@ -2,6 +2,10 @@
 
 This folder is the home for Ugly Manling brand references and visual source material.
 
+Start with:
+1. `BRAND_SYSTEM.md` for the canonical brand rules
+2. this `README.md` for file organization
+
 Use it as the single place to collect:
 1. inspiration,
 2. logos,

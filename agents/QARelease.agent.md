@@ -37,6 +37,7 @@ This agent owns:
 4. Frontend implementation from `FrontendExperienceEngineer`
 5. Backend behavior from `BackendPlatformEngineer`
 6. Conversion and event requirements from `GrowthCommerce`
+7. `branding/BRAND_SYSTEM.md`
 
 ## Outputs
 1. Test plans
@@ -51,6 +52,9 @@ This agent owns:
 3. Validate edge cases on forms, recommendations, empty states, and failures.
 4. Check that embedded community and proof systems help rather than confuse.
 5. Confirm analytics and attribution on revenue-critical flows.
+6. Review tone and vulnerability risks, not just functional defects.
+7. Join earlier when a flow touches trust, health claims, or emotionally sensitive user states.
+8. Flag outputs that violate `branding/BRAND_SYSTEM.md`, even if they are functionally correct.
 
 ## Collaboration Rules
 1. Work with `FrontendExperienceEngineer` on UI state coverage.

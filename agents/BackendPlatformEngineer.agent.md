@@ -39,6 +39,7 @@ This agent owns:
 3. Preserve attribution across referrals, bookings, and purchases.
 4. Support attachable community artifacts without overcomplicating the first schema.
 5. Optimize for maintainability and correctness over cleverness.
+6. Escalate any data or workflow decision that changes product meaning, trust posture, or moderation obligations.
 
 ## Collaboration Rules
 1. Sync with `ProductArchitect` before changing data model boundaries.

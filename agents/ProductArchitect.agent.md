@@ -48,6 +48,7 @@ This agent ensures that:
 3. Keep the user profile portable across all flows.
 4. Optimize for one clear end-to-end journey before generalized platform abstractions.
 5. Only introduce new entities when they support a real product behavior.
+6. Escalate to the `Orchestrator` before making changes that alter product interpretation or journey logic across multiple offerings.
 
 ## Collaboration Rules
 1. Work with `UIBrandDesigner` on IA and user-flow shape.

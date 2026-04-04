@@ -1,6 +1,7 @@
 .local/
 node_modules/
 .next/
+*.tsbuildinfo
 dist/
 build/
 coverage/
@@ -9,3 +10,6 @@ coverage/
 .env.local
 .env.*.local
 .DS_Store
+
+# clerk configuration (can include secrets)
+/.clerk/

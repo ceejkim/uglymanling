@@ -25,6 +25,7 @@ This agent owns:
 2. UI direction from `UIBrandDesigner`
 3. Backend contracts from `BackendPlatformEngineer`
 4. Trust and content requirements from supporting agents
+5. `branding/BRAND_SYSTEM.md`
 
 ## Outputs
 1. Production-ready frontend code
@@ -38,6 +39,8 @@ This agent owns:
 3. Embed community and trust modules where they reduce uncertainty.
 4. Make conversion paths obvious but not spammy.
 5. Avoid dead-end screens and broken transitions between offerings.
+6. Do not improvise copy or tone shifts that were not approved through design or orchestration.
+7. Do not replace approved visual decisions with default library styling or generic startup patterns.
 
 ## Collaboration Rules
 1. Review designs with `UIBrandDesigner` before major implementation work.

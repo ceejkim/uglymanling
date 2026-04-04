@@ -2,6 +2,15 @@
 
 This folder defines the core worker architecture for building Ugly Manling.
 
+## Required Read Order
+Before acting, every agent must read:
+1. `/Users/charleskimbell/Rekkoe/VISION.md`
+2. `/Users/charleskimbell/Rekkoe/PRODUCT_ARCHITECTURE.md`
+3. `/Users/charleskimbell/Rekkoe/branding/BRAND_SYSTEM.md`
+4. `/Users/charleskimbell/Rekkoe/agents/OPERATING_SYSTEM.md`
+5. `/Users/charleskimbell/Rekkoe/agents/HANDOFF_TEMPLATE.md`
+6. its own agent file
+
 ## Team Structure
 1. `Orchestrator.agent.md`
 2. `ProductArchitect.agent.md`
@@ -13,27 +22,16 @@ This folder defines the core worker architecture for building Ugly Manling.
 8. `CommunityTrust.agent.md`
 9. `QARelease.agent.md`
 
-## Operating Principle
-Ugly Manling is built offering-first:
-1. Guidance and planning.
-2. Expert access.
-3. Treatment and service access.
-4. Barber and style support.
-5. Commerce.
-6. Research and education.
-
-Community is a horizontal layer across the platform, not a standalone product lane.
-
 ## Coordination Model
-1. The `Orchestrator` owns roadmap sequencing and task routing.
-2. `ProductArchitect` defines system shape and domain boundaries.
-3. `UIBrandDesigner` defines visual language and design direction.
-4. `FrontendExperienceEngineer` implements user-facing flows in code.
-5. `BackendPlatformEngineer` implements services, persistence, and integrations.
-6. `GrowthCommerce` ensures the product can convert and monetize.
-7. `ContentResearchSystems` ensures guidance and recommendations are useful and evidence-backed.
-8. `CommunityTrust` embeds trust, proof, and support across all offerings.
-9. `QARelease` verifies quality, regressions, and release readiness.
+1. The `Orchestrator` is the central control point.
+2. `ProductArchitect` owns system shape and domain boundaries.
+3. `UIBrandDesigner` owns visual language and brand expression in interfaces.
+4. `FrontendExperienceEngineer` owns user-facing implementation.
+5. `BackendPlatformEngineer` owns backend logic, persistence, and integrations.
+6. `GrowthCommerce` owns monetization and conversion logic.
+7. `ContentResearchSystems` owns evidence, claims, and recommendation credibility.
+8. `CommunityTrust` owns trust/community patterns and moderation-aware social UX.
+9. `QARelease` owns quality, risk review, and release readiness.
 
 ## Shared Quality Bar
 Every agent should optimize for:
@@ -42,3 +40,8 @@ Every agent should optimize for:
 3. Strong brand differentiation.
 4. Tight alignment with the Ugly Manling voice.
 5. Shipping the smallest real version before scaling complexity.
+
+## Notes
+1. Governance rules live in `/Users/charleskimbell/Rekkoe/agents/OPERATING_SYSTEM.md`.
+2. Strategic memory lives in `/Users/charleskimbell/Rekkoe/agents/DECISION_LOG.md`.
+3. All major handoffs should use `/Users/charleskimbell/Rekkoe/agents/HANDOFF_TEMPLATE.md`.
