@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 export function FooterCta() {
@@ -5,19 +6,30 @@ export function FooterCta() {
     <section className="section" style={{ paddingBottom: "4rem" }}>
       <div className="page-shell">
         <div className="grain-card footer-panel" style={{ borderRadius: "var(--radius-xl)", padding: "1.6rem", display: "grid", gap: "1rem" }}>
-          <span className="eyebrow" style={{ color: "var(--primary)" }}>
-            Next move
-          </span>
-          <h2 className="footer-title">
-            Start the assessment.
-            <br />
-            Stop free-styling this.
-          </h2>
-          <div className="footer-actions">
-            <Button href="/assessment">Start your assessment</Button>
-            <Button href="/community" variant="secondary">
-              Join our community
-            </Button>
+          <div className="footer-cta-layout">
+            <div style={{ display: "grid", gap: "1rem" }}>
+              <span className="eyebrow">Start here</span>
+              <h2 className="footer-title">Take the assessment. Stop guessing.</h2>
+              <p className="section-copy" style={{ marginTop: 0 }}>
+                For uglymanlings who would rather make a plan than freestyle another bad week.
+              </p>
+              <div className="footer-actions">
+                <Button href="/assessment">Take the assessment</Button>
+                <Button href="/community" variant="secondary">
+                  Join the uglymanlings
+                </Button>
+              </div>
+            </div>
+
+            <div className="footer-duck-seal">
+              <Image
+                src="/brand/mascots/uglymanlings-duck-primary.png"
+                alt="Ugly Manlings duck mascot seal"
+                width={180}
+                height={180}
+                className="footer-duck-image"
+              />
+            </div>
           </div>
         </div>
       </div>

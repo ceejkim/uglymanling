@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -7,39 +8,41 @@ export function Hero() {
       <div className="page-shell">
         <div className="hero-shell">
           <div className="grain-card hero-main">
-            <Badge tone="accent">Hair-loss support ecosystem</Badge>
-            <h1 className="hero-title">Balding? Let&apos;s make a plan.</h1>
-            <p className="hero-copy">
-              Ugly Manling helps you figure out what stage you&apos;re in, what actually helps, and
-              which next move is worth your time. Less panic. Less nonsense. More clarity.
-            </p>
+            <Badge tone="accent">For uglymanlings</Badge>
+            <h1 className="hero-title">Balding? Make one smart move.</h1>
+            <p className="hero-copy">Hair loss help with duck-grade attitude. Clear next steps. No miracle nonsense.</p>
             <div className="hero-actions">
-              <Button href="/assessment">Start your assessment</Button>
+              <Button href="/assessment">Take the assessment</Button>
               <Button href="/community" variant="secondary">
-                Join our community
+                Join the uglymanlings
               </Button>
               <Button href="/contact" variant="ghost">
-                Contact us
+                Ask a question
               </Button>
             </div>
           </div>
 
           <div className="hero-side">
-            <div style={{ display: "grid", gap: "0.75rem" }}>
-              <span className="eyebrow" style={{ color: "var(--primary)" }}>
-                Core value
-              </span>
-              <p style={{ margin: 0, fontSize: "1.06rem", lineHeight: 1.7 }}>
-                Figure out what matters, cut through the fake certainty, and choose the next move
-                that actually fits your life.
-              </p>
+            <div className="hero-duck-frame">
+              <div className="hero-duck-chip">Cute. Angry. Helpful.</div>
+              <Image
+                src="/brand/mascots/uglymanlings-duck-primary.png"
+                alt="Angry but cute Ugly Manlings duck mascot"
+                width={320}
+                height={320}
+                className="hero-duck-image"
+                priority
+              />
+            </div>
+            <div className="hero-side-intro">
+              <span className="eyebrow">Why this works</span>
+              <p className="hero-side-copy">Less guessing. More "okay, I can work with this."</p>
             </div>
 
             <div className="hero-side-grid">
-              <HeroStat title="Clear next steps" body="No vague content soup. Just better decisions." />
-              <HeroStat title="Human tone" body="Useful, direct, and not weirdly inspirational." />
-              <HeroStat title="Real options" body="Treatments, style, products, experts, and community." />
-              <HeroStat title="Trust first" body="Evidence where it matters. Honesty everywhere else." />
+              <HeroStat title="Direct" body="Fewer words. Better ones." />
+              <HeroStat title="Useful" body="Treatment, style, experts." />
+              <HeroStat title="Honest" body="No fake hope tax." />
             </div>
           </div>
         </div>
@@ -52,9 +55,7 @@ function HeroStat({ title, body }: { title: string; body: string }) {
   return (
     <div className="hero-side-card">
       <p style={{ fontWeight: 800, letterSpacing: "-0.03em" }}>{title}</p>
-      <p style={{ marginTop: "0.35rem", color: "rgba(255,255,255,0.76)", fontSize: "0.9rem", lineHeight: 1.55 }}>
-        {body}
-      </p>
+      <p className="hero-side-card-copy">{body}</p>
     </div>
   );
 }

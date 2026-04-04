@@ -2,11 +2,11 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { CommunityBand } from "@/components/homepage/community-band";
 import { ContactPanel } from "@/components/homepage/contact-panel";
 import { FooterCta } from "@/components/homepage/footer-cta";
+import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
 import { HowItWorks } from "@/components/homepage/how-it-works";
 import { IntentRouter } from "@/components/homepage/intent-router";
 import { OfferingsGrid } from "@/components/homepage/offerings-grid";
-import { TrustStrip } from "@/components/homepage/trust-strip";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -14,14 +14,7 @@ export default function HomePage() {
     <main>
       <div className="page-shell">
         <header className="site-header">
-          <div>
-            <p style={{ margin: 0, fontWeight: 900, letterSpacing: "-0.05em", fontSize: "1.22rem" }}>
-              Ugly Manling
-            </p>
-            <p className="muted" style={{ margin: "0.2rem 0 0", fontSize: "0.9rem" }}>
-              Confidence, clarity, and honest next steps for balding men
-            </p>
-          </div>
+          <BrandMark compact />
           <nav>
             <a href="#offerings">Offerings</a>
             <a href="#community">Community</a>
@@ -55,7 +48,6 @@ export default function HomePage() {
       <div id="connect">
         <ContactPanel />
       </div>
-      <TrustStrip />
       <FooterCta />
     </main>
   );

@@ -117,9 +117,17 @@ Accent:
 3. Slight imperfection is acceptable if it feels human and credible.
 
 #### Duck Motif
-1. The duck is subtle and symbolic.
-2. It must never feel childish or cartoonish.
-3. Use it sparingly as a brand signal, not a mascot gimmick.
+1. The duck is now an intentional mascot system for Ugly Manling.
+2. It should feel cute, angry, and oddly reassuring.
+3. Use one primary duck mark repeatedly, and use scene illustrations as support.
+4. The duck should add personality, not turn the product into a cartoon toy.
+5. Keep mascot usage structured, restrained, and integrated with the layout.
+
+#### Mascot System
+1. Primary mascot: single angry duck used in header, hero, footer, and brand marks.
+2. Secondary mascot scenes: mirror, shower, and group-duck illustrations used in community and story moments.
+3. Use duck-derived iconography for community, honesty, self-check, and action cues when custom icons are needed.
+4. Avoid scattering large mascot art in every section.
 
 #### Typography
 1. Use clean sans-serif typography.
