@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { AuthSync } from "@/components/auth/auth-sync";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body>
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
+          <AuthSync />
           {children}
         </ClerkProvider>
       </body>

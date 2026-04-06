@@ -1,19 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
-import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { BarberInteractionSummary } from "@/lib/barber-community";
-import type { BarberCandidate, BarberCitySection } from "@/lib/barber-data";
+import type { BarberCandidate } from "@/lib/barber-data";
 import { formatBarberTag } from "@/lib/barber-data";
 
 type BarberDirectoryInteractiveProps = {
-  topSeedCandidates: BarberCandidate[];
-  citySections: BarberCitySection[];
-  selectedCity: string | null;
-  selectedTag: string | null;
+  barbers: BarberCandidate[];
+  selectedCityLabel: string;
 };
 
 type SummaryMap = Record<string, BarberInteractionSummary>;
@@ -25,24 +22,12 @@ function formatCommentDate(value: string) {
   }).format(new Date(value));
 }
 
-function EmptyState() {
+function EmptyState({ selectedCityLabel }: { selectedCityLabel: string }) {
   return (
-    <div className="barber-cards">
-      <div className="grain-card barber-card">
-        <div className="barber-panel-heading">
-          <span className="eyebrow">No matches yet</span>
-          <h2>Try a broader filter mix</h2>
-        </div>
-        <p className="barber-card-note">
-          No seeded barber profiles matched this city and tag combination yet. Clear one filter and the directory
-          will widen again.
-        </p>
-        <div className="barber-card-actions">
-          <Link href="/style/barbers" className="barber-link-button barber-link-button-primary">
-            Reset filters
-          </Link>
-        </div>
-      </div>
+    <div className="grain-card barber-empty-state">
+      <span className="eyebrow">{selectedCityLabel}</span>
+      <h3>No barbers found for that selection yet.</h3>
+      <p>Try another city for now. We’ll keep tightening the directory as more recommendations come in.</p>
     </div>
   );
 }
@@ -63,7 +48,7 @@ function CommentComposer({
   if (!signedIn) {
     return (
       <div className="barber-comment-cta">
-        <p>Sign in to leave the first real note on this barber.</p>
+        <p>Sign in to leave a note for the next guy.</p>
         <Button href="/sign-in" variant="secondary">
           Sign in to comment
         </Button>
@@ -77,7 +62,6 @@ function CommentComposer({
       onSubmit={(event) => {
         event.preventDefault();
         setError(null);
-
         const trimmedBody = body.trim();
 
         if (trimmedBody.length < 10) {
@@ -105,7 +89,7 @@ function CommentComposer({
         maxLength={400}
         value={body}
         onChange={(event) => setBody(event.target.value)}
-        placeholder="Did this barber handle thinning hair well, give honest direction, or help you feel more put together?"
+        placeholder="What did this barber do well? Did he help with a tricky hairline, beard shape, or a cleaner reset?"
       />
       <div className="barber-comment-form-footer">
         <span>{body.length}/400</span>
@@ -134,31 +118,23 @@ function BarberCard({
   const [isVoting, startVoteTransition] = useTransition();
 
   return (
-    <div className="grain-card barber-card">
+    <article className="grain-card barber-card">
       <div className="barber-card-top">
         <div>
-          <span className="eyebrow">
-            #{barber.rank} overall · {barber.city}
-          </span>
+          <span className="eyebrow">{barber.city}</span>
           <h3>{barber.barberName}</h3>
           <p>
             {barber.shopName} · {barber.neighborhood}
           </p>
         </div>
         <div className="barber-score-pill">
-          <strong>{barber.confidenceScore}/5</strong>
-          <span>confidence</span>
+          <strong>{summary?.score ?? 0}</strong>
+          <span>score</span>
         </div>
       </div>
 
-      <div className="barber-meta-row">
-        <span>{barber.priceTier}</span>
-        <span>{barber.sourceCount} sources</span>
-        <span>{barber.shopAddress}</span>
-      </div>
-
       <div className="barber-filter-row">
-        {barber.recommendedTags.slice(0, 6).map((tag) => (
+        {barber.recommendedTags.slice(0, 4).map((tag) => (
           <Badge key={tag} tone="accent">
             {formatBarberTag(tag)}
           </Badge>
@@ -169,26 +145,6 @@ function BarberCard({
 
       <div className="barber-card-copy">
         <p>{barber.evidenceSummary}</p>
-        <p>{barber.reviewSignalSummary}</p>
-      </div>
-
-      <div className="barber-interaction-summary">
-        <div className="barber-interaction-stat">
-          <strong>{summary?.score ?? 0}</strong>
-          <span>score</span>
-        </div>
-        <div className="barber-interaction-stat">
-          <strong>{summary?.upvotes ?? 0}</strong>
-          <span>upvotes</span>
-        </div>
-        <div className="barber-interaction-stat">
-          <strong>{summary?.downvotes ?? 0}</strong>
-          <span>downvotes</span>
-        </div>
-        <div className="barber-interaction-stat">
-          <strong>{summary?.commentCount ?? 0}</strong>
-          <span>comments</span>
-        </div>
       </div>
 
       <div className="barber-card-actions">
@@ -211,7 +167,7 @@ function BarberCard({
                 })
               }
             >
-              {isVoting && summary?.currentUserVote !== 1 ? "Saving..." : "Upvote"}
+              Upvote
             </button>
             <button
               type="button"
@@ -223,7 +179,7 @@ function BarberCard({
                 })
               }
             >
-              {isVoting && summary?.currentUserVote !== -1 ? "Saving..." : "Downvote"}
+              Downvote
             </button>
           </>
         ) : (
@@ -231,6 +187,21 @@ function BarberCard({
             Sign in to vote
           </Button>
         )}
+      </div>
+
+      <div className="barber-interaction-summary">
+        <div className="barber-interaction-stat">
+          <strong>{summary?.upvotes ?? 0}</strong>
+          <span>upvotes</span>
+        </div>
+        <div className="barber-interaction-stat">
+          <strong>{summary?.downvotes ?? 0}</strong>
+          <span>downvotes</span>
+        </div>
+        <div className="barber-interaction-stat">
+          <strong>{summary?.commentCount ?? 0}</strong>
+          <span>comments</span>
+        </div>
       </div>
 
       <div className="barber-comments-section">
@@ -241,7 +212,7 @@ function BarberCard({
 
         {summary && summary.comments.length > 0 ? (
           <div className="barber-comment-stack">
-            {summary.comments.slice(0, 3).map((comment) => (
+            {summary.comments.slice(0, 2).map((comment) => (
               <div key={comment.id} className="barber-comment">
                 <strong>{comment.authorLabel}</strong>
                 <span>{formatCommentDate(comment.createdAt)}</span>
@@ -250,21 +221,16 @@ function BarberCard({
             ))}
           </div>
         ) : (
-          <p className="barber-empty-comments">No community notes yet. The first trusted write-up matters here.</p>
+          <p className="barber-empty-comments">No notes yet. The first useful review here matters.</p>
         )}
 
         <CommentComposer barber={barber} signedIn={signedIn} onComment={onComment} />
       </div>
-    </div>
+    </article>
   );
 }
 
-export function BarberDirectoryInteractive({
-  topSeedCandidates,
-  citySections,
-  selectedCity,
-  selectedTag
-}: BarberDirectoryInteractiveProps) {
+export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: BarberDirectoryInteractiveProps) {
   const { isSignedIn } = useUser();
   const [summaries, setSummaries] = useState<SummaryMap>({});
   const [error, setError] = useState<string | null>(null);
@@ -284,9 +250,7 @@ export function BarberDirectoryInteractive({
           return;
         }
 
-        setSummaries(
-          Object.fromEntries(payload.summaries.map((summary) => [summary.barberId, summary])) satisfies SummaryMap
-        );
+        setSummaries(Object.fromEntries(payload.summaries.map((summary) => [summary.barberId, summary])));
       })
       .catch((nextError) => {
         if (isActive) {
@@ -299,17 +263,10 @@ export function BarberDirectoryInteractive({
     };
   }, []);
 
-  const visibleBarbers = useMemo(
-    () => citySections.flatMap((citySection) => citySection.candidates),
-    [citySections]
-  );
-
   async function mutateInteraction(input: { type: "vote"; barberId: string; value: -1 | 1 } | { type: "comment"; barberId: string; body: string }) {
     const response = await fetch("/api/barbers/interactions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input)
     });
 
@@ -319,95 +276,33 @@ export function BarberDirectoryInteractive({
       throw new Error(payload.error ?? "Could not save interaction.");
     }
 
+    const nextSummary = payload.summary;
+
     setSummaries((current) => ({
       ...current,
-      [payload.summary!.barberId]: payload.summary!
+      [nextSummary.barberId]: nextSummary
     }));
+  }
+
+  if (barbers.length === 0) {
+    return <EmptyState selectedCityLabel={selectedCityLabel} />;
   }
 
   return (
     <>
       {error ? <p className="barber-interaction-error">{error}</p> : null}
-
-      <div className="barber-cards">
-        {topSeedCandidates.length > 0 ? (
-          topSeedCandidates.map((barber) => (
-            <BarberCard
-              key={`${barber.city}-${barber.barberName}`}
-              barber={barber}
-              summary={summaries[barber.id]}
-              signedIn={Boolean(isSignedIn)}
-              onVote={(barberId, value) => mutateInteraction({ type: "vote", barberId, value })}
-              onComment={(barberId, body) => mutateInteraction({ type: "comment", barberId, body })}
-            />
-          ))
-        ) : (
-          <EmptyState />
-        )}
-      </div>
-
-      {visibleBarbers.length > 0 ? (
-        <section className="barber-city-sections">
-          {citySections.map((city) => (
-            <div key={city.city} className="grain-card barber-city-card">
-              <div className="barber-city-header">
-                <div>
-                  <span className="eyebrow">{city.city}</span>
-                  <h2>
-                    {city.candidates.length} matching barbers shown · {city.actualCount} seeded out of {city.targetCount} target
-                  </h2>
-                </div>
-                <div className="barber-city-meta">
-                  <span>{city.state}</span>
-                  <span>{city.manualReviewFlags.length} flagged for review</span>
-                </div>
-              </div>
-
-              <p className="barber-city-summary">{city.marketSummary}</p>
-
-              <div className="barber-filter-row">
-                {city.topCandidateNames.map((candidateName) => (
-                  <Badge key={candidateName}>{candidateName}</Badge>
-                ))}
-              </div>
-
-              <div className="barber-city-list">
-                {city.candidates.map((barber) => {
-                  const summary = summaries[barber.id];
-
-                  return (
-                    <div key={`${city.city}-${barber.barberName}`} className="barber-city-row">
-                      <div className="barber-city-row-main">
-                        <strong>
-                          #{barber.rank} {barber.barberName}
-                        </strong>
-                        <p>
-                          {barber.shopName} · {barber.neighborhood}
-                        </p>
-                      </div>
-                      <div className="barber-city-row-aside">
-                        <span>{barber.confidenceScore}/5 confidence</span>
-                        <span>{barber.sourceCount} sources</span>
-                        <span>{summary?.score ?? 0} score</span>
-                        <span>{summary?.commentCount ?? 0} comments</span>
-                      </div>
-                      <div className="barber-city-row-tags">
-                        {barber.recommendedTags.slice(0, 4).map((tag) => (
-                          <Badge key={tag} tone="accent">
-                            {formatBarberTag(tag)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </section>
-      ) : selectedCity || selectedTag ? (
-        <section className="barber-city-sections" />
-      ) : null}
+      <section className="barber-results-grid">
+        {barbers.map((barber) => (
+          <BarberCard
+            key={barber.id}
+            barber={barber}
+            summary={summaries[barber.id]}
+            signedIn={Boolean(isSignedIn)}
+            onVote={(barberId, value) => mutateInteraction({ type: "vote", barberId, value })}
+            onComment={(barberId, body) => mutateInteraction({ type: "comment", barberId, body })}
+          />
+        ))}
+      </section>
     </>
   );
 }

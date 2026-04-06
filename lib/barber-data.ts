@@ -230,6 +230,7 @@ export function filterBarberDirectory({
     selectedCity: normalizedCity,
     selectedTag: normalizedTag,
     citySections: filteredCities,
+    featuredBarbers: filteredCities.flatMap((citySection) => citySection.candidates),
     topSeedCandidates: filteredTopSeedCandidates,
     resultCount: filteredCities.reduce((total, citySection) => total + citySection.candidates.length, 0)
   };

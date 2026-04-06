@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
 type Option = {
@@ -185,10 +186,12 @@ function OptionGroup({
 }
 
 export function AssessmentWorkbench() {
+  const { isSignedIn } = useAuth();
   const [stage, setStage] = useState(stageOptions[1].value);
   const [goal, setGoal] = useState(goalOptions[0].value);
   const [budget, setBudget] = useState(budgetOptions[1].value);
   const [urgency, setUrgency] = useState(urgencyOptions[1].value);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const lane = useMemo(
     () =>
@@ -200,6 +203,34 @@ export function AssessmentWorkbench() {
       }),
     [budget, goal, stage, urgency]
   );
+
+  async function handleSave() {
+    if (!isSignedIn) {
+      setSaveState("error");
+      return;
+    }
+
+    setSaveState("saving");
+
+    const response = await fetch("/api/assessment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        stage,
+        goal,
+        budget,
+        urgency,
+        laneTitle: lane.title,
+        laneSummary: lane.summary,
+        laneBadge: lane.badge,
+        laneChecklist: lane.checklist
+      })
+    });
+
+    setSaveState(response.ok ? "saved" : "error");
+  }
 
   return (
     <div className="assessment-shell">
@@ -267,6 +298,31 @@ export function AssessmentWorkbench() {
             ))}
           </div>
           <div className="assessment-actions">
+            <button
+              type="button"
+              onClick={() => void handleSave()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: "3rem",
+                padding: "0.8rem 1.15rem",
+                border: "1px solid var(--primary-deep)",
+                borderRadius: "var(--radius-pill)",
+                background: "var(--primary)",
+                color: "var(--ink-strong)",
+                fontSize: "0.94rem",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                cursor: "pointer"
+              }}
+            >
+              {saveState === "saving"
+                ? "Saving..."
+                : isSignedIn
+                  ? "Save assessment"
+                  : "Sign in to save"}
+            </button>
             <Button href="/consult" variant="secondary">
               Talk it through with an expert
             </Button>
@@ -277,6 +333,11 @@ export function AssessmentWorkbench() {
               See how other men handled it
             </Button>
           </div>
+          <p style={{ marginTop: "0.75rem", fontSize: "0.9rem", opacity: 0.8 }}>
+            {saveState === "saved" && "Saved to your profile."}
+            {saveState === "error" &&
+              (isSignedIn ? "Save failed. Recheck Supabase table setup." : "Please sign in first.")}
+          </p>
         </aside>
       </section>
 
