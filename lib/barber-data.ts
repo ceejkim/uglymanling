@@ -50,6 +50,7 @@ type RawBarberDataset = {
 };
 
 export type BarberCandidate = {
+  id: string;
   rank: number;
   barberName: string;
   city: string;
@@ -112,6 +113,7 @@ function normalizePriceTier(priceTier: string | null) {
 
 function normalizeCandidate(candidate: RawBarberCandidate): BarberCandidate {
   return {
+    id: slugify(`${candidate.city}-${candidate.barber_name}`),
     rank: candidate.rank,
     barberName: candidate.barber_name,
     city: candidate.city,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -197,6 +198,18 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
                 ))}
               </div>
             </Card>
+
+            <Card className="barber-panel">
+              <div className="barber-panel-heading">
+                <span className="eyebrow">Data gaps</span>
+                <h2>What improves next</h2>
+              </div>
+              <div className="barber-notes-list">
+                {barberData.remainingDataGaps.map((gap) => (
+                  <p key={gap}>{gap}</p>
+                ))}
+              </div>
+            </Card>
           </aside>
 
           <section className="barber-results">
@@ -211,143 +224,15 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
                   : "These are the strongest initial candidates across the seeded cities, selected from the dataset’s cross-city shortlist."}
               </p>
             </Card>
-
-            <div className="barber-cards">
-              {filteredDirectory.topSeedCandidates.length > 0 ? (
-                filteredDirectory.topSeedCandidates.map((barber) => (
-                  <Card key={`${barber.city}-${barber.barberName}`} className="barber-card">
-                    <div className="barber-card-top">
-                      <div>
-                        <span className="eyebrow">
-                          #{barber.rank} overall · {barber.city}
-                        </span>
-                        <h3>{barber.barberName}</h3>
-                        <p>
-                          {barber.shopName} · {barber.neighborhood}
-                        </p>
-                      </div>
-                      <div className="barber-score-pill">
-                        <strong>{barber.confidenceScore}/5</strong>
-                        <span>confidence</span>
-                      </div>
-                    </div>
-
-                    <div className="barber-meta-row">
-                      <span>{barber.priceTier}</span>
-                      <span>{barber.sourceCount} sources</span>
-                      <span>{barber.shopAddress}</span>
-                    </div>
-
-                    <div className="barber-filter-row">
-                      {barber.recommendedTags.slice(0, 6).map((tag) => (
-                        <Badge key={tag} tone="accent">
-                          {formatBarberTag(tag)}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    <p className="barber-card-note">{barber.rankingNotes}</p>
-
-                    <div className="barber-card-copy">
-                      <p>{barber.evidenceSummary}</p>
-                      <p>{barber.reviewSignalSummary}</p>
-                    </div>
-
-                    <div className="barber-card-actions">
-                      {barber.primaryBookingUrl ? (
-                        <a
-                          className="barber-link-button barber-link-button-primary"
-                          href={barber.primaryBookingUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          View booking profile
-                        </a>
-                      ) : (
-                        <span className="barber-link-button barber-link-button-muted">Booking link pending</span>
-                      )}
-                      <Button href="/sign-in" variant="ghost">
-                        Upvote
-                      </Button>
-                      <Button href="/sign-in" variant="secondary">
-                        Leave comment
-                      </Button>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <Card className="barber-card">
-                  <div className="barber-panel-heading">
-                    <span className="eyebrow">No matches yet</span>
-                    <h2>Try a broader filter mix</h2>
-                  </div>
-                  <p className="barber-card-note">
-                    No seeded barber profiles matched this city and tag combination yet. Clear one filter and the
-                    directory will widen again.
-                  </p>
-                  <div className="barber-card-actions">
-                    <Link href="/style/barbers" className="barber-link-button barber-link-button-primary">
-                      Reset filters
-                    </Link>
-                  </div>
-                </Card>
-              )}
-            </div>
           </section>
         </section>
 
-        <section className="barber-city-sections">
-          {filteredDirectory.citySections.map((city) => (
-            <Card key={city.city} className="barber-city-card">
-              <div className="barber-city-header">
-                <div>
-                  <span className="eyebrow">{city.city}</span>
-                  <h2>
-                    {city.candidates.length} matching barbers shown · {city.actualCount} seeded out of {city.targetCount} target
-                  </h2>
-                </div>
-                <div className="barber-city-meta">
-                  <span>{city.state}</span>
-                  <span>{city.manualReviewFlags.length} flagged for review</span>
-                </div>
-              </div>
-
-              <p className="barber-city-summary">{city.marketSummary}</p>
-
-              <div className="barber-filter-row">
-                {city.topCandidateNames.map((candidateName) => (
-                  <Badge key={candidateName}>{candidateName}</Badge>
-                ))}
-              </div>
-
-              <div className="barber-city-list">
-                {city.candidates.map((barber) => (
-                  <div key={`${city.city}-${barber.barberName}`} className="barber-city-row">
-                    <div className="barber-city-row-main">
-                      <strong>
-                        #{barber.rank} {barber.barberName}
-                      </strong>
-                      <p>
-                        {barber.shopName} · {barber.neighborhood}
-                      </p>
-                    </div>
-                    <div className="barber-city-row-aside">
-                      <span>{barber.confidenceScore}/5 confidence</span>
-                      <span>{barber.sourceCount} sources</span>
-                    </div>
-                    <div className="barber-city-row-tags">
-                      {barber.recommendedTags.slice(0, 4).map((tag) => (
-                        <Badge key={tag} tone="accent">
-                          {formatBarberTag(tag)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ))}
-        </section>
+        <BarberDirectoryInteractive
+          topSeedCandidates={filteredDirectory.topSeedCandidates}
+          citySections={filteredDirectory.citySections}
+          selectedCity={filteredDirectory.selectedCity}
+          selectedTag={filteredDirectory.selectedTag}
+        />
       </div>
     </main>
   );

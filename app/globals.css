@@ -541,6 +541,126 @@ main {
   color: #fff;
 }
 
+.barber-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.8rem 1.15rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font-size: 0.94rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+}
+
+.barber-action-button.is-active,
+.barber-action-button-primary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+.barber-action-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.barber-interaction-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.barber-interaction-stat {
+  padding: 0.85rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.barber-interaction-stat strong {
+  display: block;
+  font-size: 1.15rem;
+  letter-spacing: -0.04em;
+  color: var(--ink-strong);
+}
+
+.barber-interaction-stat span,
+.barber-comments-header span,
+.barber-comment-form-footer span,
+.barber-comment span {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--blue);
+}
+
+.barber-comments-section,
+.barber-comment-form,
+.barber-comment-cta {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.barber-comments-section {
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--line);
+}
+
+.barber-comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.barber-comment strong {
+  display: inline-flex;
+  margin-right: 0.55rem;
+}
+
+.barber-comment-label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ink-strong);
+}
+
+.barber-comment-textarea {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink-strong);
+  font: inherit;
+  resize: vertical;
+}
+
+.barber-comment-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.barber-empty-comments,
+.barber-comment-cta p,
+.barber-interaction-error {
+  margin: 0;
+  color: var(--muted);
+}
+
+.barber-interaction-error {
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(217, 81, 63, 0.24);
+  border-radius: 1rem;
+  background: rgba(255, 244, 184, 0.56);
+}
+
 .barber-city-card {
   display: grid;
   gap: 1rem;
@@ -639,7 +759,8 @@ main {
   .barber-wireframe-grid,
   .barber-community-card,
   .barber-results-header,
-  .barber-city-row {
+  .barber-city-row,
+  .barber-interaction-summary {
     grid-template-columns: 1fr;
   }
 }
