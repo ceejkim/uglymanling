@@ -95,6 +95,13 @@ type BarberDataset = {
 
 const dataset = rawBarberDatabase as RawBarberDataset;
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function normalizePriceTier(priceTier: string | null) {
   if (!priceTier) {
     return "unconfirmed";
@@ -164,4 +171,64 @@ export function formatBarberTag(tag: string) {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+export function getCitySlug(city: string) {
+  return slugify(city);
+}
+
+export function getTagSlug(tag: string) {
+  return slugify(tag);
+}
+
+export const barberDirectoryCities = barberData.cities.map((city) => ({
+  label: city.city,
+  value: getCitySlug(city.city)
+}));
+
+export const barberDirectoryTags = Array.from(
+  new Set(barberData.cities.flatMap((city) => city.candidates.flatMap((candidate) => candidate.recommendedTags)))
+)
+  .sort((left, right) => left.localeCompare(right))
+  .map((tag) => ({
+    label: formatBarberTag(tag),
+    value: getTagSlug(tag),
+    raw: tag
+  }));
+
+export function filterBarberDirectory({
+  city,
+  tag
+}: {
+  city?: string;
+  tag?: string;
+}) {
+  const normalizedCity = city ? getCitySlug(city) : null;
+  const normalizedTag = tag ? getTagSlug(tag) : null;
+
+  const filteredCities = barberData.cities
+    .filter((citySection) => !normalizedCity || getCitySlug(citySection.city) === normalizedCity)
+    .map((citySection) => ({
+      ...citySection,
+      candidates: citySection.candidates.filter(
+        (candidate) => !normalizedTag || candidate.recommendedTags.some((candidateTag) => getTagSlug(candidateTag) === normalizedTag)
+      )
+    }))
+    .filter((citySection) => citySection.candidates.length > 0);
+
+  const filteredTopSeedCandidates = barberData.topSeedCandidates.filter((candidate) => {
+    const cityMatch = !normalizedCity || getCitySlug(candidate.city) === normalizedCity;
+    const tagMatch =
+      !normalizedTag || candidate.recommendedTags.some((candidateTag) => getTagSlug(candidateTag) === normalizedTag);
+
+    return cityMatch && tagMatch;
+  });
+
+  return {
+    selectedCity: normalizedCity,
+    selectedTag: normalizedTag,
+    citySections: filteredCities,
+    topSeedCandidates: filteredTopSeedCandidates,
+    resultCount: filteredCities.reduce((total, citySection) => total + citySection.candidates.length, 0)
+  };
 }

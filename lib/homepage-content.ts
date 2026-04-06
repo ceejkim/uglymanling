@@ -1,7 +1,7 @@
 export const quickPaths = [
   { label: "Need a plan", href: "/assessment", note: "Start here. Breathe once." },
   { label: "Need treatment", href: "/assessment#treatments", note: "See what works." },
-  { label: "Need a haircut", href: "/assessment#style", note: "Yes, it matters." },
+  { label: "Need a haircut", href: "/style/barbers", note: "Find a barber who gets it." },
   { label: "Need a human", href: "/consult", note: "Talk to someone real." }
 ] as const;
 
@@ -23,8 +23,8 @@ export const offerings = [
   {
     title: "Style",
     body: "Look better fast.",
-    cta: "Find my style",
-    href: "/assessment#style",
+    cta: "Browse barber directory",
+    href: "/style/barbers",
     proof: "No panic haircut required."
   }
 ] as const;

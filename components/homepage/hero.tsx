@@ -13,8 +13,8 @@ export function Hero() {
             <p className="hero-copy">Hair loss help with duck-grade attitude. Clear next steps. No miracle nonsense.</p>
             <div className="hero-actions">
               <Button href="/assessment">Take the assessment</Button>
-              <Button href="/community" variant="secondary">
-                Join the uglymanlings
+              <Button href="/style/barbers" variant="secondary">
+                Find a barber
               </Button>
               <Button href="/contact" variant="ghost">
                 Ask a question

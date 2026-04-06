@@ -384,6 +384,12 @@ main {
   gap: 1rem;
 }
 
+.barber-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
 .barber-panel-heading,
 .barber-results-header,
 .barber-community-copy {
@@ -514,6 +520,25 @@ main {
   background: transparent;
   color: var(--muted);
   border-color: var(--line);
+}
+
+.barber-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.6rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.barber-filter-pill.is-active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
 }
 
 .barber-city-card {

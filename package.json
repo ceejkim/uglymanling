@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit -p tsconfig.lint.json"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.8",
