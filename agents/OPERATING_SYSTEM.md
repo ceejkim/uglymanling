@@ -139,6 +139,18 @@ Agents must escalate to the `Orchestrator` when work involves:
 7. conflicting guidance from two or more agents,
 8. naming or brand identity inconsistency.
 
+## Security And Environment Rules
+All agents must treat environment and secret handling as part of product trust.
+
+Rules:
+1. Never commit `.env.local`, `.env.*.local`, or any file containing live secrets.
+2. Store local runtime secrets in local env files, not shell startup files such as `~/.zshrc`.
+3. Keep committed env documentation in `.env.example` with placeholders only.
+4. When adding a new integration, update the example env contract and document the required keys clearly.
+5. If an agent encounters a secret in tracked files, shell startup files, or public client code unexpectedly, escalate to the `Orchestrator` before proceeding.
+6. `BackendPlatformEngineer` owns integration env wiring, but `QARelease` must verify env hygiene before release-bound changes are accepted.
+7. `Orchestrator` must treat secret exposure, misconfigured env files, and accidental credential sprawl as release blockers.
+
 ## Review Requirements
 The following reviews are mandatory:
 1. `ContentResearchSystems` must review treatment, evidence, and recommendation claims.
@@ -147,6 +159,7 @@ The following reviews are mandatory:
 4. `GrowthCommerce` must review monetized flows and CTA strategy.
 5. `QARelease` must review release-bound experiences, especially where trust, money, or user vulnerability is involved.
 6. `UIBrandDesigner` and the `Orchestrator` must reject outputs that violate `branding/BRAND_SYSTEM.md`.
+7. `QARelease` must flag secret leakage, missing env documentation, or shell-level secret usage that should live in project env files.
 
 ## Parallel Work Rules
 Parallel work is allowed only when:

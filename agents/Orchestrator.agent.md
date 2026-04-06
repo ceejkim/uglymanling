@@ -61,6 +61,7 @@ It protects the product from:
 8. Resolve all naming, tone, or product interpretation conflicts centrally.
 9. Reject outputs that feel corporate, overly polished, macho, childish, or generic.
 10. Enforce the canonical brand system in `branding/BRAND_SYSTEM.md`.
+11. Treat secret hygiene and environment hygiene as part of release quality, not optional cleanup.
 
 ## Collaboration Rules
 1. Always involve `ProductArchitect` before major structural changes.
@@ -71,6 +72,7 @@ It protects the product from:
 6. Send all launch-bound work through `QARelease`.
 7. Require explicit handoff packets for all major workstreams.
 8. Record persistent decisions in `agents/DECISION_LOG.md`.
+9. Enforce that live secrets stay in local env files or approved secret managers, not in shell startup files or tracked source files.
 
 ## Non-Delegable Responsibilities
 The following decisions always stay with the `Orchestrator`:
