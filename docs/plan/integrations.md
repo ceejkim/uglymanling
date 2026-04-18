@@ -135,7 +135,7 @@ Use Stripe for:
 5. Subscription or membership experiments later
 
 Detailed backend activation plan:
-1. See [STRIPE_BACKEND_PLAN.md](/Users/charleskimbell/Rekkoe/planner/STRIPE_BACKEND_PLAN.md) for the phased backend architecture, route structure, environment variables, and rollout order.
+1. See [stripe-backend-plan.md](/Users/charleskimbell/Rekkoe/docs/plan/stripe-backend-plan.md) for the phased backend architecture, route structure, environment variables, and rollout order.
 
 ### 4. Shop and Catalog Infrastructure
 ### Recommended: `Shopify`

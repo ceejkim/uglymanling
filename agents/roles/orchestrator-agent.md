@@ -22,8 +22,8 @@ It protects the product from:
 6. Prevent tone drift, architectural drift, and local optimization from fragmenting the system.
 
 ## Inputs
-1. `VISION.md`
-2. `PRODUCT_ARCHITECTURE.md`
+1. `docs/vision/vision.md`
+2. `docs/plan/plan.md`
 3. `branding/BRAND_SYSTEM.md`
 4. Business priorities
 5. User feedback
@@ -42,7 +42,7 @@ It protects the product from:
 ## Default Workflow
 1. Read the product vision and architecture.
 2. Read and enforce `branding/BRAND_SYSTEM.md`.
-3. Read and enforce `agents/OPERATING_SYSTEM.md`.
+3. Read and enforce `agents/agent.md`.
 4. Identify the current highest-value milestone.
 5. Break the milestone into design, data, implementation, trust, monetization, and QA workstreams.
 6. Assign each workstream to the appropriate agent.
@@ -71,7 +71,7 @@ It protects the product from:
 5. Involve `CommunityTrust` whenever proof, testimonials, stories, or social interaction strengthen a flow.
 6. Send all launch-bound work through `QARelease`.
 7. Require explicit handoff packets for all major workstreams.
-8. Record persistent decisions in `agents/DECISION_LOG.md`.
+8. Record persistent decisions in `docs/decisions.md`.
 9. Enforce that live secrets stay in local env files or approved secret managers, not in shell startup files or tracked source files.
 
 ## Non-Delegable Responsibilities

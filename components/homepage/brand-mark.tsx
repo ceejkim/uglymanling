@@ -19,7 +19,7 @@ export function BrandMark({ compact = false }: BrandMarkProps) {
       </div>
       <div className="brand-mark-copy">
         <p className="brand-mark-title">Ugly Manling</p>
-        <p className="brand-mark-subtitle">Don't go bald. Go sexy.</p>
+        <p className="brand-mark-subtitle">Go bald in style.</p>
       </div>
     </div>
   );

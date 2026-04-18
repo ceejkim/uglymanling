@@ -10,21 +10,18 @@ export function Hero() {
         <div className="hero-shell">
           <div className="grain-card hero-main">
             <Badge tone="accent">For uglymanlings</Badge>
-            <h1 className="hero-title">If you're going bald, do it hot.</h1>
-            <p className="hero-copy">Join the flock for style, support, and smarter next steps.</p>
+            <h1 className="hero-title">Find the best barbers for balding near you.</h1>
+            <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
             <div className="hero-actions">
               <Button href="/style/barbers" variant="secondary">
                 Find a barber
-              </Button>
-              <Button href="/community" variant="ghost">
-                Join our flock
               </Button>
             </div>
           </div>
 
           <div className="hero-side">
             <div className="hero-duck-frame">
-              <div className="hero-duck-chip">Sass is not just for men with hair.</div>
+              <div className="hero-duck-chip">Balding is a choice.</div>
               <Image
                 src="/brand/mascots/uglymanlings-duck-primary.png"
                 alt="Angry but cute Ugly Manlings duck mascot"
@@ -36,23 +33,24 @@ export function Hero() {
             </div>
             <div className="hero-side-intro">
               <span className="eyebrow">Join our flock</span>
-              <p className="hero-side-copy">What you get when you stop freestyling it.</p>
+              <p className="hero-side-copy">Stop freestyling it.</p>
             </div>
 
             <div className="hero-side-grid">
               <HeroStat
                 title="Find your barber"
-                body="Find barbers who know thinning hair, maintenance cuts, and confidence-first style."
-                href="/style/barbers"
+                body="Find battle-tested barbers who get balding."
+                href="/community"
+                cta="Join here"
               />
               <HeroStat
                 title="Vetted style bank"
-                body="Looks mapped to Norwood stage, head shape, density, and vibe."
+                body="Norwood-aligned looks."
                 badge="Coming soon"
               />
               <HeroStat
                 title="Direct expert access"
-                body="Get blunt guidance from vetted uglymanling experts when you need it."
+                body="Expert insights to help you look your best."
                 badge="Coming soon"
               />
             </div>
@@ -67,24 +65,31 @@ function HeroStat({
   title,
   body,
   badge,
-  href
+  href,
+  cta
 }: {
   title: string;
   body: string;
   badge?: string;
   href?: string;
+  cta?: string;
 }) {
   const content = (
-    <>
+    <div style={{ display: "grid", gap: "0.8rem" }}>
       <div className="hero-side-card-top">
         <p style={{ fontWeight: 800, letterSpacing: "-0.03em" }}>{title}</p>
         {badge ? <span className="hero-side-card-badge">{badge}</span> : null}
       </div>
       <p className="hero-side-card-copy">{body}</p>
-    </>
+      {href && cta ? (
+        <div>
+          <Button href={href}>{cta}</Button>
+        </div>
+      ) : null}
+    </div>
   );
 
-  if (href) {
+  if (href && !cta) {
     return (
       <Link href={href} className="hero-side-card hero-side-card-link">
         {content}

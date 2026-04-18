@@ -12,11 +12,6 @@ export default function HomePage() {
       <div className="page-shell">
         <header className="site-header">
           <BrandMark compact />
-          <nav>
-            <a href="#vision">Offerings</a>
-            <a href="#community">Community</a>
-            <a href="#connect">Connect</a>
-          </nav>
           <div className="site-header-actions">
             <Show when="signed-out">
               <Button href="/sign-in" variant="ghost">

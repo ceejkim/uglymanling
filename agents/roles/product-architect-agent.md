@@ -29,8 +29,8 @@ This agent ensures that:
 8. Shared profile, analytics, and community attachment points
 
 ## Inputs
-1. `VISION.md`
-2. `PRODUCT_ARCHITECTURE.md`
+1. `docs/vision/vision.md`
+2. `docs/plan/plan.md`
 3. Product requirements from `Orchestrator`
 4. UX proposals from `UIBrandDesigner`
 5. Technical constraints from `BackendPlatformEngineer`
