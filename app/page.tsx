@@ -1,12 +1,9 @@
 import { Show, UserButton } from "@clerk/nextjs";
+import { ComingSoon } from "@/components/homepage/coming-soon";
 import { CommunityBand } from "@/components/homepage/community-band";
-import { ContactPanel } from "@/components/homepage/contact-panel";
-import { FooterCta } from "@/components/homepage/footer-cta";
 import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
-import { HowItWorks } from "@/components/homepage/how-it-works";
-import { IntentRouter } from "@/components/homepage/intent-router";
-import { OfferingsGrid } from "@/components/homepage/offerings-grid";
+import { ProductVision } from "@/components/homepage/product-vision";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -16,7 +13,7 @@ export default function HomePage() {
         <header className="site-header">
           <BrandMark compact />
           <nav>
-            <a href="#offerings">Offerings</a>
+            <a href="#vision">Offerings</a>
             <a href="#community">Community</a>
             <a href="#connect">Connect</a>
           </nav>
@@ -37,18 +34,15 @@ export default function HomePage() {
       </div>
 
       <Hero />
-      <IntentRouter />
-      <div id="offerings">
-        <OfferingsGrid />
+      <div id="vision">
+        <ProductVision />
       </div>
       <div id="community">
         <CommunityBand />
       </div>
-      <HowItWorks />
       <div id="connect">
-        <ContactPanel />
+        <ComingSoon />
       </div>
-      <FooterCta />
     </main>
   );
 }

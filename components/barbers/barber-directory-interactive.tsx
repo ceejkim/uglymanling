@@ -118,115 +118,127 @@ function BarberCard({
   const [isVoting, startVoteTransition] = useTransition();
 
   return (
-    <article className="grain-card barber-card">
-      <div className="barber-card-top">
-        <div>
-          <span className="eyebrow">{barber.city}</span>
-          <h3>{barber.barberName}</h3>
-          <p>
-            {barber.shopName} · {barber.neighborhood}
-          </p>
-        </div>
-        <div className="barber-score-pill">
-          <strong>{summary?.score ?? 0}</strong>
-          <span>score</span>
-        </div>
-      </div>
-
-      <div className="barber-filter-row">
-        {barber.recommendedTags.slice(0, 4).map((tag) => (
-          <Badge key={tag} tone="accent">
-            {formatBarberTag(tag)}
-          </Badge>
-        ))}
-      </div>
-
-      <p className="barber-card-note">{barber.rankingNotes}</p>
-
-      <div className="barber-card-copy">
-        <p>{barber.evidenceSummary}</p>
-      </div>
-
-      <div className="barber-card-actions">
-        {barber.primaryBookingUrl ? (
-          <a className="barber-link-button barber-link-button-primary" href={barber.primaryBookingUrl} target="_blank" rel="noreferrer">
-            View booking profile
-          </a>
-        ) : (
-          <span className="barber-link-button barber-link-button-muted">Booking link pending</span>
-        )}
-        {signedIn ? (
-          <>
-            <button
-              type="button"
-              className={`barber-action-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
-              disabled={isVoting}
-              onClick={() =>
-                startVoteTransition(async () => {
-                  await onVote(barber.id, 1);
-                })
-              }
-            >
-              Upvote
-            </button>
-            <button
-              type="button"
-              className={`barber-action-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
-              disabled={isVoting}
-              onClick={() =>
-                startVoteTransition(async () => {
-                  await onVote(barber.id, -1);
-                })
-              }
-            >
-              Downvote
-            </button>
-          </>
-        ) : (
-          <Button href="/sign-in" variant="ghost">
-            Sign in to vote
-          </Button>
-        )}
-      </div>
-
-      <div className="barber-interaction-summary">
-        <div className="barber-interaction-stat">
-          <strong>{summary?.upvotes ?? 0}</strong>
-          <span>upvotes</span>
-        </div>
-        <div className="barber-interaction-stat">
-          <strong>{summary?.downvotes ?? 0}</strong>
-          <span>downvotes</span>
-        </div>
-        <div className="barber-interaction-stat">
-          <strong>{summary?.commentCount ?? 0}</strong>
-          <span>comments</span>
-        </div>
-      </div>
-
-      <div className="barber-comments-section">
-        <div className="barber-comments-header">
-          <strong>Community notes</strong>
-          <span>{summary?.commentCount ?? 0} posted</span>
-        </div>
-
-        {summary && summary.comments.length > 0 ? (
-          <div className="barber-comment-stack">
-            {summary.comments.slice(0, 2).map((comment) => (
-              <div key={comment.id} className="barber-comment">
-                <strong>{comment.authorLabel}</strong>
-                <span>{formatCommentDate(comment.createdAt)}</span>
-                <p>{comment.body}</p>
-              </div>
+    <details className="grain-card barber-card">
+      <summary className="barber-card-summary">
+        <div className="barber-card-primary">
+          <div>
+            <span className="eyebrow">{barber.city}</span>
+            <h3>{barber.barberName}</h3>
+            <p>
+              {barber.shopName} · {barber.neighborhood}
+            </p>
+          </div>
+          <div className="barber-filter-row">
+            {barber.recommendedTags.slice(0, 2).map((tag) => (
+              <Badge key={tag} tone="accent">
+                {formatBarberTag(tag)}
+              </Badge>
             ))}
           </div>
-        ) : (
-          <p className="barber-empty-comments">No notes yet. The first useful review here matters.</p>
-        )}
+        </div>
 
-        <CommentComposer barber={barber} signedIn={signedIn} onComment={onComment} />
+        <div className="barber-card-meta">
+          <div className="barber-score-pill">
+            <strong>{summary?.score ?? 0}</strong>
+            <span>score</span>
+          </div>
+          <div className="barber-card-statbar">
+            <span>{summary?.upvotes ?? 0} up</span>
+            <span>{summary?.commentCount ?? 0} notes</span>
+          </div>
+          <span className="barber-card-toggle">Expand</span>
+        </div>
+      </summary>
+
+      <div className="barber-card-details">
+        <p className="barber-card-note">{barber.rankingNotes}</p>
+
+        <div className="barber-card-copy">
+          <p>{barber.evidenceSummary}</p>
+          <p>{barber.reviewSignalSummary}</p>
+        </div>
+
+        <div className="barber-card-actions">
+          {barber.primaryBookingUrl ? (
+            <a className="barber-link-button barber-link-button-primary" href={barber.primaryBookingUrl} target="_blank" rel="noreferrer">
+              View booking profile
+            </a>
+          ) : (
+            <span className="barber-link-button barber-link-button-muted">Booking link pending</span>
+          )}
+          {signedIn ? (
+            <>
+              <button
+                type="button"
+                className={`barber-action-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
+                disabled={isVoting}
+                onClick={() =>
+                  startVoteTransition(async () => {
+                    await onVote(barber.id, 1);
+                  })
+                }
+              >
+                Upvote
+              </button>
+              <button
+                type="button"
+                className={`barber-action-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
+                disabled={isVoting}
+                onClick={() =>
+                  startVoteTransition(async () => {
+                    await onVote(barber.id, -1);
+                  })
+                }
+              >
+                Downvote
+              </button>
+            </>
+          ) : (
+            <Button href="/sign-in" variant="ghost">
+              Sign in to vote
+            </Button>
+          )}
+        </div>
+
+        <div className="barber-interaction-summary">
+          <div className="barber-interaction-stat">
+            <strong>{summary?.upvotes ?? 0}</strong>
+            <span>upvotes</span>
+          </div>
+          <div className="barber-interaction-stat">
+            <strong>{summary?.downvotes ?? 0}</strong>
+            <span>downvotes</span>
+          </div>
+          <div className="barber-interaction-stat">
+            <strong>{summary?.commentCount ?? 0}</strong>
+            <span>comments</span>
+          </div>
+        </div>
+
+        <div className="barber-comments-section">
+          <div className="barber-comments-header">
+            <strong>Community notes</strong>
+            <span>{summary?.commentCount ?? 0} posted</span>
+          </div>
+
+          {summary && summary.comments.length > 0 ? (
+            <div className="barber-comment-stack">
+              {summary.comments.slice(0, 2).map((comment) => (
+                <div key={comment.id} className="barber-comment">
+                  <strong>{comment.authorLabel}</strong>
+                  <span>{formatCommentDate(comment.createdAt)}</span>
+                  <p>{comment.body}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="barber-empty-comments">No notes yet. The first useful review here matters.</p>
+          )}
+
+          <CommentComposer barber={barber} signedIn={signedIn} onComment={onComment} />
+        </div>
       </div>
-    </article>
+    </details>
   );
 }
 
@@ -288,11 +300,24 @@ export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: Barbe
     return <EmptyState selectedCityLabel={selectedCityLabel} />;
   }
 
+  const sortedBarbers = [...barbers].sort((left, right) => {
+    const leftSummary = summaries[left.id];
+    const rightSummary = summaries[right.id];
+    const leftPopularity = (leftSummary?.score ?? 0) * 100 + (leftSummary?.commentCount ?? 0) * 10 + (leftSummary?.upvotes ?? 0);
+    const rightPopularity = (rightSummary?.score ?? 0) * 100 + (rightSummary?.commentCount ?? 0) * 10 + (rightSummary?.upvotes ?? 0);
+
+    if (rightPopularity !== leftPopularity) {
+      return rightPopularity - leftPopularity;
+    }
+
+    return left.rank - right.rank;
+  });
+
   return (
     <>
       {error ? <p className="barber-interaction-error">{error}</p> : null}
       <section className="barber-results-grid">
-        {barbers.map((barber) => (
+        {sortedBarbers.map((barber) => (
           <BarberCard
             key={barber.id}
             barber={barber}

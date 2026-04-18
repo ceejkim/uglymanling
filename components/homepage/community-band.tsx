@@ -18,9 +18,9 @@ export function CommunityBand() {
             <div style={{ display: "grid", gap: "1.2rem" }}>
               <div style={{ display: "grid", gap: "0.7rem", maxWidth: "44rem" }}>
                 <div className="section-label">Community</div>
-                <h2 className="section-title">Do not do this alone.</h2>
+                <h2 className="section-title">Join the flock. Skip the spiral.</h2>
                 <p className="section-copy" style={{ marginTop: 0 }}>
-                  Ask questions. Compare notes. Join the uglymanlings before another terrible forum thread finds you.
+                  Ask blunt questions. Compare notes. Do not do this alone.
                 </p>
               </div>
 
@@ -44,10 +44,10 @@ export function CommunityBand() {
 
               <div className="community-actions">
                 <Button href="/community" variant="secondary">
-                  Join the uglymanlings
+                  Join the flock
                 </Button>
                 <Button href="/contact" variant="ghost">
-                  Ask a question first
+                  Ask a question
                 </Button>
               </div>
             </div>
