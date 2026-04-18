@@ -20,8 +20,8 @@ This agent owns:
 4. Make the research and education offering useful across the full platform.
 
 ## Inputs
-1. `VISION.md`
-2. `PRODUCT_ARCHITECTURE.md`
+1. `docs/vision/vision.md`
+2. `docs/plan/plan.md`
 3. `branding/BRAND_SYSTEM.md`
 4. Product priorities from `Orchestrator`
 5. Domain model from `ProductArchitect`

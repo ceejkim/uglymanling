@@ -30,10 +30,10 @@ export const offerings = [
 ] as const;
 
 export const communityBullets = [
-  "Ask blunt questions",
-  "Trade notes",
-  "Share wins",
-  "Skip the shame spiral"
+  "Build the knowledge of the flock",
+  "Share verified wins and lessons",
+  "Help everyone look their best",
+  "Turn community proof into better next steps"
 ] as const;
 
 export const testimonials = [
@@ -62,56 +62,51 @@ export const connectOptions = [
 export const productVisionRows = [
   {
     title: "Community",
-    summary: "Join the flock early and grow with the platform.",
     status: "Live now",
     href: "/community",
-    cta: "Enter community",
+    cta: "Join community",
     items: [
-      "Learn from vetted success stories",
-      "Join our active Q&A chat",
-      "Share wins, setbacks, and lessons"
+      "Verified success stories",
+      "Personalized recommendations",
+      "Topic threads"
     ]
   },
   {
     title: "Style",
-    summary: "Fast confidence wins for the balding flock.",
     status: "Live now",
     href: "/style/barbers",
-    cta: "Browse style support",
+    cta: "Find barbers",
     items: [
-      "Find vetted barbers for the flock",
-      "Browse Norwood-aware style options",
-      "Choose cuts aligned to head shape"
+      "Barber recommendations",
+      "Norwood-aligned cuts",
+      "Best hats by head shape"
     ]
   },
   {
     title: "Access",
-    summary: "Trusted paths when you need more than self-serve.",
     status: "Coming soon",
     items: [
-      "Connect with vetted dermatologists",
-      "Evaluate trusted transplant pathways",
-      "Access higher-trust operators"
+      "Specialized dermatologists",
+      "Transplant consultations",
+      "1:1 consultations"
     ]
   },
   {
     title: "Research",
-    summary: "Evidence translated into useful next steps.",
     status: "Coming soon",
     items: [
-      "Read plain-English evidence summaries",
-      "Filter hype from signal",
-      "Understand what actually matters"
+      "Industry news",
+      "Study participation",
+      "Next-gen therapies"
     ]
   },
   {
     title: "Products",
-    summary: "Curated gear that fits the journey.",
     status: "Coming soon",
     items: [
-      "Shop practical grooming essentials",
-      "Buy curated bundles with intent",
-      "Use brand-led accessories that fit"
+      "Grooming essentials",
+      "Curated bundles",
+      "Headwear that fits"
     ]
   }
 ] as const;

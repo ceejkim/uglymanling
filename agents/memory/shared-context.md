@@ -1,26 +1,26 @@
-# Ugly Manling Agent Team
+# Shared Agent Context
 
 This folder defines the core worker architecture for building Ugly Manling.
 
 ## Required Read Order
 Before acting, every agent must read:
-1. `/Users/charleskimbell/Rekkoe/VISION.md`
-2. `/Users/charleskimbell/Rekkoe/PRODUCT_ARCHITECTURE.md`
+1. `/Users/charleskimbell/Rekkoe/docs/vision/vision.md`
+2. `/Users/charleskimbell/Rekkoe/docs/plan/plan.md`
 3. `/Users/charleskimbell/Rekkoe/branding/BRAND_SYSTEM.md`
-4. `/Users/charleskimbell/Rekkoe/agents/OPERATING_SYSTEM.md`
-5. `/Users/charleskimbell/Rekkoe/agents/HANDOFF_TEMPLATE.md`
+4. `/Users/charleskimbell/Rekkoe/agents/agent.md`
+5. `/Users/charleskimbell/Rekkoe/agents/workflows/handoff-template.md`
 6. its own agent file
 
 ## Team Structure
-1. `Orchestrator.agent.md`
-2. `ProductArchitect.agent.md`
-3. `UIBrandDesigner.agent.md`
-4. `FrontendExperienceEngineer.agent.md`
-5. `BackendPlatformEngineer.agent.md`
-6. `GrowthCommerce.agent.md`
-7. `ContentResearchSystems.agent.md`
-8. `CommunityTrust.agent.md`
-9. `QARelease.agent.md`
+1. `orchestrator-agent.md`
+2. `product-architect-agent.md`
+3. `ui-brand-designer-agent.md`
+4. `frontend-agent.md`
+5. `backend-agent.md`
+6. `growth-agent.md`
+7. `data-agent.md`
+8. `community-trust-agent.md`
+9. `qa-release-agent.md`
 
 ## Coordination Model
 1. The `Orchestrator` is the central control point.
@@ -42,6 +42,6 @@ Every agent should optimize for:
 5. Shipping the smallest real version before scaling complexity.
 
 ## Notes
-1. Governance rules live in `/Users/charleskimbell/Rekkoe/agents/OPERATING_SYSTEM.md`.
-2. Strategic memory lives in `/Users/charleskimbell/Rekkoe/agents/DECISION_LOG.md`.
-3. All major handoffs should use `/Users/charleskimbell/Rekkoe/agents/HANDOFF_TEMPLATE.md`.
+1. Governance rules live in `/Users/charleskimbell/Rekkoe/agents/agent.md`.
+2. Strategic memory lives in `/Users/charleskimbell/Rekkoe/docs/decisions.md`.
+3. All major handoffs should use `/Users/charleskimbell/Rekkoe/agents/workflows/handoff-template.md`.

@@ -48,4 +48,4 @@ If a handoff is missing these fields, the receiving agent should pause and ask t
 2. Decisions needed from the `Orchestrator`:
 
 ## Decision Log Reference
-1. Relevant entries from `/Users/charleskimbell/Rekkoe/agents/DECISION_LOG.md`:
+1. Relevant entries from `/Users/charleskimbell/Rekkoe/docs/decisions.md`:

@@ -195,7 +195,7 @@ function BarberCard({
             </>
           ) : (
             <Button href="/sign-in" variant="ghost">
-              Sign in to vote
+              Sign in to comment and vote
             </Button>
           )}
         </div>

@@ -20,14 +20,13 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
 
   return (
     <main className="barber-directory-page">
-      <div className="page-shell barber-directory-shell">
+      <div className="page-shell page-shell-wide barber-directory-shell">
         <section className="barber-directory-hero grain-card">
           <div className="barber-directory-hero-copy">
             <span className="section-label">Barber directory</span>
-            <h1>Find a barber who can actually help.</h1>
+            <h1>Find a community-vetted barber for balding hair.</h1>
             <p>
-              Pick your city, look through the strongest barbers we have listed there, and use community notes to
-              figure out who is worth trusting.
+              Pick your city, compare community notes, and find a barber the flock already trusts for thinning hair.
             </p>
           </div>
 
@@ -49,7 +48,7 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
               ))}
             </select>
             <button type="submit" className="barber-directory-submit">
-              Show barbers
+              Find a barber vetted by our flock
             </button>
           </form>
 

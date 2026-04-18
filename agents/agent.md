@@ -14,11 +14,11 @@ This document is mandatory context for every agent.
 
 ## Source Of Truth Order
 When there is ambiguity, interpret authority in this order:
-1. `VISION.md`
-2. `PRODUCT_ARCHITECTURE.md`
+1. `docs/vision/vision.md`
+2. `docs/plan/plan.md`
 3. `branding/BRAND_SYSTEM.md`
-4. `agents/OPERATING_SYSTEM.md`
-5. `agents/AGENT_TEAM.md`
+4. `agents/agent.md`
+5. `agents/memory/shared-context.md`
 6. the individual agent file
 7. current task-specific instructions from the `Orchestrator`
 
@@ -29,8 +29,8 @@ If two sources conflict:
 
 ## Central Governance Logic
 The governing logic of the system sits in two places:
-1. `Orchestrator.agent.md` for live control and decision authority
-2. `agents/OPERATING_SYSTEM.md` for permanent rules, handoff protocol, and guardrails
+1. `agents/roles/orchestrator-agent.md` for live control and decision authority
+2. `agents/agent.md` for permanent rules, handoff protocol, and guardrails
 
 This is intentional:
 1. the `Orchestrator` is the live brain,
@@ -175,7 +175,7 @@ Do not run parallel work when:
 ## Decision Logging
 The system must keep a durable record of decisions.
 
-Use `agents/DECISION_LOG.md` to record:
+Use `docs/decisions.md` to record:
 1. accepted scope decisions,
 2. tone decisions,
 3. architecture decisions,

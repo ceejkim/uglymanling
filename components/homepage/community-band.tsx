@@ -18,26 +18,17 @@ export function CommunityBand() {
             <div style={{ display: "grid", gap: "1.2rem" }}>
               <div style={{ display: "grid", gap: "0.7rem", maxWidth: "44rem" }}>
                 <div className="section-label">Community</div>
-                <h2 className="section-title">Join the flock. Skip the spiral.</h2>
+                <h2 className="section-title">Our vision: Cure balding.</h2>
                 <p className="section-copy" style={{ marginTop: 0 }}>
-                  Ask blunt questions. Compare notes. Do not do this alone.
+                  Our mission: Harness the power of community to empower everyone to look their best.
                 </p>
               </div>
 
-              <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+              <div className="community-checklist">
                 {communityBullets.map((bullet) => (
-                  <div
-                    key={bullet}
-                    style={{
-                      padding: "1rem",
-                      borderRadius: "var(--radius-lg)",
-                      border: "1px solid var(--line)",
-                      background: "rgba(255,255,255,0.85)",
-                      fontWeight: 700,
-                      lineHeight: 1.45
-                    }}
-                  >
-                    {bullet}
+                  <div key={bullet} className="community-check">
+                    <span aria-hidden="true" />
+                    <p>{bullet}</p>
                   </div>
                 ))}
               </div>
@@ -45,9 +36,6 @@ export function CommunityBand() {
               <div className="community-actions">
                 <Button href="/community" variant="secondary">
                   Join the flock
-                </Button>
-                <Button href="/contact" variant="ghost">
-                  Ask a question
                 </Button>
               </div>
             </div>
