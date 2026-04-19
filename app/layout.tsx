@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthSync } from "@/components/auth/auth-sync";
 import "./globals.css";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <AuthSync />
           {children}
         </ClerkProvider>
+        <Analytics />
       </body>
     </html>
   );
