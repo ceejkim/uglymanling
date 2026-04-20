@@ -3,8 +3,11 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleTagPageviews } from "@/components/analytics/google-tag-pageviews";
 import { AuthSync } from "@/components/auth/auth-sync";
 import "./globals.css";
+
+const GA_MEASUREMENT_ID = "G-S77HK4K887";
 
 export const metadata: Metadata = {
   title: "Ugly Manling",
@@ -20,18 +23,22 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <head>
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-S77HK4K887" />
-        <Script id="google-tag-manager">
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-tag-manager" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 
-gtag('config', 'G-S77HK4K887');`}
+gtag('config', '${GA_MEASUREMENT_ID}');`}
         </Script>
       </head>
       <body>
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
           <AuthSync />
+          <GoogleTagPageviews />
           {children}
           <SpeedInsights />
         </ClerkProvider>
