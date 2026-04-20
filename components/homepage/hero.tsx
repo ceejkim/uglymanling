@@ -10,7 +10,7 @@ export function Hero() {
         <div className="hero-shell">
           <div className="grain-card hero-main">
             <Badge tone="accent">For uglymanlings</Badge>
-            <h1 className="hero-title">Find the best barbers for balding near you.</h1>
+            <h1 className="hero-title">The #1 place to find barbers for balding men</h1>
             <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
             <div className="hero-actions">
               <Button href="/style/barbers" variant="secondary">
