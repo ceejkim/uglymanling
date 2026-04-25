@@ -5,11 +5,11 @@ import type { HeroCtaVariantValue } from "@/flags";
 import { Button } from "@/components/ui/button";
 
 type HeroCtaButtonProps = {
-  text: string;
   variant: HeroCtaVariantValue;
+  heroHeadline: string;
 };
 
-export function HeroCtaButton({ text, variant }: HeroCtaButtonProps) {
+export function HeroCtaButton({ variant, heroHeadline }: HeroCtaButtonProps) {
   return (
     <Button
       href="/style/barbers"
@@ -18,11 +18,11 @@ export function HeroCtaButton({ text, variant }: HeroCtaButtonProps) {
         track("Find Barber Clicked", {
           location: "homepage_hero",
           variant,
-          ctaText: text
+          heroHeadline
         });
       }}
     >
-      {text}
+      Find a barber
     </Button>
   );
 }

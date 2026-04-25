@@ -7,20 +7,20 @@ import { HeroCtaButton } from "@/components/homepage/hero-cta-button";
 
 type HeroProps = {
   ctaVariant: HeroCtaVariantValue;
-  ctaText: string;
+  heroHeadline: string;
 };
 
-export function Hero({ ctaVariant, ctaText }: HeroProps) {
+export function Hero({ ctaVariant, heroHeadline }: HeroProps) {
   return (
     <section className="section" style={{ paddingTop: "1.25rem" }}>
       <div className="page-shell">
         <div className="hero-shell">
           <div className="grain-card hero-main">
             <Badge tone="accent">For uglymanlings</Badge>
-            <h1 className="hero-title">The #1 place to find barbers for balding men</h1>
+            <h1 className="hero-title">{heroHeadline}</h1>
             <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
             <div className="hero-actions" data-hero-cta-variant={ctaVariant}>
-              <HeroCtaButton text={ctaText} variant={ctaVariant} />
+              <HeroCtaButton heroHeadline={heroHeadline} variant={ctaVariant} />
             </div>
           </div>
 

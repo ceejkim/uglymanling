@@ -9,12 +9,12 @@ import { heroCtaVariant } from "@/flags";
 
 export default async function HomePage() {
   const variant = await heroCtaVariant();
-  const ctaText =
+  const heroHeadline =
     variant === "B"
       ? "Find balding-friendly barbers near you"
       : variant === "C"
         ? "The #1 place to find barbers for balding men"
-        : "Find a barber for thinning hair";
+        : "The #1 place to find barbers for thinning hair";
 
   return (
     <main>
@@ -37,7 +37,7 @@ export default async function HomePage() {
         </header>
       </div>
 
-      <Hero ctaVariant={variant} ctaText={ctaText} />
+      <Hero ctaVariant={variant} heroHeadline={heroHeadline} />
       <div id="vision">
         <ProductVision />
       </div>
