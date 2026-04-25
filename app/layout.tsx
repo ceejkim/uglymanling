@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagPageviews } from "@/components/analytics/google-tag-pageviews";
 import { AuthSync } from "@/components/auth/auth-sync";
@@ -40,6 +41,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
           <AuthSync />
           <GoogleTagPageviews />
           {children}
+          <Analytics />
           <SpeedInsights />
         </ClerkProvider>
       </body>
