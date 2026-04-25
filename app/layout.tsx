@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import Script from "next/script";
@@ -39,7 +39,9 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
       <body>
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
           <AuthSync />
-          <GoogleTagPageviews />
+          <Suspense fallback={null}>
+            <GoogleTagPageviews />
+          </Suspense>
           {children}
           <Analytics />
           <SpeedInsights />
