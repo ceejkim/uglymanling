@@ -20,6 +20,12 @@ export function HeroCtaButton({ variant, heroHeadline }: HeroCtaButtonProps) {
           variant,
           heroHeadline
         });
+
+        window.gtag?.("event", "hero_cta_click", {
+          location: "homepage_hero",
+          variant,
+          heroHeadline
+        } as Record<string, unknown>);
       }}
     >
       Find a barber
