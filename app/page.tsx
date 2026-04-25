@@ -5,8 +5,17 @@ import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
 import { ProductVision } from "@/components/homepage/product-vision";
 import { Button } from "@/components/ui/button";
+import { heroCtaVariant } from "@/flags";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const variant = await heroCtaVariant();
+  const ctaText =
+    variant === "B"
+      ? "Find balding-friendly barbers near you"
+      : variant === "C"
+        ? "The #1 place to find barbers for balding men"
+        : "Find a barber for thinning hair";
+
   return (
     <main>
       <div className="page-shell">
@@ -28,7 +37,7 @@ export default function HomePage() {
         </header>
       </div>
 
-      <Hero />
+      <Hero ctaVariant={variant} ctaText={ctaText} />
       <div id="vision">
         <ProductVision />
       </div>

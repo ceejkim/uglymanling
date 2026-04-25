@@ -2,8 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { HeroCtaVariantValue } from "@/flags";
+import { HeroCtaButton } from "@/components/homepage/hero-cta-button";
 
-export function Hero() {
+type HeroProps = {
+  ctaVariant: HeroCtaVariantValue;
+  ctaText: string;
+};
+
+export function Hero({ ctaVariant, ctaText }: HeroProps) {
   return (
     <section className="section" style={{ paddingTop: "1.25rem" }}>
       <div className="page-shell">
@@ -12,10 +19,8 @@ export function Hero() {
             <Badge tone="accent">For uglymanlings</Badge>
             <h1 className="hero-title">The #1 place to find barbers for balding men</h1>
             <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
-            <div className="hero-actions">
-              <Button href="/style/barbers" variant="secondary">
-                Find a barber
-              </Button>
+            <div className="hero-actions" data-hero-cta-variant={ctaVariant}>
+              <HeroCtaButton text={ctaText} variant={ctaVariant} />
             </div>
           </div>
 
