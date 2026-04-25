@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
 import Link from "next/link";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
@@ -7,6 +7,7 @@ type ButtonProps = {
   href: string;
   children: ReactNode;
   variant?: ButtonVariant;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
 };
 
 const variantStyles: Record<ButtonVariant, CSSProperties> = {
@@ -27,10 +28,11 @@ const variantStyles: Record<ButtonVariant, CSSProperties> = {
   }
 };
 
-export function Button({ href, children, variant = "primary" }: ButtonProps) {
+export function Button({ href, children, variant = "primary", onClick }: ButtonProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       style={{
         display: "inline-flex",
         alignItems: "center",
