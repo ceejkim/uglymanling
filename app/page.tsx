@@ -17,7 +17,7 @@ export default async function HomePage() {
       ? "Find balding-friendly barbers near you"
       : variant === "C"
         ? "The #1 place to find barbers for balding men"
-        : "The #1 place to find barbers for thinning hair";
+        : "Find a barber for thinning hair";
 
   return (
     <main>
