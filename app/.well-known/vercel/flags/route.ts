@@ -1,4 +1,4 @@
 import { createFlagsDiscoveryEndpoint, getProviderData } from "flags/next";
-import * as flags from "../../../../flags";
+import { heroCtaVariant } from "../../../../flags";
 
-export const GET = createFlagsDiscoveryEndpoint(async () => getProviderData(flags));
+export const GET = createFlagsDiscoveryEndpoint(async () => getProviderData({ heroCtaVariant }));
