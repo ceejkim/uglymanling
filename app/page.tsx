@@ -1,14 +1,17 @@
 import { Show, UserButton } from "@clerk/nextjs";
+import { cookies } from "next/headers";
 import { ComingSoon } from "@/components/homepage/coming-soon";
 import { CommunityBand } from "@/components/homepage/community-band";
 import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
 import { ProductVision } from "@/components/homepage/product-vision";
 import { Button } from "@/components/ui/button";
-import { heroCtaVariant } from "@/flags";
+import { HERO_CTA_VARIANT_COOKIE, heroCtaVariant, isHeroCtaVariantValue } from "@/flags";
 
 export default async function HomePage() {
-  const variant = await heroCtaVariant();
+  const cookieStore = await cookies();
+  const cookieVariant = cookieStore.get(HERO_CTA_VARIANT_COOKIE)?.value;
+  const variant = isHeroCtaVariantValue(cookieVariant) ? cookieVariant : await heroCtaVariant();
   const heroHeadline =
     variant === "B"
       ? "Find balding-friendly barbers near you"
