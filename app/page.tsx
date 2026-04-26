@@ -6,12 +6,13 @@ import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
 import { ProductVision } from "@/components/homepage/product-vision";
 import { Button } from "@/components/ui/button";
-import { HERO_CTA_VARIANT_COOKIE, heroCtaVariant, isHeroCtaVariantValue } from "@/flags";
+import { HERO_CTA_VARIANT_COOKIE, getHeroVisitorType, heroCtaVariant, isHeroCtaVariantValue } from "@/flags";
 
 export default async function HomePage() {
   const cookieStore = await cookies();
   const cookieVariant = cookieStore.get(HERO_CTA_VARIANT_COOKIE)?.value;
   const variant = isHeroCtaVariantValue(cookieVariant) ? cookieVariant : await heroCtaVariant();
+  const visitorType = await getHeroVisitorType();
   const heroHeadline =
     variant === "B"
       ? "Find balding-friendly barbers near you"
@@ -40,7 +41,7 @@ export default async function HomePage() {
         </header>
       </div>
 
-      <Hero ctaVariant={variant} heroHeadline={heroHeadline} />
+      <Hero ctaVariant={variant} heroHeadline={heroHeadline} visitorType={visitorType} />
       <div id="vision">
         <ProductVision />
       </div>

@@ -2,15 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { HeroCtaVariantValue } from "@/flags";
+import type { HeroCtaVariantValue, HeroVisitorType } from "@/flags";
 import { HeroCtaButton } from "@/components/homepage/hero-cta-button";
 
 type HeroProps = {
   ctaVariant: HeroCtaVariantValue;
   heroHeadline: string;
+  visitorType: HeroVisitorType;
 };
 
-export function Hero({ ctaVariant, heroHeadline }: HeroProps) {
+export function Hero({ ctaVariant, heroHeadline, visitorType }: HeroProps) {
   return (
     <section className="section" style={{ paddingTop: "1.25rem" }}>
       <div className="page-shell">
@@ -20,7 +21,7 @@ export function Hero({ ctaVariant, heroHeadline }: HeroProps) {
             <h1 className="hero-title">{heroHeadline}</h1>
             <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
             <div className="hero-actions" data-hero-cta-variant={ctaVariant}>
-              <HeroCtaButton heroHeadline={heroHeadline} variant={ctaVariant} />
+              <HeroCtaButton heroHeadline={heroHeadline} variant={ctaVariant} visitorType={visitorType} />
             </div>
           </div>
 
