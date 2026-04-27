@@ -1911,14 +1911,54 @@ main {
     gap: 0.95rem;
   }
 
+  .home-page .hero-section {
+    padding-top: 0.8rem;
+  }
+
   .home-page .hero-main {
+    gap: 0.85rem;
     min-height: auto;
-    padding: 2rem 1.6rem;
+    align-content: start;
+    overflow: visible;
+    padding: 1.65rem 1.45rem;
+  }
+
+  .home-page .hero-main > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .home-page .hero-title {
+    max-width: none;
+    font-size: 2.85rem;
+    line-height: 0.96;
+  }
+
+  .home-page .hero-actions {
+    order: 3;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .home-page .hero-actions a {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+  }
+
+  .home-page .hero-copy {
+    order: 4;
+    line-height: 1.55;
   }
 
   .home-page .hero-side {
     display: grid;
     gap: 0.9rem;
+    margin-top: 0.35rem;
     padding: 1rem;
   }
 
@@ -2005,24 +2045,19 @@ main {
 
   .home-page .hero-main {
     min-height: auto;
-    padding: 1.8rem 1.3rem;
+    padding: 1.2rem 1rem;
   }
 
   .home-page .hero-title {
-    max-width: 8.5ch;
-    font-size: clamp(2.6rem, 13vw, 4.2rem);
-    line-height: 0.92;
+    max-width: none;
+    font-size: 2.35rem;
+    line-height: 1;
   }
 
   .home-page .hero-copy {
     max-width: none;
-    font-size: 0.98rem;
-    line-height: 1.6;
-  }
-
-  .home-page .hero-actions a {
-    width: 100%;
-    justify-content: center;
+    font-size: 0.94rem;
+    line-height: 1.45;
   }
 
   .home-page .hero-side {
@@ -2045,6 +2080,10 @@ main {
 
   .home-page .hero-side-card {
     padding: 0.9rem;
+  }
+
+  .home-page .hero-side-card-content {
+    gap: 0.65rem;
   }
 
   .home-page .vision-grid {
