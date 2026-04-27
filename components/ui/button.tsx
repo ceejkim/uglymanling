@@ -38,15 +38,15 @@ export function Button({ href, children, variant = "primary", onClick }: ButtonP
         alignItems: "center",
         justifyContent: "center",
         gap: "0.5rem",
-        minHeight: "3rem",
-        padding: "0.8rem 1.15rem",
+        minHeight: "3.05rem",
+        padding: "0.82rem 1.2rem",
         border: "1px solid",
         borderRadius: "var(--radius-pill)",
-        fontSize: "0.94rem",
+        fontSize: "0.92rem",
         fontWeight: 800,
-        letterSpacing: "-0.02em",
+        letterSpacing: "0.01em",
         transition: "transform 140ms ease, box-shadow 140ms ease, background 140ms ease",
-        boxShadow: "0 10px 24px rgba(15, 31, 46, 0.08)",
+        boxShadow: "0 6px 16px rgba(15, 31, 46, 0.06)",
         ...variantStyles[variant]
       }}
     >

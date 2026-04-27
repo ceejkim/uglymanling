@@ -22,7 +22,7 @@ export function Badge({ children, tone = "ink" }: BadgeProps) {
         border: "1px solid",
         fontSize: "0.77rem",
         fontWeight: 800,
-        letterSpacing: "0.04em",
+        letterSpacing: 0,
         textTransform: "uppercase",
         ...styles
       }}

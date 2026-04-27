@@ -7,19 +7,13 @@ export function CommunityBand() {
   return (
     <section className="section">
       <div className="page-shell">
-        <Card
-          className="community-card"
-          style={{
-            display: "grid",
-            gap: "1.2rem"
-          }}
-        >
+        <Card className="community-card">
           <div className="community-layout">
-            <div style={{ display: "grid", gap: "1.2rem" }}>
-              <div style={{ display: "grid", gap: "0.7rem", maxWidth: "44rem" }}>
+            <div className="community-copy-column">
+              <div className="community-copy-intro">
                 <div className="section-label">Community</div>
                 <h2 className="section-title">Our vision: Cure balding.</h2>
-                <p className="section-copy" style={{ marginTop: 0 }}>
+                <p className="section-copy community-copy">
                   Our mission: Harness the power of community to empower everyone to look their best.
                 </p>
               </div>

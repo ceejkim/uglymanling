@@ -1,4 +1,21 @@
 {
-  "votes": {},
-  "comments": {}
+  "votes": {
+    "new-york-city-mikey-fades-nyc": {
+      "user_3BubIU5MWQ4yfQWWa6AUd237IE0": 1
+    },
+    "los-angeles-celebrity-barber-eazzy-cutz": {
+      "user_3BubIU5MWQ4yfQWWa6AUd237IE0": 1
+    }
+  },
+  "comments": {
+    "los-angeles-celebrity-barber-eazzy-cutz": [
+      {
+        "id": "cc3d3312-cb8c-437b-a918-ce9c835c11f7",
+        "userId": "user_3BubIU5MWQ4yfQWWa6AUd237IE0",
+        "authorLabel": "Member 7IE0",
+        "body": "so good , thank you!",
+        "createdAt": "2026-04-27T00:19:19.407Z"
+      }
+    ]
+  }
 }

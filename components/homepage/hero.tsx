@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import type { HeroCtaVariantValue, HeroVisitorType } from "@/flags";
 import { HeroCtaButton } from "@/components/homepage/hero-cta-button";
 
@@ -13,11 +12,11 @@ type HeroProps = {
 
 export function Hero({ ctaVariant, heroHeadline, visitorType }: HeroProps) {
   return (
-    <section className="section" style={{ paddingTop: "1.25rem" }}>
+    <section className="section hero-section">
       <div className="page-shell">
         <div className="hero-shell">
           <div className="grain-card hero-main">
-            <Badge tone="accent">For uglymanlings</Badge>
+            <span className="home-hero-badge">For uglymanlings</span>
             <h1 className="hero-title">{heroHeadline}</h1>
             <p className="hero-copy">Join our community to find battle-tested barbers for balding near you.</p>
             <div className="hero-actions" data-hero-cta-variant={ctaVariant}>
@@ -81,14 +80,14 @@ function HeroStat({
   cta?: string;
 }) {
   const content = (
-    <div style={{ display: "grid", gap: "0.8rem" }}>
+    <div className="hero-side-card-content">
       <div className="hero-side-card-top">
-        <p style={{ fontWeight: 800, letterSpacing: "-0.03em" }}>{title}</p>
+        <p className="hero-side-card-title">{title}</p>
         {badge ? <span className="hero-side-card-badge">{badge}</span> : null}
       </div>
       <p className="hero-side-card-copy">{body}</p>
       {href && cta ? (
-        <div>
+        <div className="hero-side-card-action">
           <Button href={href}>{cta}</Button>
         </div>
       ) : null}

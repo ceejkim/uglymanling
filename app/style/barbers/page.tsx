@@ -1,3 +1,4 @@
+import { BarberCityFilter } from "@/components/barbers/barber-city-filter";
 import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
 import { Button } from "@/components/ui/button";
 import { barberDirectoryCities, filterBarberDirectory } from "@/lib/barber-data";
@@ -26,31 +27,11 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
             <span className="section-label">Barber directory</span>
             <h1>Find a community-vetted barber for balding hair.</h1>
             <p>
-              Pick your city, compare community notes, and find a barber the flock already trusts for thinning hair.
+              Pick your city, compare review signals, and find a barber who understands thinning hair without the guesswork.
             </p>
           </div>
 
-          <form action="/style/barbers" className="barber-directory-filterbar">
-            <label className="barber-directory-filterlabel" htmlFor="city">
-              City
-            </label>
-            <select
-              id="city"
-              name="city"
-              defaultValue={filteredDirectory.selectedCity ?? ""}
-              className="barber-directory-select"
-            >
-              <option value="">All listed cities</option>
-              {barberDirectoryCities.map((city) => (
-                <option key={city.value} value={city.value}>
-                  {city.label}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="barber-directory-submit">
-              Find a barber vetted by our flock
-            </button>
-          </form>
+          <BarberCityFilter cities={barberDirectoryCities} selectedCity={filteredDirectory.selectedCity} />
 
           <div className="barber-directory-hero-footer">
             <p>
@@ -71,10 +52,25 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
             <span className="eyebrow">{activeCityLabel}</span>
             <h2>{filteredDirectory.selectedCity ? `Best barbers in ${activeCityLabel}` : "Barbers worth checking"}</h2>
           </div>
-          <p>Individual barbers first. Shop second. Votes and notes from the community help sharpen the list.</p>
+          <p>Individual barbers first. Shop second. Review synthesis and community notes keep the list honest.</p>
         </section>
 
         <BarberDirectoryInteractive barbers={barbers} selectedCityLabel={activeCityLabel} />
+
+        <section className="barber-page-footer">
+          <div className="grain-card barber-footer-card">
+            <div>
+              <span className="section-label">For barbers</span>
+              <h2>Want to become a verified barber?</h2>
+              <p>Please get in touch and tell us where you cut, who you help, and why thinning-hair clients trust you.</p>
+            </div>
+            <div className="barber-footer-actions">
+              <Button href="mailto:cj@uglymanling.com?subject=Verified%20barber%20inquiry&body=Hi%20CJ%2C%0A%0AI%20want%20to%20become%20a%20verified%20Ugly%20Manling%20barber.%0A%0ABarber%20name%3A%0ABarbershop%3A%0ACity%3A%0AWhy%20I%20am%20a%20fit%3A%0A">
+                Get in touch
+              </Button>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );

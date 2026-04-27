@@ -13,7 +13,7 @@ const upcomingOfferings = [
 
 export function ComingSoon() {
   return (
-    <section className="section" style={{ paddingBottom: "4rem" }}>
+    <section className="section coming-soon-section">
       <div className="page-shell">
         <div className="section-label">Coming soon</div>
         <h2 className="section-title">What we are rolling out next.</h2>

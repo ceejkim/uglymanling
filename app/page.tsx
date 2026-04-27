@@ -21,7 +21,7 @@ export default async function HomePage() {
         : "Find a barber for thinning hair";
 
   return (
-    <main>
+    <main className="home-page">
       <div className="page-shell">
         <header className="site-header">
           <BrandMark compact />

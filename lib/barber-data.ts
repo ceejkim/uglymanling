@@ -68,6 +68,7 @@ export type BarberCandidate = {
   sourceCount: number;
   recommendedTags: string[];
   rankingNotes: string;
+  isUglyManlingVerified: boolean;
 };
 
 export type BarberCitySection = {
@@ -130,7 +131,8 @@ function normalizeCandidate(candidate: RawBarberCandidate): BarberCandidate {
     confidenceScore: candidate.confidence_score_1_to_5,
     sourceCount: candidate.source_count,
     recommendedTags: candidate.recommended_tags,
-    rankingNotes: candidate.ranking_notes
+    rankingNotes: candidate.ranking_notes,
+    isUglyManlingVerified: false
   };
 }
 
@@ -154,6 +156,24 @@ const candidatesByKey = new Map(
 const topSeedCandidates = dataset.top_seed_candidates_all_cities
   .map((candidate) => candidatesByKey.get(`${candidate.city}::${candidate.barber_name}`))
   .filter((candidate): candidate is BarberCandidate => Boolean(candidate));
+
+function getStableVerificationScore(candidate: BarberCandidate) {
+  return [...candidate.id].reduce((score, character) => score + character.charCodeAt(0), 0);
+}
+
+const verifiedCandidateIds = new Set(
+  cities
+    .flatMap((city) => city.candidates)
+    .sort((left, right) => getStableVerificationScore(left) - getStableVerificationScore(right))
+    .slice(0, Math.max(1, Math.ceil(cities.reduce((total, city) => total + city.candidates.length, 0) * 0.05)))
+    .map((candidate) => candidate.id)
+);
+
+cities.forEach((city) => {
+  city.candidates.forEach((candidate) => {
+    candidate.isUglyManlingVerified = verifiedCandidateIds.has(candidate.id);
+  });
+});
 
 export const barberData: BarberDataset = {
   datasetName: dataset.dataset_name,

@@ -2,11 +2,9 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useUser } from "@clerk/nextjs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { BarberInteractionSummary } from "@/lib/barber-community";
 import type { BarberCandidate } from "@/lib/barber-data";
-import { formatBarberTag } from "@/lib/barber-data";
 
 type BarberDirectoryInteractiveProps = {
   barbers: BarberCandidate[];
@@ -20,6 +18,12 @@ function formatCommentDate(value: string) {
     month: "short",
     day: "numeric"
   }).format(new Date(value));
+}
+
+function getReviewSynthesis(barber: BarberCandidate) {
+  const reviewSignal = barber.reviewSignalSummary.trim();
+
+  return reviewSignal ? reviewSignal : "No reviews yet";
 }
 
 function EmptyState({ selectedCityLabel }: { selectedCityLabel: string }) {
@@ -122,18 +126,19 @@ function BarberCard({
       <summary className="barber-card-summary">
         <div className="barber-card-primary">
           <div>
-            <span className="eyebrow">{barber.city}</span>
+            <div className="barber-card-kicker">
+              <span className="barber-card-city">{barber.city}</span>
+              {barber.isUglyManlingVerified ? (
+                <span className="barber-verified-badge" aria-label="Ugly Manling verified">
+                  <span aria-hidden="true">✓</span>
+                  Ugly Manling verified
+                </span>
+              ) : null}
+            </div>
             <h3>{barber.barberName}</h3>
             <p>
               {barber.shopName} · {barber.neighborhood}
             </p>
-          </div>
-          <div className="barber-filter-row">
-            {barber.recommendedTags.slice(0, 2).map((tag) => (
-              <Badge key={tag} tone="accent">
-                {formatBarberTag(tag)}
-              </Badge>
-            ))}
           </div>
         </div>
 
@@ -151,11 +156,9 @@ function BarberCard({
       </summary>
 
       <div className="barber-card-details">
-        <p className="barber-card-note">{barber.rankingNotes}</p>
-
         <div className="barber-card-copy">
-          <p>{barber.evidenceSummary}</p>
-          <p>{barber.reviewSignalSummary}</p>
+          <span className="barber-card-copy-label">Review synthesis</span>
+          <p>{getReviewSynthesis(barber)}</p>
         </div>
 
         <div className="barber-card-actions">
@@ -239,6 +242,104 @@ function BarberCard({
         </div>
       </div>
     </details>
+  );
+}
+
+function SuggestBarberForm({ signedIn }: { signedIn: boolean }) {
+  const [barberName, setBarberName] = useState("");
+  const [barbershop, setBarbershop] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  if (!signedIn) {
+    return (
+      <section className="grain-card barber-submit-card">
+        <div>
+          <span className="section-label">Know a good barber?</span>
+          <h2>Suggest a barber for manual review.</h2>
+          <p>Sign in to send us a name and barbershop. We will review it before anything goes live.</p>
+        </div>
+        <Button href="/sign-in" variant="secondary">
+          Sign in to suggest a barber
+        </Button>
+      </section>
+    );
+  }
+
+  return (
+    <section className="grain-card barber-submit-card">
+      <div>
+        <span className="section-label">Know a good barber?</span>
+        <h2>Suggest a barber for manual review.</h2>
+        <p>Send us the basics. We will verify the fit before adding anyone to the directory.</p>
+      </div>
+
+      <form
+        className="barber-submit-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setError(null);
+          setMessage(null);
+
+          startTransition(async () => {
+            try {
+              const response = await fetch("/api/barbers/submissions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ barberName, barbershop })
+              });
+              const payload = (await response.json()) as { error?: string };
+
+              if (!response.ok) {
+                throw new Error(payload.error ?? "Could not submit barber.");
+              }
+
+              setBarberName("");
+              setBarbershop("");
+              setMessage("Submitted for review.");
+            } catch (nextError) {
+              setError(nextError instanceof Error ? nextError.message : "Could not submit barber.");
+            }
+          });
+        }}
+      >
+        <label className="barber-comment-label" htmlFor="barber-name">
+          Barber name
+        </label>
+        <input
+          id="barber-name"
+          className="barber-submit-input"
+          maxLength={120}
+          value={barberName}
+          onChange={(event) => setBarberName(event.target.value)}
+          placeholder="Jane the Barber"
+          required
+        />
+
+        <label className="barber-comment-label" htmlFor="barbershop">
+          Barbershop
+        </label>
+        <input
+          id="barbershop"
+          className="barber-submit-input"
+          maxLength={140}
+          value={barbershop}
+          onChange={(event) => setBarbershop(event.target.value)}
+          placeholder="Clean Cut Studio"
+          required
+        />
+
+        <div className="barber-comment-form-footer">
+          <span>Manual review before publishing</span>
+          <button type="submit" className="barber-action-button barber-action-button-primary" disabled={isPending}>
+            {isPending ? "Submitting..." : "Submit barber"}
+          </button>
+        </div>
+        {message ? <p className="barber-submit-success">{message}</p> : null}
+        {error ? <p className="barber-interaction-error">{error}</p> : null}
+      </form>
+    </section>
   );
 }
 
@@ -328,6 +429,7 @@ export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: Barbe
           />
         ))}
       </section>
+      <SuggestBarberForm signedIn={Boolean(isSignedIn)} />
     </>
   );
 }
