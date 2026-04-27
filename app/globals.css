@@ -2009,8 +2009,9 @@ main {
   }
 
   .home-page .hero-duck-frame {
-    min-height: 7.5rem;
-    padding: 0.9rem;
+    order: 3;
+    min-height: 10rem;
+    padding: 1rem;
   }
 
   .home-page .hero-duck-chip {
@@ -2021,11 +2022,25 @@ main {
   }
 
   .home-page .hero-duck-image {
-    width: min(56%, 7rem);
+    width: min(62%, 8rem);
+  }
+
+  .home-page .hero-side-intro {
+    order: 1;
+  }
+
+  .home-page .hero-side-grid {
+    order: 2;
+    gap: 0.75rem;
   }
 
   .home-page .hero-side-card {
     padding: 0.9rem;
+  }
+
+  .home-page .hero-side-card-action a {
+    width: 100%;
+    justify-content: center;
   }
 
   .home-page .vision-grid {
