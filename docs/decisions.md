@@ -30,3 +30,12 @@ Use this file to record decisions that should persist across tasks and prevent d
 5. Why: Secret sprawl weakens trust, increases accidental exposure risk, and creates inconsistent local runtime behavior across agents and sessions.
 6. Impacted agents: Orchestrator, BackendPlatformEngineer, QARelease, all
 7. Follow-up: enforce env hygiene during integration work and release review
+
+### Decision 3
+1. Date: 2026-04-28
+2. Owner: Codex
+3. Topic: Barber community persistence
+4. Decision: Mutable barber community data such as votes, comments, reports, and moderation state should live in Supabase, while seeded and editorial barber source data may remain file-backed until the barber record migration is ready.
+5. Why: File-backed interaction storage is acceptable for prototyping but is not durable enough for production community features, moderation workflows, or deployment-safe persistence.
+6. Impacted agents: Orchestrator, BackendPlatformEngineer, CommunityTrustAgent, DataAgent
+7. Follow-up: implement the phased plan in `docs/plan/barber-community-system-plan.md` when the team is ready to migrate community interactions
