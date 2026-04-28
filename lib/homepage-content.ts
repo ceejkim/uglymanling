@@ -59,54 +59,23 @@ export const connectOptions = [
   { title: "Community", body: "Compare notes with the flock.", href: "/community" }
 ] as const;
 
-export const productVisionRows = [
+export const homepageFeatureCards = [
   {
-    title: "Community",
+    title: "Find your barber",
     status: "Live now",
-    href: "/community",
-    cta: "Join community",
-    items: [
-      "Verified success stories",
-      "Personalized recommendations",
-      "Topic threads"
-    ]
+    description: "Start with the fastest visible win: a barber who understands thinning hair.",
+    note: "Battle-tested recommendations from people who actually get the assignment."
   },
   {
-    title: "Style",
+    title: "Style bank",
     status: "Live now",
-    href: "/style/barbers",
-    cta: "Find barbers",
-    items: [
-      "Barber recommendations",
-      "Norwood-aligned cuts",
-      "Best hats by head shape"
-    ]
+    description: "Browse clean, Norwood-aware style inspiration built for what you are working with now.",
+    note: "Keep the ideas sharp, simple, and realistic for everyday decision-making."
   },
   {
-    title: "Access",
+    title: "Expert access",
     status: "Coming soon",
-    items: [
-      "Specialized dermatologists",
-      "Transplant consultations",
-      "1:1 consultations"
-    ]
-  },
-  {
-    title: "Research",
-    status: "Coming soon",
-    items: [
-      "Industry news",
-      "Study participation",
-      "Next-gen therapies"
-    ]
-  },
-  {
-    title: "Products",
-    status: "Coming soon",
-    items: [
-      "Grooming essentials",
-      "Curated bundles",
-      "Headwear that fits"
-    ]
+    description: "Get smarter guidance when you want a second opinion before making your next move.",
+    note: "Human help and specialist insight without the usual noise."
   }
 ] as const;

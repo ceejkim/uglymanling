@@ -1,51 +1,38 @@
-import Link from "next/link";
-import { productVisionRows } from "@/lib/homepage-content";
+import { homepageFeatureCards } from "@/lib/homepage-content";
 
 export function ProductVision() {
   return (
-    <section className="section">
+    <section className="section product-vision-section">
       <div className="page-shell">
-        <h2 className="section-title product-vision-title">
-          Our offerings.
-        </h2>
+        <div className="section-label">Features</div>
+        <h2 className="section-title product-vision-title">What you can do here.</h2>
+        <p className="section-copy">
+          One clear first step now, with style guidance and expert support ready when you need them.
+        </p>
 
         <div className="vision-grid">
-          {productVisionRows.map((row) => (
-            <div
-              key={row.title}
+          {homepageFeatureCards.map((card) => (
+            <article
+              key={card.title}
               className={`grain-card vision-card${
-                row.status === "Live now" ? " is-live" : " is-soon"
+                card.status === "Live now" ? " is-live" : " is-soon"
               }`}
             >
-              <div className="vision-card-top">
-                <div className="vision-card-heading">
-                  <span
-                    className={`vision-status-badge${
-                      row.status === "Live now" ? " is-live" : " is-soon"
-                    }`}
-                  >
-                    {row.status}
-                  </span>
-                  <h3 className="vision-card-title">{row.title}</h3>
-                </div>
+              <div className="vision-card-heading">
+                <span
+                  className={`vision-status-badge${
+                    card.status === "Live now" ? " is-live" : " is-soon"
+                  }`}
+                >
+                  {card.status}
+                </span>
+                <h3 className="vision-card-title">{card.title}</h3>
               </div>
-
               <div className="vision-card-body">
-                <ul className="vision-card-list" aria-label={`${row.title} offerings`}>
-                  {row.items.map((item) => (
-                    <li key={item} className="vision-card-item">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                {"href" in row && "cta" in row ? (
-                  <Link href={row.href} className="vision-card-link">
-                    {row.cta}
-                  </Link>
-                ) : null}
+                <p className="vision-card-description">{card.description}</p>
+                <p className="vision-card-note">{card.note}</p>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

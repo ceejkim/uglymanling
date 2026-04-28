@@ -12,9 +12,9 @@ export function CommunityBand() {
             <div className="community-copy-column">
               <div className="community-copy-intro">
                 <div className="section-label">Community</div>
-                <h2 className="section-title">Our vision: Cure balding.</h2>
+                <h2 className="section-title">Join our flock.</h2>
                 <p className="section-copy community-copy">
-                  Our mission: Harness the power of community to empower everyone to look their best.
+                  Trade notes, share wins, and help other men make better decisions without the usual spiral.
                 </p>
               </div>
 

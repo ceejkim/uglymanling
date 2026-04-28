@@ -1,6 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import type { HeroCtaVariantValue, HeroVisitorType } from "@/flags";
 import { HeroCtaButton } from "@/components/homepage/hero-cta-button";
 
@@ -38,69 +36,13 @@ export function Hero({ ctaVariant, heroHeadline, visitorType }: HeroProps) {
             </div>
             <div className="hero-side-intro">
               <span className="eyebrow">Join our flock</span>
-              <p className="hero-side-copy">Stop freestyling it.</p>
-            </div>
-
-            <div className="hero-side-grid">
-              <HeroStat
-                title="Find your barber"
-                body="Find battle-tested barbers who get balding."
-                href="/community"
-                cta="Join here"
-              />
-              <HeroStat
-                title="Vetted style bank"
-                body="Norwood-aligned looks."
-                badge="Coming soon"
-              />
-              <HeroStat
-                title="Direct expert access"
-                body="Expert insights to help you look your best."
-                badge="Coming soon"
-              />
+              <p className="hero-side-copy">
+                Stop freestyling it. Find the right barber first, then build a smarter next step with the flock.
+              </p>
             </div>
           </div>
         </div>
       </div>
     </section>
   );
-}
-
-function HeroStat({
-  title,
-  body,
-  badge,
-  href,
-  cta
-}: {
-  title: string;
-  body: string;
-  badge?: string;
-  href?: string;
-  cta?: string;
-}) {
-  const content = (
-    <div className="hero-side-card-content">
-      <div className="hero-side-card-top">
-        <p className="hero-side-card-title">{title}</p>
-        {badge ? <span className="hero-side-card-badge">{badge}</span> : null}
-      </div>
-      <p className="hero-side-card-copy">{body}</p>
-      {href && cta ? (
-        <div className="hero-side-card-action">
-          <Button href={href}>{cta}</Button>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  if (href && !cta) {
-    return (
-      <Link href={href} className="hero-side-card hero-side-card-link">
-        {content}
-      </Link>
-    );
-  }
-
-  return <div className="hero-side-card">{content}</div>;
 }
