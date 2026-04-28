@@ -30,10 +30,10 @@ export const offerings = [
 ] as const;
 
 export const communityBullets = [
-  "Build the knowledge of the flock",
-  "Share verified wins and lessons",
-  "Help everyone look their best",
-  "Turn community proof into better next steps"
+  "Find barbers who know thinning hair",
+  "Read verified wins before you waste time",
+  "Participate in surveys and see the results shaping the science behind balding",
+  "Learn which products people actually stick with"
 ] as const;
 
 export const testimonials = [
@@ -59,23 +59,35 @@ export const connectOptions = [
   { title: "Community", body: "Compare notes with the flock.", href: "/community" }
 ] as const;
 
-export const homepageFeatureCards = [
+type HomepageFeatureCard = {
+  title: string;
+  status: "Live now" | "Coming soon";
+  description: string;
+  note?: string;
+};
+
+export const homepageFeatureCards: readonly HomepageFeatureCard[] = [
   {
-    title: "Find your barber",
+    title: "Find Your Barber",
     status: "Live now",
-    description: "Start with the fastest visible win: a barber who understands thinning hair.",
-    note: "Battle-tested recommendations from people who actually get the assignment."
+    description: "Find barbers who specialize in thinning hair and know how to work with your stage of hair loss."
   },
   {
-    title: "Style bank",
-    status: "Live now",
-    description: "Browse clean, Norwood-aware style inspiration built for what you are working with now.",
-    note: "Keep the ideas sharp, simple, and realistic for everyday decision-making."
-  },
-  {
-    title: "Expert access",
+    title: "Get 1:1 Advice (Coming Soon)",
     status: "Coming soon",
-    description: "Get smarter guidance when you want a second opinion before making your next move.",
-    note: "Human help and specialist insight without the usual noise."
+    description:
+      "Get a personalized assessment of where you are in your hair loss journey, understand your options, and build an actionable plan — from styling to treatments to transplant considerations."
+  },
+  {
+    title: "Engage with the Community",
+    status: "Live now",
+    description:
+      "Explore verified success stories, join topic-specific discussions, and learn from others navigating the same journey."
+  },
+  {
+    title: "Access Approved Products",
+    status: "Coming soon",
+    description:
+      "Discover community-approved products — from minoxidil soap to styling products and scalp care — all curated through real results and trusted recommendations."
   }
 ] as const;

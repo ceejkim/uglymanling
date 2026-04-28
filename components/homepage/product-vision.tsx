@@ -4,10 +4,10 @@ export function ProductVision() {
   return (
     <section className="section product-vision-section">
       <div className="page-shell">
-        <div className="section-label">Features</div>
-        <h2 className="section-title product-vision-title">What you can do here.</h2>
+        <div className="section-label">Community value</div>
+        <h2 className="section-title product-vision-title">What the community helps you do.</h2>
         <p className="section-copy">
-          One clear first step now, with style guidance and expert support ready when you need them.
+          Start with the haircut, then layer in better advice, real proof, and products people actually rate.
         </p>
 
         <div className="vision-grid">
@@ -30,7 +30,7 @@ export function ProductVision() {
               </div>
               <div className="vision-card-body">
                 <p className="vision-card-description">{card.description}</p>
-                <p className="vision-card-note">{card.note}</p>
+                {"note" in card && card.note ? <p className="vision-card-note">{card.note}</p> : null}
               </div>
             </article>
           ))}

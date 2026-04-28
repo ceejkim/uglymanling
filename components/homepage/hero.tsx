@@ -24,7 +24,7 @@ export function Hero({ ctaVariant, heroHeadline, visitorType }: HeroProps) {
 
           <div className="hero-side">
             <div className="hero-duck-frame">
-              <div className="hero-duck-chip">Balding is a choice.</div>
+              <div className="hero-duck-chip">Balding is a choice</div>
               <Image
                 src="/brand/mascots/uglymanlings-duck-primary.png"
                 alt="Angry but cute Ugly Manlings duck mascot"

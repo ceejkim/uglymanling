@@ -3,6 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { communityBullets } from "@/lib/homepage-content";
 
+const communityImageOptions = {
+  barber: {
+    src: "/images/homepage/barber-cutting-thinning-hair.png",
+    alt: "Barber cutting the hair of a man with visible thinning in a modern barbershop",
+    chip: "Find the right barber. Learn what works. Move with confidence."
+  },
+  products: {
+    src: "/images/homepage/community-approved-products.png",
+    alt: "Community-approved hair care and styling products arranged in a clean clinical setting",
+    chip: "Products the community actually uses, not just talks about."
+  }
+} as const;
+
+const activeCommunityImage = communityImageOptions.barber;
+
 export function CommunityBand() {
   return (
     <section className="section">
@@ -12,9 +27,9 @@ export function CommunityBand() {
             <div className="community-copy-column">
               <div className="community-copy-intro">
                 <div className="section-label">Community</div>
-                <h2 className="section-title">Join our flock.</h2>
+                <h2 className="section-title">Join our community.</h2>
                 <p className="section-copy community-copy">
-                  Trade notes, share wins, and help other men make better decisions without the usual spiral.
+                  Trade notes, compare routines, and see what is actually working for other men before you spend more money.
                 </p>
               </div>
 
@@ -29,18 +44,18 @@ export function CommunityBand() {
 
               <div className="community-actions">
                 <Button href="/community" variant="secondary">
-                  Join the flock
+                  Join our community
                 </Button>
               </div>
             </div>
 
             <div className="community-illustration">
-              <div className="community-illustration-chip">Mirror checks. Shower rage. Brotherhood.</div>
+              <div className="community-illustration-chip">{activeCommunityImage.chip}</div>
               <Image
-                src="/brand/mascots/uglymanlings-duck-scenes.png"
-                alt="Ugly Manlings duck mascot scenes showing mirror, shower, and community moments"
-                width={420}
-                height={420}
+                src={activeCommunityImage.src}
+                alt={activeCommunityImage.alt}
+                width={960}
+                height={720}
                 className="community-illustration-image"
               />
             </div>
