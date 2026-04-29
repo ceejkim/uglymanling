@@ -7,17 +7,16 @@ import {
   readBarberCommunityStore,
   writeBarberCommunityStore
 } from "@/lib/barber-community";
-import { barberData } from "@/lib/barber-data";
+import { getKnownBarberIds } from "@/lib/barber-data";
 
 export const runtime = "nodejs";
-
-const knownBarberIds = new Set(barberData.cities.flatMap((city) => city.candidates.map((candidate) => candidate.id)));
 
 export async function GET() {
   const { userId } = await auth();
   const store = await readBarberCommunityStore();
+  const knownBarberIds = await getKnownBarberIds();
 
-  const summaries = Array.from(knownBarberIds).map((barberId) =>
+  const summaries = knownBarberIds.map((barberId) =>
     buildBarberInteractionSummary({
       barberId,
       store,
@@ -30,6 +29,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { userId } = await auth();
+  const knownBarberIds = new Set(await getKnownBarberIds());
 
   if (!userId) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });

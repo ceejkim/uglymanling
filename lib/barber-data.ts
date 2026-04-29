@@ -1,6 +1,10 @@
-import rawBarberDatabase from "@/app/community/space/barber-database.json";
+import { cache } from "react";
+import { selectSupabaseRows } from "@/lib/supabase";
 
-type RawBarberCandidate = {
+export type BarberStatus = "approved" | "pending_review" | "rejected";
+
+export type BarberRow = {
+  id: string;
   rank: number;
   barber_name: string;
   city: string;
@@ -9,44 +13,22 @@ type RawBarberCandidate = {
   shop_name: string | null;
   shop_address: string | null;
   primary_booking_url: string | null;
-  profile_url_1: string | null;
-  profile_url_2: string | null;
-  instagram_url: string | null;
-  tiktok_url: string | null;
+  profile_urls: string[] | null;
+  social_urls: string[] | null;
   evidence_summary: string;
   review_signal_summary: string;
   likely_price_tier: string | null;
   confidence_score_1_to_5: number;
   source_count: number;
-  recommended_tags: string[];
+  recommended_tags: string[] | null;
   ranking_notes: string;
-};
-
-type RawCityDataset = {
-  city: string;
-  state: string;
-  target_count: number;
-  actual_count: number;
-  market_summary: string;
-  top_10_city_candidates: string[];
-  manual_review_flags: string[];
-  candidates: RawBarberCandidate[];
-};
-
-type RawTopSeedCandidate = {
-  rank: number;
-  barber_name: string;
-  city: string;
-};
-
-type RawBarberDataset = {
-  dataset_name: string;
-  created_at: string;
-  source_note: string;
-  cities: RawCityDataset[];
-  top_seed_candidates_all_cities: RawTopSeedCandidate[];
-  needs_manual_verification: string[];
-  remaining_data_gaps: string[];
+  status: BarberStatus;
+  is_ugly_manling_verified: boolean;
+  source_urls: string[] | null;
+  discovered_by: string | null;
+  review_notes: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type BarberCandidate = {
@@ -95,8 +77,6 @@ type BarberDataset = {
   strongestCount: number;
 };
 
-const dataset = rawBarberDatabase as RawBarberDataset;
-
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -112,81 +92,113 @@ function normalizePriceTier(priceTier: string | null) {
   return priceTier;
 }
 
-function normalizeCandidate(candidate: RawBarberCandidate): BarberCandidate {
+function normalizeRow(row: BarberRow): BarberCandidate {
   return {
-    id: slugify(`${candidate.city}-${candidate.barber_name}`),
-    rank: candidate.rank,
-    barberName: candidate.barber_name,
-    city: candidate.city,
-    neighborhood: candidate.neighborhood ?? "Neighborhood pending",
-    state: candidate.state,
-    shopName: candidate.shop_name ?? "Shop pending",
-    shopAddress: candidate.shop_address ?? "Address pending",
-    primaryBookingUrl: candidate.primary_booking_url,
-    profileUrls: [candidate.profile_url_1, candidate.profile_url_2].filter((url): url is string => Boolean(url)),
-    socialUrls: [candidate.instagram_url, candidate.tiktok_url].filter((url): url is string => Boolean(url)),
-    evidenceSummary: candidate.evidence_summary,
-    reviewSignalSummary: candidate.review_signal_summary,
-    priceTier: normalizePriceTier(candidate.likely_price_tier),
-    confidenceScore: candidate.confidence_score_1_to_5,
-    sourceCount: candidate.source_count,
-    recommendedTags: candidate.recommended_tags,
-    rankingNotes: candidate.ranking_notes,
-    isUglyManlingVerified: false
+    id: row.id,
+    rank: row.rank,
+    barberName: row.barber_name,
+    city: row.city,
+    neighborhood: row.neighborhood ?? "Neighborhood pending",
+    state: row.state,
+    shopName: row.shop_name ?? "Shop pending",
+    shopAddress: row.shop_address ?? "Address pending",
+    primaryBookingUrl: row.primary_booking_url,
+    profileUrls: (row.profile_urls ?? []).filter((url): url is string => Boolean(url)),
+    socialUrls: (row.social_urls ?? []).filter((url): url is string => Boolean(url)),
+    evidenceSummary: row.evidence_summary,
+    reviewSignalSummary: row.review_signal_summary,
+    priceTier: normalizePriceTier(row.likely_price_tier),
+    confidenceScore: row.confidence_score_1_to_5,
+    sourceCount: row.source_count,
+    recommendedTags: row.recommended_tags ?? [],
+    rankingNotes: row.ranking_notes,
+    isUglyManlingVerified: row.is_ugly_manling_verified
   };
 }
 
-const cities = dataset.cities.map((city): BarberCitySection => ({
-  city: city.city,
-  state: city.state,
-  targetCount: city.target_count,
-  actualCount: city.actual_count,
-  marketSummary: city.market_summary,
-  topCandidateNames: city.top_10_city_candidates,
-  manualReviewFlags: city.manual_review_flags,
-  candidates: city.candidates.map(normalizeCandidate)
-}));
+function sortRows(rows: BarberRow[]) {
+  return [...rows].sort((left, right) => {
+    if (left.city !== right.city) {
+      return left.city.localeCompare(right.city);
+    }
 
-const candidatesByKey = new Map(
-  cities.flatMap((city) =>
-    city.candidates.map((candidate) => [`${candidate.city}::${candidate.barberName}`, candidate] as const)
-  )
-);
+    if (left.rank !== right.rank) {
+      return left.rank - right.rank;
+    }
 
-const topSeedCandidates = dataset.top_seed_candidates_all_cities
-  .map((candidate) => candidatesByKey.get(`${candidate.city}::${candidate.barber_name}`))
-  .filter((candidate): candidate is BarberCandidate => Boolean(candidate));
-
-function getStableVerificationScore(candidate: BarberCandidate) {
-  return [...candidate.id].reduce((score, character) => score + character.charCodeAt(0), 0);
+    return left.barber_name.localeCompare(right.barber_name);
+  });
 }
 
-const verifiedCandidateIds = new Set(
-  cities
-    .flatMap((city) => city.candidates)
-    .sort((left, right) => getStableVerificationScore(left) - getStableVerificationScore(right))
-    .slice(0, Math.max(1, Math.ceil(cities.reduce((total, city) => total + city.candidates.length, 0) * 0.05)))
-    .map((candidate) => candidate.id)
+function buildDatasetFromRows(rows: BarberRow[]): BarberDataset {
+  const sortedRows = sortRows(rows);
+  const normalizedCandidates = sortedRows.map(normalizeRow);
+
+  const groupedCities = new Map<string, BarberCandidate[]>();
+
+  normalizedCandidates.forEach((candidate) => {
+    const key = `${candidate.city}::${candidate.state}`;
+    const cityCandidates = groupedCities.get(key) ?? [];
+    cityCandidates.push(candidate);
+    groupedCities.set(key, cityCandidates);
+  });
+
+  const cities = Array.from(groupedCities.entries()).map(([key, candidates]) => {
+    const [cityName, state] = key.split("::");
+
+    return {
+      city: cityName,
+      state,
+      targetCount: candidates.length,
+      actualCount: candidates.length,
+      marketSummary: "",
+      topCandidateNames: candidates.slice(0, 10).map((candidate) => candidate.barberName),
+      manualReviewFlags: [],
+      candidates
+    } satisfies BarberCitySection;
+  });
+
+  cities.sort((left, right) => left.city.localeCompare(right.city));
+
+  const strongestCandidates = normalizedCandidates.slice(0, 10);
+
+  return {
+    datasetName: "Supabase barber directory",
+    createdAt: new Date().toISOString(),
+    sourceNote: "Supabase is the canonical source of truth for barber listings.",
+    cities,
+    topSeedCandidates: strongestCandidates,
+    needsManualVerification: [],
+    remainingDataGaps: [],
+    totalCandidates: normalizedCandidates.length,
+    cityCount: cities.length,
+    strongestCount: strongestCandidates.length
+  };
+}
+
+const loadApprovedBarberRows = cache(async () =>
+  selectSupabaseRows<BarberRow>({
+    table: "barbers",
+    filters: ["status=eq.approved"],
+    limit: 1000
+  })
 );
 
-cities.forEach((city) => {
-  city.candidates.forEach((candidate) => {
-    candidate.isUglyManlingVerified = verifiedCandidateIds.has(candidate.id);
-  });
-});
+export const getBarberData = cache(async () => buildDatasetFromRows(await loadApprovedBarberRows()));
 
-export const barberData: BarberDataset = {
-  datasetName: dataset.dataset_name,
-  createdAt: dataset.created_at,
-  sourceNote: dataset.source_note,
-  cities,
-  topSeedCandidates,
-  needsManualVerification: dataset.needs_manual_verification,
-  remainingDataGaps: dataset.remaining_data_gaps,
-  totalCandidates: cities.reduce((total, city) => total + city.candidates.length, 0),
-  cityCount: cities.length,
-  strongestCount: topSeedCandidates.length
-};
+export async function getKnownBarberIds() {
+  const barberData = await getBarberData();
+  return barberData.cities.flatMap((city) => city.candidates.map((candidate) => candidate.id));
+}
+
+export async function getBarberDirectoryCities() {
+  const barberData = await getBarberData();
+
+  return barberData.cities.map((city) => ({
+    label: city.city,
+    value: getCitySlug(city.city)
+  }));
+}
 
 export function formatBarberTag(tag: string) {
   return tag
@@ -203,28 +215,28 @@ export function getTagSlug(tag: string) {
   return slugify(tag);
 }
 
-export const barberDirectoryCities = barberData.cities.map((city) => ({
-  label: city.city,
-  value: getCitySlug(city.city)
-}));
+export async function getBarberDirectoryTags() {
+  const barberData = await getBarberData();
 
-export const barberDirectoryTags = Array.from(
-  new Set(barberData.cities.flatMap((city) => city.candidates.flatMap((candidate) => candidate.recommendedTags)))
-)
-  .sort((left, right) => left.localeCompare(right))
-  .map((tag) => ({
-    label: formatBarberTag(tag),
-    value: getTagSlug(tag),
-    raw: tag
-  }));
+  return Array.from(
+    new Set(barberData.cities.flatMap((city) => city.candidates.flatMap((candidate) => candidate.recommendedTags)))
+  )
+    .sort((left, right) => left.localeCompare(right))
+    .map((tag) => ({
+      label: formatBarberTag(tag),
+      value: getTagSlug(tag),
+      raw: tag
+    }));
+}
 
-export function filterBarberDirectory({
+export async function filterBarberDirectory({
   city,
   tag
 }: {
   city?: string;
   tag?: string;
 }) {
+  const barberData = await getBarberData();
   const normalizedCity = city ? getCitySlug(city) : null;
   const normalizedTag = tag ? getTagSlug(tag) : null;
 

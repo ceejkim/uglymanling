@@ -2,7 +2,8 @@ import { randomUUID } from "crypto";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { makeAuthorLabel } from "@/lib/barber-community";
-import { readBarberSubmissionStore, writeBarberSubmissionStore } from "@/lib/barber-submissions";
+import { syncSignedInUser } from "@/lib/clerk-supabase";
+import { upsertSupabaseRow } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Barbershop must be 2-140 characters." }, { status: 400 });
   }
 
-  const store = await readBarberSubmissionStore();
   const submission = {
     id: randomUUID(),
     userId,
@@ -43,8 +43,26 @@ export async function POST(request: Request) {
     createdAt: new Date().toISOString()
   };
 
-  store.submissions = [submission, ...store.submissions].slice(0, 200);
-  await writeBarberSubmissionStore(store);
+  try {
+    await syncSignedInUser(userId);
+    await upsertSupabaseRow({
+      table: "barber_submissions",
+      values: {
+        id: submission.id,
+        clerk_user_id: submission.userId,
+        author_label: submission.authorLabel,
+        barber_name: submission.barberName,
+        barbershop: submission.barbershop,
+        status: submission.status,
+        created_at: submission.createdAt
+      }
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not submit barber." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true, submission });
 }

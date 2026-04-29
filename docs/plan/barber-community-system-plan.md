@@ -14,7 +14,7 @@ Today the stack is split like this:
 
 1. user identity comes from `Clerk`
 2. synced user profile metadata lives in Supabase `profiles`
-3. barber directory records are loaded from `app/community/space/barber-database.json`
+3. barber directory records are now loaded from Supabase `barbers`
 4. barber votes and comments are stored in `data/barber-community.json`
 
 This is good enough for a prototype, but not durable enough for production community features.
@@ -45,8 +45,8 @@ Seed and editorial barber data can remain file-backed until the barber record mo
 
 ## Phase Order
 ### Phase 1: Move Community Interactions First
-Keep barber listings in `barber-database.json`.
-Move only votes and comments into Supabase.
+Barber listings now live in Supabase.
+Move votes and comments into Supabase next.
 
 Why this comes first:
 
@@ -168,7 +168,7 @@ Rules:
 ## File Responsibilities That Should Remain
 Repo files should still be used for:
 
-1. `app/community/space/barber-database.json` seed barber data
+1. import snapshots and rollback exports if needed
 2. import snapshots and rollback exports
 3. moderation keyword lists
 4. manual review notes and editorial ranking references
@@ -219,6 +219,6 @@ If this work is resumed later, start by reviewing:
 2. `app/api/barbers/interactions/route.ts`
 3. `lib/clerk-supabase.ts`
 4. `supabase/schema.sql`
-5. `app/community/space/barber-database.json`
+5. `supabase/schema.sql`
 
 The first implementation target should be durable interaction storage, not barber record restructuring.

@@ -1,7 +1,7 @@
 import { BarberCityFilter } from "@/components/barbers/barber-city-filter";
 import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
 import { Button } from "@/components/ui/button";
-import { barberDirectoryCities, filterBarberDirectory } from "@/lib/barber-data";
+import { filterBarberDirectory, getBarberDirectoryCities } from "@/lib/barber-data";
 
 type BarberDirectoryPageProps = {
   searchParams?: Promise<{
@@ -11,9 +11,12 @@ type BarberDirectoryPageProps = {
 
 export default async function BarberDirectoryPage({ searchParams }: BarberDirectoryPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const filteredDirectory = filterBarberDirectory({
-    city: resolvedSearchParams.city
-  });
+  const [filteredDirectory, barberDirectoryCities] = await Promise.all([
+    filterBarberDirectory({
+      city: resolvedSearchParams.city
+    }),
+    getBarberDirectoryCities()
+  ]);
 
   const barbers = filteredDirectory.citySections.flatMap((citySection) => citySection.candidates);
   const activeCityLabel =
