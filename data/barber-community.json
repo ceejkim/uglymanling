@@ -1,4 +1,18 @@
 {
-  "votes": {},
-  "comments": {}
+  "votes": {
+    "nyc-queens-paul-cutzbypaul": {
+      "user_3BubIU5MWQ4yfQWWa6AUd237IE0": 1
+    }
+  },
+  "comments": {
+    "nyc-queens-paul-cutzbypaul": [
+      {
+        "id": "1138bf08-e0a8-4268-870b-42599e42e4a2",
+        "userId": "user_3BubIU5MWQ4yfQWWa6AUd237IE0",
+        "authorLabel": "Member 7IE0",
+        "body": "Paul is the best I have ever used!",
+        "createdAt": "2026-04-30T00:35:22.492Z"
+      }
+    ]
+  }
 }

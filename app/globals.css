@@ -459,12 +459,14 @@ main {
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .barber-card-statbar {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+  min-width: 0;
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: 800;
@@ -498,6 +500,7 @@ main {
   line-height: 0.96;
   letter-spacing: 0;
   color: var(--ink-strong);
+  overflow-wrap: anywhere;
 }
 
 .barber-card-summary p,
@@ -509,6 +512,7 @@ main {
 .barber-interaction-error {
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .barber-card-copy {
@@ -771,12 +775,14 @@ main {
   }
 
   .barber-card-summary {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
   }
 
   .barber-card-meta {
-    justify-content: flex-start;
+    width: 100%;
+    justify-content: space-between;
+    align-items: flex-start;
   }
 }
 
@@ -795,6 +801,34 @@ main {
   .barber-card-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .barber-card-summary {
+    gap: 0.85rem;
+  }
+
+  .barber-card h3 {
+    line-height: 1.02;
+  }
+
+  .barber-card-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .barber-score-pill {
+    min-width: 0;
+  }
+
+  .barber-card-statbar {
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .barber-card-toggle {
+    grid-column: 1 / -1;
+    justify-self: flex-start;
   }
 }
 
