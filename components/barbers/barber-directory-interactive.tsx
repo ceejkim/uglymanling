@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,12 @@ function formatCommentDate(value: string) {
   }).format(new Date(value));
 }
 
-function getReviewSynthesis(barber: BarberCandidate) {
-  const reviewSignal = barber.reviewSignalSummary.trim();
+function getCommentSummary(summary?: BarberInteractionSummary) {
+  if (!summary) {
+    return "Loading community comments...";
+  }
 
-  return reviewSignal ? reviewSignal : "No reviews yet";
+  return summary.commentSummary;
 }
 
 function EmptyState({ selectedCityLabel }: { selectedCityLabel: string }) {
@@ -120,10 +123,18 @@ function BarberCard({
   onComment: (barberId: string, body: string) => Promise<void>;
 }) {
   const [isVoting, startVoteTransition] = useTransition();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const commentCount = summary?.commentCount ?? 0;
+  const hasMvpSeededComments = summary?.comments.some((comment) => comment.sourceTag === "mvp") ?? false;
+  const detailsButtonLabel = isExpanded
+    ? "Hide details"
+    : commentCount > 0
+      ? `Read ${commentCount} comment${commentCount === 1 ? "" : "s"}`
+      : "Read comments";
 
   return (
-    <details className="grain-card barber-card">
-      <summary className="barber-card-summary">
+    <article className={`grain-card barber-card${isExpanded ? " is-expanded" : ""}`}>
+      <div className="barber-card-summary">
         <div className="barber-card-primary">
           <div>
             <div className="barber-card-kicker">
@@ -140,108 +151,126 @@ function BarberCard({
               {barber.shopName} · {barber.neighborhood}
             </p>
           </div>
-        </div>
 
-        <div className="barber-card-meta">
-          <div className="barber-score-pill">
-            <strong>{summary?.score ?? 0}</strong>
-            <span>score</span>
-          </div>
-          <div className="barber-card-statbar">
-            <span>{summary?.upvotes ?? 0} up</span>
-            <span>{summary?.commentCount ?? 0} notes</span>
-          </div>
-          <span className="barber-card-toggle">Expand</span>
-        </div>
-      </summary>
-
-      <div className="barber-card-details">
-        <div className="barber-card-copy">
-          <span className="barber-card-copy-label">Review synthesis</span>
-          <p>{getReviewSynthesis(barber)}</p>
-        </div>
-
-        <div className="barber-card-actions">
-          {barber.primaryBookingUrl ? (
-            <a className="barber-link-button barber-link-button-primary" href={barber.primaryBookingUrl} target="_blank" rel="noreferrer">
-              View booking profile
-            </a>
-          ) : (
-            <span className="barber-link-button barber-link-button-muted">Booking link pending</span>
-          )}
-          {signedIn ? (
-            <>
+          <div className="barber-card-summary-actions">
+            <div className="barber-card-summary-buttons">
               <button
                 type="button"
-                className={`barber-action-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
+                className="barber-card-toggle"
+                aria-expanded={isExpanded}
+                aria-controls={`barber-details-${barber.id}`}
+                onClick={() => setIsExpanded((current) => !current)}
+              >
+                {detailsButtonLabel}
+              </button>
+              {barber.primaryBookingUrl ? (
+                <a className="barber-link-button barber-link-button-primary barber-link-button-compact" href={barber.primaryBookingUrl} target="_blank" rel="noreferrer">
+                  Book now
+                </a>
+              ) : (
+                <span className="barber-link-button barber-link-button-muted barber-link-button-compact">No booking link yet</span>
+              )}
+            </div>
+            <div className="barber-card-statbar">
+              <span>{summary?.score ?? 0} score</span>
+              <span>{summary?.upvotes ?? 0} recommend</span>
+              <span>{commentCount} comments</span>
+            </div>
+          </div>
+        </div>
+        <div className="barber-card-meta">
+          {signedIn ? (
+            <div className="barber-card-vote-rail" role="group" aria-label={`Vote on ${barber.barberName}`}>
+              <span className="barber-vote-label">Vote</span>
+              <button
+                type="button"
+                className={`barber-vote-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
                 disabled={isVoting}
+                aria-label={`Recommend ${barber.barberName}`}
                 onClick={() =>
                   startVoteTransition(async () => {
                     await onVote(barber.id, 1);
                   })
                 }
               >
-                Upvote
+                ▲
               </button>
+              <strong className="barber-vote-score">{summary?.score ?? 0}</strong>
               <button
                 type="button"
-                className={`barber-action-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
+                className={`barber-vote-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
                 disabled={isVoting}
+                aria-label={`Mark ${barber.barberName} not a fit`}
                 onClick={() =>
                   startVoteTransition(async () => {
                     await onVote(barber.id, -1);
                   })
                 }
               >
-                Downvote
+                ▼
               </button>
-            </>
-          ) : (
-            <Button href="/sign-in" variant="ghost">
-              Sign in to comment and vote
-            </Button>
-          )}
-        </div>
-
-        <div className="barber-interaction-summary">
-          <div className="barber-interaction-stat">
-            <strong>{summary?.upvotes ?? 0}</strong>
-            <span>upvotes</span>
-          </div>
-          <div className="barber-interaction-stat">
-            <strong>{summary?.downvotes ?? 0}</strong>
-            <span>downvotes</span>
-          </div>
-          <div className="barber-interaction-stat">
-            <strong>{summary?.commentCount ?? 0}</strong>
-            <span>comments</span>
-          </div>
-        </div>
-
-        <div className="barber-comments-section">
-          <div className="barber-comments-header">
-            <strong>Community notes</strong>
-            <span>{summary?.commentCount ?? 0} posted</span>
-          </div>
-
-          {summary && summary.comments.length > 0 ? (
-            <div className="barber-comment-stack">
-              {summary.comments.slice(0, 2).map((comment) => (
-                <div key={comment.id} className="barber-comment">
-                  <strong>{comment.authorLabel}</strong>
-                  <span>{formatCommentDate(comment.createdAt)}</span>
-                  <p>{comment.body}</p>
-                </div>
-              ))}
             </div>
           ) : (
-            <p className="barber-empty-comments">No notes yet. The first useful review here matters.</p>
+            <Link href="/sign-in" className="barber-link-button barber-link-button-muted barber-link-button-compact">
+              Sign in to vote
+            </Link>
           )}
-
-          <CommentComposer barber={barber} signedIn={signedIn} onComment={onComment} />
         </div>
       </div>
-    </details>
+
+      {isExpanded ? (
+        <div id={`barber-details-${barber.id}`} className="barber-card-details">
+          <div className="barber-card-copy">
+            <div className="barber-card-copy-heading">
+              <span className="barber-card-copy-label">What people are saying</span>
+              {hasMvpSeededComments ? <span className="barber-seed-badge">MVP</span> : null}
+            </div>
+            <p>{getCommentSummary(summary)}</p>
+          </div>
+
+          <div className="barber-interaction-summary">
+            <div className="barber-interaction-stat">
+              <strong>{summary?.upvotes ?? 0}</strong>
+              <span>recommend</span>
+            </div>
+            <div className="barber-interaction-stat">
+              <strong>{summary?.downvotes ?? 0}</strong>
+              <span>not a fit</span>
+            </div>
+            <div className="barber-interaction-stat">
+              <strong>{commentCount}</strong>
+              <span>comments</span>
+            </div>
+          </div>
+
+          <div className="barber-comments-section">
+            <div className="barber-comments-header">
+              <strong>Community comments</strong>
+              <span>{commentCount} posted</span>
+            </div>
+
+            {summary && summary.comments.length > 0 ? (
+              <div className="barber-comment-stack">
+                {summary.comments.slice(0, 2).map((comment) => (
+                  <div key={comment.id} className="barber-comment">
+                    <div className="barber-comment-meta">
+                      <strong>{comment.authorLabel}</strong>
+                      <span>{formatCommentDate(comment.createdAt)}</span>
+                      {comment.sourceTag === "mvp" ? <span className="barber-seed-badge">MVP</span> : null}
+                    </div>
+                    <p>{comment.body}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="barber-empty-comments">No comments yet. The first useful note here matters.</p>
+            )}
+
+            <CommentComposer barber={barber} signedIn={signedIn} onComment={onComment} />
+          </div>
+        </div>
+      ) : null}
+    </article>
   );
 }
 

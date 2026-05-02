@@ -1,6 +1,5 @@
 import { Show, UserButton } from "@clerk/nextjs";
 import { cookies } from "next/headers";
-import { ComingSoon } from "@/components/homepage/coming-soon";
 import { CommunityBand } from "@/components/homepage/community-band";
 import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
@@ -48,9 +47,6 @@ export default async function HomePage() {
       </div>
       <div id="community">
         <CommunityBand />
-      </div>
-      <div id="connect">
-        <ComingSoon />
       </div>
       <SiteFooter />
     </main>

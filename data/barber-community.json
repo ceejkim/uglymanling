@@ -2,7 +2,15 @@
   "votes": {
     "nyc-queens-paul-cutzbypaul": {
       "user_3BubIU5MWQ4yfQWWa6AUd237IE0": 1
-    }
+    },
+    "burlington-vt-jeremy-burlington-barber-shop": {},
+    "burlington-vt-andrew-juhasz-imperial-barber-co": {
+      "user_3BubIU5MWQ4yfQWWa6AUd237IE0": -1
+    },
+    "burlington-vt-andy-imperial-barber-co": {
+      "user_3BubIU5MWQ4yfQWWa6AUd237IE0": -1
+    },
+    "burlington-vt-moses-imperial-barber-co": {}
   },
   "comments": {
     "nyc-queens-paul-cutzbypaul": [

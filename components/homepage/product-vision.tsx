@@ -5,7 +5,7 @@ export function ProductVision() {
     <section className="section product-vision-section">
       <div className="page-shell">
         <div className="section-label">Community value</div>
-        <h2 className="section-title product-vision-title">What the community helps you do.</h2>
+        <h2 className="section-title product-vision-title">Join the ugly manling flock to...</h2>
         <p className="section-copy">
           Start with the haircut, then layer in better advice, real proof, and products people actually rate.
         </p>

@@ -2,29 +2,34 @@ import { randomUUID } from "crypto";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import {
-  buildBarberInteractionSummary,
+  getBarberInteractionSummary,
+  listBarberInteractionSummaries,
   makeAuthorLabel,
-  readBarberCommunityStore,
-  writeBarberCommunityStore
+  saveBarberComment,
+  saveBarberVote
 } from "@/lib/barber-community";
+import { syncSignedInUser } from "@/lib/clerk-supabase";
 import { getKnownBarberIds } from "@/lib/barber-data";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   const { userId } = await auth();
-  const store = await readBarberCommunityStore();
-  const knownBarberIds = await getKnownBarberIds();
 
-  const summaries = knownBarberIds.map((barberId) =>
-    buildBarberInteractionSummary({
-      barberId,
-      store,
+  try {
+    const knownBarberIds = await getKnownBarberIds();
+    const summaries = await listBarberInteractionSummaries({
+      barberIds: knownBarberIds,
       userId
-    })
-  );
+    });
 
-  return NextResponse.json({ summaries });
+    return NextResponse.json({ summaries });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not load barber interactions." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -43,65 +48,50 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unknown barber." }, { status: 400 });
   }
 
-  const store = await readBarberCommunityStore();
+  try {
+    await syncSignedInUser(userId);
 
-  if (body.type === "vote") {
-    if (body.value !== 1 && body.value !== -1) {
-      return NextResponse.json({ error: "Invalid vote value." }, { status: 400 });
-    }
+    if (body.type === "vote") {
+      if (body.value !== 1 && body.value !== -1) {
+        return NextResponse.json({ error: "Invalid vote value." }, { status: 400 });
+      }
 
-    const barberVotes = store.votes[body.barberId] ?? {};
-    const existingVote = barberVotes[userId] ?? 0;
-
-    if (existingVote === body.value) {
-      delete barberVotes[userId];
-    } else {
-      barberVotes[userId] = body.value;
-    }
-
-    store.votes[body.barberId] = barberVotes;
-    await writeBarberCommunityStore(store);
-
-    return NextResponse.json({
-      summary: buildBarberInteractionSummary({
+      const summary = await saveBarberVote({
         barberId: body.barberId,
-        store,
-        userId
-      })
-    });
-  }
+        userId,
+        value: body.value
+      });
 
-  if (body.type === "comment") {
-    const trimmedBody = body.body.trim();
-
-    if (trimmedBody.length < 10) {
-      return NextResponse.json({ error: "Comment must be at least 10 characters." }, { status: 400 });
+      return NextResponse.json({ summary });
     }
 
-    if (trimmedBody.length > 400) {
-      return NextResponse.json({ error: "Comment must stay under 400 characters." }, { status: 400 });
-    }
+    if (body.type === "comment") {
+      const trimmedBody = body.body.trim();
 
-    const nextComment = {
-      id: randomUUID(),
-      userId,
-      authorLabel: makeAuthorLabel(userId),
-      body: trimmedBody,
-      createdAt: new Date().toISOString()
-    };
+      if (trimmedBody.length < 10) {
+        return NextResponse.json({ error: "Comment must be at least 10 characters." }, { status: 400 });
+      }
 
-    const existingComments = store.comments[body.barberId] ?? [];
-    store.comments[body.barberId] = [nextComment, ...existingComments].slice(0, 20);
-    await writeBarberCommunityStore(store);
+      if (trimmedBody.length > 400) {
+        return NextResponse.json({ error: "Comment must stay under 400 characters." }, { status: 400 });
+      }
 
-    return NextResponse.json({
-      summary: buildBarberInteractionSummary({
+      const summary = await saveBarberComment({
+        authorLabel: makeAuthorLabel(userId),
         barberId: body.barberId,
-        store,
+        body: trimmedBody,
+        id: randomUUID(),
         userId
-      })
-    });
-  }
+      });
 
-  return NextResponse.json({ error: "Unsupported interaction." }, { status: 400 });
+      return NextResponse.json({ summary });
+    }
+
+    return NextResponse.json({ error: "Unsupported interaction." }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not save interaction." },
+      { status: 500 }
+    );
+  }
 }

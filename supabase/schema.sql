@@ -65,6 +65,32 @@ create table if not exists public.barber_submissions (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.barber_votes (
+  barber_id text not null references public.barbers(id) on delete cascade,
+  clerk_user_id text not null references public.profiles(clerk_user_id) on delete cascade,
+  value smallint not null check (value in (-1, 1)),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (barber_id, clerk_user_id)
+);
+
+create table if not exists public.barber_comments (
+  id uuid primary key default gen_random_uuid(),
+  barber_id text not null references public.barbers(id) on delete cascade,
+  clerk_user_id text not null references public.profiles(clerk_user_id) on delete cascade,
+  author_label text not null,
+  body text not null check (char_length(body) between 10 and 400),
+  source_tag text,
+  status text not null default 'approved' check (status in ('pending', 'approved', 'flagged', 'rejected')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  edited_at timestamptz,
+  deleted_at timestamptz
+);
+
+alter table public.barber_votes enable row level security;
+alter table public.barber_comments enable row level security;
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -99,6 +125,18 @@ before update on public.barber_submissions
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists barber_votes_set_updated_at on public.barber_votes;
+create trigger barber_votes_set_updated_at
+before update on public.barber_votes
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists barber_comments_set_updated_at on public.barber_comments;
+create trigger barber_comments_set_updated_at
+before update on public.barber_comments
+for each row
+execute function public.set_updated_at();
+
 create index if not exists assessment_submissions_updated_at_idx
 on public.assessment_submissions (updated_at desc);
 
@@ -107,3 +145,10 @@ on public.barbers (status, city, rank);
 
 create index if not exists barber_submissions_status_created_at_idx
 on public.barber_submissions (status, created_at desc);
+
+create index if not exists barber_votes_barber_id_updated_at_idx
+on public.barber_votes (barber_id, updated_at desc);
+
+create index if not exists barber_comments_barber_id_status_created_at_idx
+on public.barber_comments (barber_id, status, created_at desc)
+where deleted_at is null;

@@ -52,6 +52,34 @@ export async function upsertSupabaseRow<T extends Record<string, unknown>>({
   return (await response.json()) as T[];
 }
 
+export async function deleteSupabaseRows({
+  table,
+  filters = []
+}: {
+  table: string;
+  filters?: string[];
+}) {
+  const params = new URLSearchParams();
+
+  for (const filter of filters) {
+    const [key, value] = filter.split("=", 2);
+    params.append(key, value);
+  }
+
+  const query = params.toString();
+  const response = await fetch(`${getSupabaseUrl()}/rest/v1/${table}${query ? `?${query}` : ""}`, {
+    method: "DELETE",
+    headers: {
+      ...getHeaders(true),
+      Prefer: "return=minimal"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
 export async function selectSupabaseRows<T>({
   table,
   select = "*",

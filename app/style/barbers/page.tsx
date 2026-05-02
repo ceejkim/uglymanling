@@ -1,4 +1,3 @@
-import { BarberCityFilter } from "@/components/barbers/barber-city-filter";
 import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
 import { Button } from "@/components/ui/button";
 import { filterBarberDirectory, getBarberDirectoryCities } from "@/lib/barber-data";
@@ -29,12 +28,8 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
           <div className="barber-directory-hero-copy">
             <span className="section-label">Barber directory</span>
             <h1>Find a community-vetted barber for balding hair.</h1>
-            <p>
-              Pick your city, compare review signals, and find a barber who understands thinning hair without the guesswork.
-            </p>
+            <p>Compare review signals and find a barber who understands thinning hair without the guesswork.</p>
           </div>
-
-          <BarberCityFilter cities={barberDirectoryCities} selectedCity={filteredDirectory.selectedCity} />
 
           <div className="barber-directory-hero-footer">
             <p>
@@ -55,7 +50,6 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
             <span className="eyebrow">{activeCityLabel}</span>
             <h2>{filteredDirectory.selectedCity ? `Best barbers in ${activeCityLabel}` : "Barbers worth checking"}</h2>
           </div>
-          <p>Individual barbers first. Shop second. Review synthesis and community notes keep the list honest.</p>
         </section>
 
         <BarberDirectoryInteractive barbers={barbers} selectedCityLabel={activeCityLabel} />
