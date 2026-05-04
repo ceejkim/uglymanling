@@ -77,6 +77,8 @@ type BarberDataset = {
   strongestCount: number;
 };
 
+export type BarberDirectoryAccess = "public" | "members";
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -186,9 +188,19 @@ const loadApprovedBarberRows = cache(async () =>
 
 export const getBarberData = cache(async () => buildDatasetFromRows(await loadApprovedBarberRows()));
 
-export async function getKnownBarberIds() {
+export async function getKnownBarberIds({
+  access = "members"
+}: {
+  access?: BarberDirectoryAccess;
+} = {}) {
   const barberData = await getBarberData();
-  return barberData.cities.flatMap((city) => city.candidates.map((candidate) => candidate.id));
+  const candidates = barberData.cities.flatMap((city) => city.candidates);
+  const visibleCandidates =
+    access === "members"
+      ? candidates
+      : candidates.filter((candidate) => candidate.isUglyManlingVerified);
+
+  return visibleCandidates.map((candidate) => candidate.id);
 }
 
 export async function getBarberDirectoryCities() {
@@ -231,10 +243,12 @@ export async function getBarberDirectoryTags() {
 
 export async function filterBarberDirectory({
   city,
-  tag
+  tag,
+  access = "members"
 }: {
   city?: string;
   tag?: string;
+  access?: BarberDirectoryAccess;
 }) {
   const barberData = await getBarberData();
   const normalizedCity = city ? getCitySlug(city) : null;
@@ -258,12 +272,26 @@ export async function filterBarberDirectory({
     return cityMatch && tagMatch;
   });
 
+  const allFilteredBarbers = filteredCities.flatMap((citySection) => citySection.candidates);
+  const visibleBarbers =
+    access === "members"
+      ? allFilteredBarbers
+      : allFilteredBarbers.filter((candidate) => candidate.isUglyManlingVerified);
+  const lockedPreviewBarbers =
+    access === "members"
+      ? []
+      : allFilteredBarbers.filter((candidate) => !candidate.isUglyManlingVerified);
+
   return {
     selectedCity: normalizedCity,
     selectedTag: normalizedTag,
     citySections: filteredCities,
-    featuredBarbers: filteredCities.flatMap((citySection) => citySection.candidates),
+    featuredBarbers: allFilteredBarbers,
+    visibleBarbers,
+    lockedPreviewBarbers,
     topSeedCandidates: filteredTopSeedCandidates,
-    resultCount: filteredCities.reduce((total, citySection) => total + citySection.candidates.length, 0)
+    resultCount: allFilteredBarbers.length,
+    visibleCount: visibleBarbers.length,
+    lockedPreviewCount: lockedPreviewBarbers.length
   };
 }

@@ -17,7 +17,9 @@ export async function GET() {
   const { userId } = await auth();
 
   try {
-    const knownBarberIds = await getKnownBarberIds();
+    const knownBarberIds = await getKnownBarberIds({
+      access: userId ? "members" : "public"
+    });
     const summaries = await listBarberInteractionSummaries({
       barberIds: knownBarberIds,
       userId
@@ -34,7 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { userId } = await auth();
-  const knownBarberIds = new Set(await getKnownBarberIds());
+  const knownBarberIds = new Set(await getKnownBarberIds({ access: "members" }));
 
   if (!userId) {
     return NextResponse.json({ error: "Sign in required." }, { status: 401 });

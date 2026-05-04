@@ -386,7 +386,12 @@ main {
   gap: 0.85rem;
 }
 
+.barber-results-grid-locked {
+  position: relative;
+}
+
 .barber-card {
+  position: relative;
   padding: 0;
   border-radius: var(--radius-xl);
   overflow: hidden;
@@ -394,16 +399,23 @@ main {
 }
 
 .barber-card-summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem 1.15rem;
-  align-items: start;
   padding: 1rem 1.15rem;
 }
 
 .barber-card-primary {
   display: grid;
   gap: 0.9rem;
+  min-width: 0;
+}
+
+.barber-card-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem 1.15rem;
+  align-items: start;
+}
+
+.barber-card-identity {
   min-width: 0;
 }
 
@@ -521,6 +533,10 @@ main {
   background: rgba(230, 240, 250, 0.92);
 }
 
+.barber-card-toggle-locked {
+  cursor: default;
+}
+
 .barber-vote-button {
   display: inline-grid;
   place-items: center;
@@ -628,6 +644,75 @@ main {
   gap: 1rem;
   padding: 1rem 1.15rem 1.15rem;
   border-top: 1px solid var(--line);
+}
+
+.barber-card-locked {
+  min-height: 13.5rem;
+}
+
+.barber-card-locked .barber-card-summary {
+  filter: blur(4px);
+  transform: scale(1.015);
+  transform-origin: center;
+}
+
+.barber-card-meta-locked,
+.barber-card-vote-rail-locked,
+.barber-link-button-locked {
+  pointer-events: none;
+}
+
+.barber-card-locked-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(247, 246, 242, 0.34), rgba(247, 246, 242, 0.72));
+}
+
+.barber-member-gate {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.15rem;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 240, 250, 0.9));
+  box-shadow: 0 16px 40px rgba(15, 31, 46, 0.12);
+}
+
+.barber-member-gate h2 {
+  margin: 0;
+  color: var(--ink-strong);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.barber-member-gate p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.barber-member-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.barber-locked-preview-shell {
+  position: relative;
+}
+
+.barber-locked-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.barber-member-gate-floating {
+  width: min(32rem, calc(100% - 2rem));
+  pointer-events: auto;
 }
 
 .barber-filter-row {
@@ -868,14 +953,8 @@ main {
     align-items: flex-start;
   }
 
-  .barber-card-summary {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-
   .barber-card-meta {
-    width: 100%;
-    max-width: 7.5rem;
+    width: min(7.5rem, 100%);
     justify-self: flex-end;
   }
 }
@@ -892,25 +971,24 @@ main {
   .barber-directory-hero-footer,
   .barber-footer-card,
   .barber-comment-form-footer,
-  .barber-card-actions {
+  .barber-card-actions,
+  .barber-member-gate-actions {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .barber-card-summary {
-    gap: 0.85rem;
   }
 
   .barber-card h3 {
     line-height: 1.02;
   }
 
+  .barber-card-heading {
+    gap: 0.8rem;
+  }
+
   .barber-card-meta {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-    max-width: none;
-    justify-self: stretch;
+    width: auto;
+    max-width: 7rem;
+    justify-self: flex-end;
   }
 
   .barber-card-summary-actions {

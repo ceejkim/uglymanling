@@ -1,4 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
 import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
+import { BarberCityFilter } from "@/components/barbers/barber-city-filter";
 import { Button } from "@/components/ui/button";
 import { filterBarberDirectory, getBarberDirectoryCities } from "@/lib/barber-data";
 
@@ -10,16 +12,34 @@ type BarberDirectoryPageProps = {
 
 export default async function BarberDirectoryPage({ searchParams }: BarberDirectoryPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
+  const { userId } = await auth();
+  const viewerHasFullAccess = Boolean(userId);
   const [filteredDirectory, barberDirectoryCities] = await Promise.all([
     filterBarberDirectory({
-      city: resolvedSearchParams.city
+      city: resolvedSearchParams.city,
+      access: viewerHasFullAccess ? "members" : "public"
     }),
     getBarberDirectoryCities()
   ]);
 
-  const barbers = filteredDirectory.citySections.flatMap((citySection) => citySection.candidates);
+  const visibleBarbers = filteredDirectory.visibleBarbers;
+  const lockedPreviewBarbers = filteredDirectory.lockedPreviewBarbers;
   const activeCityLabel =
     barberDirectoryCities.find((city) => city.value === filteredDirectory.selectedCity)?.label ?? "All listed cities";
+  const heroCopy = viewerHasFullAccess
+    ? (
+        <>
+          Showing <strong>{visibleBarbers.length}</strong> barber{visibleBarbers.length === 1 ? "" : "s"} for{" "}
+          <strong>{activeCityLabel}</strong>.
+        </>
+      )
+    : (
+        <>
+          Showing <strong>{visibleBarbers.length}</strong> verified barber{visibleBarbers.length === 1 ? "" : "s"} for{" "}
+          <strong>{activeCityLabel}</strong>. Create a free account to unlock{" "}
+          <strong>{lockedPreviewBarbers.length}</strong> more.
+        </>
+      );
 
   return (
     <main className="barber-directory-page">
@@ -32,12 +52,11 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
           </div>
 
           <div className="barber-directory-hero-footer">
-            <p>
-              Showing <strong>{barbers.length}</strong> barber{barbers.length === 1 ? "" : "s"} for{" "}
-              <strong>{activeCityLabel}</strong>.
-            </p>
+            <p>{heroCopy}</p>
             <div className="barber-directory-hero-actions">
-              <Button href="/sign-up">Join to leave a review</Button>
+              <Button href={viewerHasFullAccess ? "/community/space" : "/sign-up"}>
+                {viewerHasFullAccess ? "Members area" : "Join to unlock more"}
+              </Button>
               <Button href="/" variant="ghost">
                 Back to homepage
               </Button>
@@ -48,11 +67,28 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
         <section className="barber-directory-results-head">
           <div>
             <span className="eyebrow">{activeCityLabel}</span>
-            <h2>{filteredDirectory.selectedCity ? `Best barbers in ${activeCityLabel}` : "Barbers worth checking"}</h2>
+            <h2>
+              {viewerHasFullAccess
+                ? filteredDirectory.selectedCity
+                  ? `Best barbers in ${activeCityLabel}`
+                  : "Barbers worth checking"
+                : filteredDirectory.selectedCity
+                  ? `Verified barbers in ${activeCityLabel}`
+                  : "Verified barbers worth checking"}
+            </h2>
           </div>
+          <BarberCityFilter
+            cities={barberDirectoryCities}
+            selectedCity={filteredDirectory.selectedCity}
+          />
         </section>
 
-        <BarberDirectoryInteractive barbers={barbers} selectedCityLabel={activeCityLabel} />
+        <BarberDirectoryInteractive
+          barbers={visibleBarbers}
+          lockedPreviewBarbers={lockedPreviewBarbers}
+          selectedCityLabel={activeCityLabel}
+          viewerHasFullAccess={viewerHasFullAccess}
+        />
 
         <section className="barber-page-footer">
           <div className="grain-card barber-footer-card">

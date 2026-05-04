@@ -9,7 +9,9 @@ import type { BarberCandidate } from "@/lib/barber-data";
 
 type BarberDirectoryInteractiveProps = {
   barbers: BarberCandidate[];
+  lockedPreviewBarbers: BarberCandidate[];
   selectedCityLabel: string;
+  viewerHasFullAccess: boolean;
 };
 
 type SummaryMap = Record<string, BarberInteractionSummary>;
@@ -35,6 +37,25 @@ function EmptyState({ selectedCityLabel }: { selectedCityLabel: string }) {
       <span className="eyebrow">{selectedCityLabel}</span>
       <h3>No barbers found for that selection yet.</h3>
       <p>Try another city for now. We’ll keep tightening the directory as more recommendations come in.</p>
+    </div>
+  );
+}
+
+function VerifiedOnlyEmptyState({
+  lockedPreviewCount,
+  selectedCityLabel
+}: {
+  lockedPreviewCount: number;
+  selectedCityLabel: string;
+}) {
+  return (
+    <div className="grain-card barber-empty-state">
+      <span className="eyebrow">{selectedCityLabel}</span>
+      <h3>No verified barbers are public in this selection yet.</h3>
+      <p>
+        There {lockedPreviewCount === 1 ? "is" : "are"} <strong>{lockedPreviewCount}</strong> more barber
+        {lockedPreviewCount === 1 ? "" : "s"} behind the free member gate.
+      </p>
     </div>
   );
 }
@@ -136,20 +157,61 @@ function BarberCard({
     <article className={`grain-card barber-card${isExpanded ? " is-expanded" : ""}`}>
       <div className="barber-card-summary">
         <div className="barber-card-primary">
-          <div>
-            <div className="barber-card-kicker">
-              <span className="barber-card-city">{barber.city}</span>
-              {barber.isUglyManlingVerified ? (
-                <span className="barber-verified-badge" aria-label="Ugly Manling verified">
-                  <span aria-hidden="true">✓</span>
-                  Ugly Manling verified
-                </span>
-              ) : null}
+          <div className="barber-card-heading">
+            <div className="barber-card-identity">
+              <div className="barber-card-kicker">
+                <span className="barber-card-city">{barber.city}</span>
+                {barber.isUglyManlingVerified ? (
+                  <span className="barber-verified-badge" aria-label="Ugly Manling verified">
+                    <span aria-hidden="true">✓</span>
+                    Ugly Manling verified
+                  </span>
+                ) : null}
+              </div>
+              <h3>{barber.barberName}</h3>
+              <p>
+                {barber.shopName} · {barber.neighborhood}
+              </p>
             </div>
-            <h3>{barber.barberName}</h3>
-            <p>
-              {barber.shopName} · {barber.neighborhood}
-            </p>
+
+            <div className="barber-card-meta">
+              {signedIn ? (
+                <div className="barber-card-vote-rail" role="group" aria-label={`Vote on ${barber.barberName}`}>
+                  <span className="barber-vote-label">Vote</span>
+                  <button
+                    type="button"
+                    className={`barber-vote-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
+                    disabled={isVoting}
+                    aria-label={`Recommend ${barber.barberName}`}
+                    onClick={() =>
+                      startVoteTransition(async () => {
+                        await onVote(barber.id, 1);
+                      })
+                    }
+                  >
+                    ▲
+                  </button>
+                  <strong className="barber-vote-score">{summary?.score ?? 0}</strong>
+                  <button
+                    type="button"
+                    className={`barber-vote-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
+                    disabled={isVoting}
+                    aria-label={`Mark ${barber.barberName} not a fit`}
+                    onClick={() =>
+                      startVoteTransition(async () => {
+                        await onVote(barber.id, -1);
+                      })
+                    }
+                  >
+                    ▼
+                  </button>
+                </div>
+              ) : (
+                <Link href="/sign-in" className="barber-link-button barber-link-button-muted barber-link-button-compact">
+                  Sign in to vote
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="barber-card-summary-actions">
@@ -177,44 +239,6 @@ function BarberCard({
               <span>{commentCount} comments</span>
             </div>
           </div>
-        </div>
-        <div className="barber-card-meta">
-          {signedIn ? (
-            <div className="barber-card-vote-rail" role="group" aria-label={`Vote on ${barber.barberName}`}>
-              <span className="barber-vote-label">Vote</span>
-              <button
-                type="button"
-                className={`barber-vote-button ${summary?.currentUserVote === 1 ? "is-active" : ""}`.trim()}
-                disabled={isVoting}
-                aria-label={`Recommend ${barber.barberName}`}
-                onClick={() =>
-                  startVoteTransition(async () => {
-                    await onVote(barber.id, 1);
-                  })
-                }
-              >
-                ▲
-              </button>
-              <strong className="barber-vote-score">{summary?.score ?? 0}</strong>
-              <button
-                type="button"
-                className={`barber-vote-button ${summary?.currentUserVote === -1 ? "is-active" : ""}`.trim()}
-                disabled={isVoting}
-                aria-label={`Mark ${barber.barberName} not a fit`}
-                onClick={() =>
-                  startVoteTransition(async () => {
-                    await onVote(barber.id, -1);
-                  })
-                }
-              >
-                ▼
-              </button>
-            </div>
-          ) : (
-            <Link href="/sign-in" className="barber-link-button barber-link-button-muted barber-link-button-compact">
-              Sign in to vote
-            </Link>
-          )}
         </div>
       </div>
 
@@ -286,7 +310,7 @@ function SuggestBarberForm({ signedIn }: { signedIn: boolean }) {
       <section className="grain-card barber-submit-card">
         <div>
           <span className="section-label">Know a good barber?</span>
-          <h2>Suggest a barber for manual review.</h2>
+          <h2>Suggest a barber for review.</h2>
           <p>Sign in to send us a name and barbershop. We will review it before anything goes live.</p>
         </div>
         <Button href="/sign-in" variant="secondary">
@@ -300,7 +324,7 @@ function SuggestBarberForm({ signedIn }: { signedIn: boolean }) {
     <section className="grain-card barber-submit-card">
       <div>
         <span className="section-label">Know a good barber?</span>
-        <h2>Suggest a barber for manual review.</h2>
+        <h2>Suggest a barber for review.</h2>
         <p>Send us the basics. We will verify the fit before adding anyone to the directory.</p>
       </div>
 
@@ -372,7 +396,105 @@ function SuggestBarberForm({ signedIn }: { signedIn: boolean }) {
   );
 }
 
-export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: BarberDirectoryInteractiveProps) {
+function LockedPreviewCard({ barber }: { barber: BarberCandidate }) {
+  return (
+    <article className="grain-card barber-card barber-card-locked">
+      <div className="barber-card-summary">
+        <div className="barber-card-primary">
+          <div className="barber-card-heading">
+            <div className="barber-card-identity">
+              <div className="barber-card-kicker">
+                <span className="barber-card-city">{barber.city}</span>
+              </div>
+              <h3>{barber.barberName}</h3>
+              <p>{barber.shopName}</p>
+            </div>
+
+            <div className="barber-card-meta barber-card-meta-locked">
+              <div className="barber-card-vote-rail barber-card-vote-rail-locked" aria-hidden="true">
+                <span className="barber-vote-label">Vote</span>
+                <span className="barber-vote-button">▲</span>
+                <strong className="barber-vote-score">?</strong>
+                <span className="barber-vote-button">▼</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="barber-card-summary-actions">
+            <div className="barber-card-summary-buttons">
+              <span className="barber-card-toggle barber-card-toggle-locked">Details locked</span>
+              <span className="barber-link-button barber-link-button-muted barber-link-button-compact barber-link-button-locked">
+                Account required
+              </span>
+            </div>
+            <div className="barber-card-statbar">
+              <span>Neighborhood hidden</span>
+              <span>Comments hidden</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="barber-card-locked-scrim" aria-hidden="true" />
+    </article>
+  );
+}
+
+function LockedPreviewGate({
+  lockedPreviewCount,
+  selectedCityLabel
+}: {
+  lockedPreviewCount: number;
+  selectedCityLabel: string;
+}) {
+  const normalizedCityLabel = selectedCityLabel.toLowerCase();
+
+  return (
+    <div className="grain-card barber-member-gate barber-member-gate-floating">
+      <div>
+        <span className="section-label">Full directory</span>
+        <h2>Sign in to see all barbers</h2>
+        <p>
+          Unlock {lockedPreviewCount} more community recommended barber{lockedPreviewCount === 1 ? "" : "s"} in{" "}
+          {normalizedCityLabel}.
+        </p>
+      </div>
+      <div className="barber-member-gate-actions">
+        <Button href="/sign-in" variant="secondary">
+          Sign in
+        </Button>
+        <Button href="/sign-up">Create free account</Button>
+      </div>
+    </div>
+  );
+}
+
+function LockedPreviewSection({
+  lockedPreviewBarbers,
+  selectedCityLabel
+}: {
+  lockedPreviewBarbers: BarberCandidate[];
+  selectedCityLabel: string;
+}) {
+  return (
+    <section className="barber-locked-preview-shell">
+      <section className="barber-results-grid barber-results-grid-locked" aria-hidden="true">
+        {lockedPreviewBarbers.map((barber) => (
+          <LockedPreviewCard key={barber.id} barber={barber} />
+        ))}
+      </section>
+      <div className="barber-locked-preview-overlay">
+        <LockedPreviewGate lockedPreviewCount={lockedPreviewBarbers.length} selectedCityLabel={selectedCityLabel} />
+      </div>
+    </section>
+  );
+}
+
+export function BarberDirectoryInteractive({
+  barbers,
+  lockedPreviewBarbers,
+  selectedCityLabel,
+  viewerHasFullAccess
+}: BarberDirectoryInteractiveProps) {
   const { isSignedIn } = useUser();
   const [summaries, setSummaries] = useState<SummaryMap>({});
   const [error, setError] = useState<string | null>(null);
@@ -426,7 +548,7 @@ export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: Barbe
     }));
   }
 
-  if (barbers.length === 0) {
+  if (barbers.length === 0 && lockedPreviewBarbers.length === 0) {
     return <EmptyState selectedCityLabel={selectedCityLabel} />;
   }
 
@@ -442,22 +564,30 @@ export function BarberDirectoryInteractive({ barbers, selectedCityLabel }: Barbe
 
     return left.rank - right.rank;
   });
+  const sortedLockedPreviewBarbers = [...lockedPreviewBarbers].sort((left, right) => left.rank - right.rank);
 
   return (
     <>
       {error ? <p className="barber-interaction-error">{error}</p> : null}
-      <section className="barber-results-grid">
-        {sortedBarbers.map((barber) => (
-          <BarberCard
-            key={barber.id}
-            barber={barber}
-            summary={summaries[barber.id]}
-            signedIn={Boolean(isSignedIn)}
-            onVote={(barberId, value) => mutateInteraction({ type: "vote", barberId, value })}
-            onComment={(barberId, body) => mutateInteraction({ type: "comment", barberId, body })}
-          />
-        ))}
-      </section>
+      {sortedBarbers.length > 0 ? (
+        <section className="barber-results-grid">
+          {sortedBarbers.map((barber) => (
+            <BarberCard
+              key={barber.id}
+              barber={barber}
+              summary={summaries[barber.id]}
+              signedIn={Boolean(isSignedIn)}
+              onVote={(barberId, value) => mutateInteraction({ type: "vote", barberId, value })}
+              onComment={(barberId, body) => mutateInteraction({ type: "comment", barberId, body })}
+            />
+          ))}
+        </section>
+      ) : !viewerHasFullAccess && sortedLockedPreviewBarbers.length > 0 ? (
+        <VerifiedOnlyEmptyState lockedPreviewCount={sortedLockedPreviewBarbers.length} selectedCityLabel={selectedCityLabel} />
+      ) : null}
+      {!viewerHasFullAccess && sortedLockedPreviewBarbers.length > 0 ? (
+        <LockedPreviewSection lockedPreviewBarbers={sortedLockedPreviewBarbers} selectedCityLabel={selectedCityLabel} />
+      ) : null}
       <SuggestBarberForm signedIn={Boolean(isSignedIn)} />
     </>
   );
