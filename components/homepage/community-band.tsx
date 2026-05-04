@@ -6,13 +6,11 @@ import { communityBullets } from "@/lib/homepage-content";
 const communityImageOptions = {
   barber: {
     src: "/images/homepage/barber-cutting-thinning-hair.png",
-    alt: "Barber cutting the hair of a man with visible thinning in a modern barbershop",
-    chip: "Find the right barber. Learn what works. Move with confidence."
+    alt: "Barber cutting the hair of a man with visible thinning in a modern barbershop"
   },
   products: {
     src: "/images/homepage/community-approved-products.png",
-    alt: "Community-approved hair care and styling products arranged in a clean clinical setting",
-    chip: "Products the community actually uses, not just talks about."
+    alt: "Community-approved hair care and styling products arranged in a clean clinical setting"
   }
 } as const;
 
@@ -27,10 +25,7 @@ export function CommunityBand() {
             <div className="community-copy-column">
               <div className="community-copy-intro">
                 <div className="section-label">Community</div>
-                <h2 className="section-title">Join our community.</h2>
-                <p className="section-copy community-copy">
-                  Trade notes, compare routines, and see what is actually working for other men before you spend more money.
-                </p>
+                <h2 className="section-title">Find your barber with ugly manling</h2>
               </div>
 
               <div className="community-checklist">
@@ -42,15 +37,9 @@ export function CommunityBand() {
                 ))}
               </div>
 
-              <div className="community-actions">
-                <Button href="/community" variant="secondary">
-                  Join our community
-                </Button>
-              </div>
             </div>
 
             <div className="community-illustration">
-              <div className="community-illustration-chip">{activeCommunityImage.chip}</div>
               <Image
                 src={activeCommunityImage.src}
                 alt={activeCommunityImage.alt}
@@ -58,6 +47,11 @@ export function CommunityBand() {
                 height={720}
                 className="community-illustration-image"
               />
+              <div className="community-actions community-illustration-actions">
+                <Button href="/style/barbers" variant="secondary">
+                  Find your barber
+                </Button>
+              </div>
             </div>
           </div>
         </Card>

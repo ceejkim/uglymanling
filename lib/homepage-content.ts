@@ -30,10 +30,10 @@ export const offerings = [
 ] as const;
 
 export const communityBullets = [
-  "Find barbers who know thinning hair",
-  "Read verified wins before you waste time",
-  "Participate in surveys and see the results shaping the science behind balding",
-  "Learn which products people actually stick with"
+  "Find community verified barbers in your area",
+  "Discounts and booking links",
+  "Review your barber for our free community",
+  "See what other balding men actually recommend"
 ] as const;
 
 export const testimonials = [

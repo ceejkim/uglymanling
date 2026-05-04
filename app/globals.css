@@ -1856,28 +1856,31 @@ main {
 
 .home-page .community-illustration {
   align-self: stretch;
-  align-content: center;
-  padding: 1rem;
+  align-content: stretch;
+  padding: 0.9rem;
   background: linear-gradient(180deg, rgba(255, 248, 218, 0.52), rgba(255, 255, 255, 0.96));
   border-color: var(--line);
 }
 
 .home-page .community-illustration-chip {
-  max-width: 24rem;
+  max-width: 20rem;
   background: rgba(255, 255, 255, 0.94);
   border-color: var(--line);
   color: var(--muted);
-  text-align: center;
+  justify-self: start;
+  text-align: left;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
 }
 
 .home-page .community-illustration-image {
   width: 100%;
-  max-width: 29rem;
-  aspect-ratio: 4 / 3;
+  max-width: none;
+  aspect-ratio: 5 / 4;
   border-radius: calc(var(--radius-lg) - 0.2rem);
   object-fit: cover;
   opacity: 0.98;
-  box-shadow: 0 16px 34px rgba(15, 31, 46, 0.12);
+  box-shadow: 0 20px 40px rgba(15, 31, 46, 0.14);
 }
 
 .home-page .coming-soon-card {
@@ -1970,7 +1973,7 @@ main {
 .community-layout {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
   align-items: stretch;
 }
 
@@ -2026,9 +2029,10 @@ main {
 
 .community-illustration {
   display: grid;
-  gap: 0.8rem;
-  justify-items: center;
-  padding: 1.1rem;
+  gap: 1rem;
+  align-content: space-between;
+  justify-items: stretch;
+  padding: 1rem;
   border-radius: var(--radius-lg);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(230, 240, 250, 0.42));
@@ -2038,8 +2042,20 @@ main {
 
 .community-illustration-image {
   width: 100%;
-  max-width: 28rem;
-  height: auto;
+  min-height: 24rem;
+  max-width: none;
+  height: 100%;
+  border-radius: calc(var(--radius-lg) - 0.2rem);
+  object-fit: cover;
+}
+
+.community-illustration-actions {
+  justify-content: flex-start;
+}
+
+.community-illustration-actions a {
+  min-height: 3rem;
+  box-shadow: 0 12px 24px rgba(15, 31, 46, 0.1);
 }
 
 .intent-card {
