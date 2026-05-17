@@ -30,10 +30,10 @@ export const offerings = [
 ] as const;
 
 export const communityBullets = [
-  "Find community verified barbers in your area",
-  "Discounts and booking links",
-  "Review your barber for our free community",
-  "See what other balding men actually recommend"
+  "Start with New York barbers who understand thinning hair",
+  "Compare community signals before you book",
+  "Use booking links and shop details to move fast",
+  "Sign in to unlock the full barber shortlist"
 ] as const;
 
 export const testimonials = [
@@ -70,24 +70,16 @@ export const homepageFeatureCards: readonly HomepageFeatureCard[] = [
   {
     title: "Find Your Barber",
     status: "Live now",
-    description: "Find barbers who specialize in thinning hair and know how to work with your stage of hair loss."
+    description: "Search the barber directory for people who understand thinning hair and can help you choose the right cut."
   },
   {
-    title: "Get 1:1 Advice (Coming Soon)",
-    status: "Coming soon",
-    description:
-      "Get a personalized assessment of where you are in your hair loss journey, understand your options, and build an actionable plan — from styling to treatments to transplant considerations."
-  },
-  {
-    title: "Engage with the Community",
+    title: "Compare Before You Book",
     status: "Live now",
-    description:
-      "Explore verified success stories, join topic-specific discussions, and learn from others navigating the same journey."
+    description: "Use community signals, shop details, and booking links to decide who is worth your next appointment."
   },
   {
-    title: "Access Approved Products",
-    status: "Coming soon",
-    description:
-      "Discover community-approved products — from minoxidil soap to styling products and scalp care — all curated through real results and trusted recommendations."
+    title: "Unlock the Full Shortlist",
+    status: "Live now",
+    description: "Create a free account to see every vetted New York barber we have available today."
   }
 ] as const;

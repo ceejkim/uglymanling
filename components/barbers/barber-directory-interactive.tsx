@@ -16,6 +16,9 @@ type BarberDirectoryInteractiveProps = {
 
 type SummaryMap = Record<string, BarberInteractionSummary>;
 
+const BARBER_SIGN_IN_HREF = "/sign-in?redirect_url=%2Fstyle%2Fbarbers";
+const BARBER_SIGN_UP_HREF = "/sign-up?redirect_url=%2Fstyle%2Fbarbers";
+
 function formatCommentDate(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -77,7 +80,7 @@ function CommentComposer({
     return (
       <div className="barber-comment-cta">
         <p>Sign in to leave a note for the next guy.</p>
-        <Button href="/sign-in" variant="secondary">
+        <Button href={BARBER_SIGN_IN_HREF} variant="secondary">
           Sign in to comment
         </Button>
       </div>
@@ -207,7 +210,7 @@ function BarberCard({
                   </button>
                 </div>
               ) : (
-                <Link href="/sign-in" className="barber-link-button barber-link-button-muted barber-link-button-compact">
+                <Link href={BARBER_SIGN_IN_HREF} className="barber-link-button barber-link-button-muted barber-link-button-compact">
                   Sign in to vote
                 </Link>
               )}
@@ -313,7 +316,7 @@ function SuggestBarberForm({ signedIn }: { signedIn: boolean }) {
           <h2>Suggest a barber for review.</h2>
           <p>Sign in to send us a name and barbershop. We will review it before anything goes live.</p>
         </div>
-        <Button href="/sign-in" variant="secondary">
+        <Button href={BARBER_SIGN_IN_HREF} variant="secondary">
           Sign in to suggest a barber
         </Button>
       </section>
@@ -459,10 +462,10 @@ function LockedPreviewGate({
         </p>
       </div>
       <div className="barber-member-gate-actions">
-        <Button href="/sign-in" variant="secondary">
+        <Button href={BARBER_SIGN_IN_HREF} variant="secondary">
           Sign in
         </Button>
-        <Button href="/sign-up">Create free account</Button>
+        <Button href={BARBER_SIGN_UP_HREF}>Create free account</Button>
       </div>
     </div>
   );
