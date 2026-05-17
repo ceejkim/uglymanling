@@ -45,6 +45,7 @@ export function CommunityBand() {
                 alt={activeCommunityImage.alt}
                 width={960}
                 height={720}
+                sizes="(max-width: 720px) calc(100vw - 3rem), (max-width: 920px) calc(100vw - 4rem), 50vw"
                 className="community-illustration-image"
               />
               <div className="community-actions community-illustration-actions">
