@@ -17,7 +17,7 @@ If a handoff is missing these fields, the receiving agent should pause and ask t
 ## User Context
 1. Current user state:
 2. Desired user outcome:
-3. Relevant offering or horizontal layer:
+3. Relevant barber recommendation surface or horizontal layer:
 
 ## Constraints
 1. Product constraints:
@@ -48,4 +48,4 @@ If a handoff is missing these fields, the receiving agent should pause and ask t
 2. Decisions needed from the `Orchestrator`:
 
 ## Decision Log Reference
-1. Relevant entries from `/Users/charleskimbell/Rekkoe/docs/decisions.md`:
+1. Relevant entries from `docs/decisions.md`:
