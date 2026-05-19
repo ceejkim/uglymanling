@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { CommunityBand } from "@/components/homepage/community-band";
 import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
+import { FooterCta } from "@/components/homepage/footer-cta";
 import { Button } from "@/components/ui/button";
 import { HERO_CTA_VARIANT_COOKIE, getHeroVisitorType, heroCtaVariant, isHeroCtaVariantValue } from "@/flags";
 
@@ -43,6 +44,7 @@ export default async function HomePage() {
       <div id="community">
         <CommunityBand />
       </div>
+      <FooterCta />
     </main>
   );
 }

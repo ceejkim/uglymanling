@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagPageviews } from "@/components/analytics/google-tag-pageviews";
 import { AuthSync } from "@/components/auth/auth-sync";
+import { SiteFooter } from "@/components/homepage/site-footer";
 import "./globals.css";
 
 const GA_MEASUREMENT_ID = "G-S77HK4K887";
@@ -43,6 +44,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
             <GoogleTagPageviews />
           </Suspense>
           {children}
+          <SiteFooter />
           <Analytics />
           <SpeedInsights />
         </ClerkProvider>

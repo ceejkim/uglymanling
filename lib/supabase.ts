@@ -1,6 +1,12 @@
+import "server-only";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+type SupabaseRow = Record<string, unknown>;
+type SupportedFilterOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "like" | "ilike" | "in" | "is";
 
 function requireEnv(value: string | undefined, name: string) {
   if (!value) {
@@ -10,23 +16,104 @@ function requireEnv(value: string | undefined, name: string) {
   return value;
 }
 
-function getHeaders(useServiceRole = false) {
+function createSupabaseServerClient(apiKey: string) {
+  return createClient(requireEnv(supabaseUrl, "NEXT_PUBLIC_SUPABASE_URL"), apiKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
+
+function getSupabaseClient(useServiceRole = false): SupabaseClient {
   const apiKey = useServiceRole
     ? requireEnv(supabaseServiceRoleKey, "SUPABASE_SERVICE_ROLE_KEY")
     : requireEnv(supabaseAnonKey, "NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
+  return createSupabaseServerClient(apiKey);
+}
+
+function parseFilter(filter: string) {
+  const [column, expression] = filter.split("=", 2);
+
+  if (!column || !expression) {
+    throw new Error(`Invalid Supabase filter: ${filter}`);
+  }
+
+  const firstDot = expression.indexOf(".");
+
+  if (firstDot === -1) {
+    throw new Error(`Unsupported Supabase filter expression: ${filter}`);
+  }
+
+  const operator = expression.slice(0, firstDot) as SupportedFilterOperator;
+  const rawValue = expression.slice(firstDot + 1);
+
   return {
-    apikey: apiKey,
-    Authorization: `Bearer ${apiKey}`,
-    "Content-Type": "application/json"
+    column,
+    operator,
+    rawValue
   };
+}
+
+function normalizeIsValue(value: string) {
+  if (value === "null") {
+    return null;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return value;
+}
+
+function normalizeInValue(value: string) {
+  const trimmed = value.replace(/^\(|\)$/g, "");
+  return trimmed
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function applyFilter(query: any, filter: string) {
+  const { column, operator, rawValue } = parseFilter(filter);
+
+  switch (operator) {
+    case "eq":
+      return query.eq(column, rawValue);
+    case "neq":
+      return query.neq(column, rawValue);
+    case "gt":
+      return query.gt(column, rawValue);
+    case "gte":
+      return query.gte(column, rawValue);
+    case "lt":
+      return query.lt(column, rawValue);
+    case "lte":
+      return query.lte(column, rawValue);
+    case "like":
+      return query.like(column, rawValue);
+    case "ilike":
+      return query.ilike(column, rawValue);
+    case "in":
+      return query.in(column, normalizeInValue(rawValue));
+    case "is":
+      return query.is(column, normalizeIsValue(rawValue));
+    default:
+      throw new Error(`Unsupported Supabase filter operator: ${operator}`);
+  }
 }
 
 export function getSupabaseUrl() {
   return requireEnv(supabaseUrl, "NEXT_PUBLIC_SUPABASE_URL");
 }
 
-export async function upsertSupabaseRow<T extends Record<string, unknown>>({
+export async function upsertSupabaseRow<T extends SupabaseRow>({
   table,
   values,
   onConflict
@@ -35,21 +122,20 @@ export async function upsertSupabaseRow<T extends Record<string, unknown>>({
   values: T | T[];
   onConflict?: string;
 }) {
-  const conflictQuery = onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : "";
-  const response = await fetch(`${getSupabaseUrl()}/rest/v1/${table}${conflictQuery}`, {
-    method: "POST",
-    headers: {
-      ...getHeaders(true),
-      Prefer: "resolution=merge-duplicates,return=representation"
-    },
-    body: JSON.stringify(values)
-  });
+  const client = getSupabaseClient(true);
+  const { data, error } = await client
+    .from(table)
+    .upsert(values as any, {
+      onConflict,
+      ignoreDuplicates: false
+    })
+    .select();
 
-  if (!response.ok) {
-    throw new Error(await response.text());
+  if (error) {
+    throw new Error(error.message);
   }
 
-  return (await response.json()) as T[];
+  return ((data ?? []) as unknown) as T[];
 }
 
 export async function deleteSupabaseRows({
@@ -59,28 +145,20 @@ export async function deleteSupabaseRows({
   table: string;
   filters?: string[];
 }) {
-  const params = new URLSearchParams();
+  let query = getSupabaseClient(true).from(table).delete();
 
   for (const filter of filters) {
-    const [key, value] = filter.split("=", 2);
-    params.append(key, value);
+    query = applyFilter(query, filter);
   }
 
-  const query = params.toString();
-  const response = await fetch(`${getSupabaseUrl()}/rest/v1/${table}${query ? `?${query}` : ""}`, {
-    method: "DELETE",
-    headers: {
-      ...getHeaders(true),
-      Prefer: "return=minimal"
-    }
-  });
+  const { error } = await query;
 
-  if (!response.ok) {
-    throw new Error(await response.text());
+  if (error) {
+    throw new Error(error.message);
   }
 }
 
-export async function selectSupabaseRows<T>({
+export async function selectSupabaseRows<T extends SupabaseRow>({
   table,
   select = "*",
   filters = [],
@@ -95,29 +173,25 @@ export async function selectSupabaseRows<T>({
   ascending?: boolean;
   limit?: number;
 }) {
-  const params = new URLSearchParams({ select });
+  let query = getSupabaseClient(true).from(table).select(select);
 
   for (const filter of filters) {
-    const [key, value] = filter.split("=", 2);
-    params.append(key, value);
+    query = applyFilter(query, filter);
   }
 
   if (orderBy) {
-    params.set("order", `${orderBy}.${ascending ? "asc" : "desc"}`);
+    query = query.order(orderBy, { ascending });
   }
 
   if (limit) {
-    params.set("limit", String(limit));
+    query = query.limit(limit);
   }
 
-  const response = await fetch(`${getSupabaseUrl()}/rest/v1/${table}?${params.toString()}`, {
-    headers: getHeaders(true),
-    cache: "no-store"
-  });
+  const { data, error } = await query;
 
-  if (!response.ok) {
-    throw new Error(await response.text());
+  if (error) {
+    throw new Error(error.message);
   }
 
-  return (await response.json()) as T[];
+  return ((data ?? []) as unknown) as T[];
 }

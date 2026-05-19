@@ -1,19 +1,37 @@
+import Link from "next/link";
+
 const footerGroups = [
   {
     title: "Company",
-    links: ["About", "Careers", "Contact"]
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Careers", href: "/careers" },
+      { label: "Contact", href: "/contact" }
+    ]
   },
   {
     title: "Legal",
-    links: ["Privacy", "Terms"]
+    links: [
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" }
+    ]
   },
   {
     title: "Product",
-    links: ["Shop"]
+    links: [
+      { label: "Assessment", href: "/assessment" },
+      { label: "Barber directory", href: "/style/barbers" },
+      { label: "Shop", href: "/shop" }
+    ]
   },
   {
     title: "Social",
-    links: ["Instagram", "TikTok", "YouTube", "Reddit"]
+    links: [
+      { label: "Instagram", href: null },
+      { label: "TikTok", href: null },
+      { label: "YouTube", href: null },
+      { label: "Reddit", href: null }
+    ]
   }
 ] as const;
 
@@ -55,9 +73,15 @@ export function SiteFooter() {
                 <h3 className="site-footer-group-title">{group.title}</h3>
                 <div className="site-footer-links">
                   {group.links.map((link) => (
-                    <a key={link} href="#" className="site-footer-link">
-                      {link}
-                    </a>
+                    link.href ? (
+                      <Link key={link.label} href={link.href} className="site-footer-link">
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <span key={link.label} className="site-footer-link" aria-disabled="true" title="Link coming soon">
+                        {link.label}
+                      </span>
+                    )
                   ))}
                 </div>
               </div>
