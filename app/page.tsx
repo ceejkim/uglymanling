@@ -3,8 +3,6 @@ import { cookies } from "next/headers";
 import { CommunityBand } from "@/components/homepage/community-band";
 import { BrandMark } from "@/components/homepage/brand-mark";
 import { Hero } from "@/components/homepage/hero";
-import { ProductVision } from "@/components/homepage/product-vision";
-import { SiteFooter } from "@/components/homepage/site-footer";
 import { Button } from "@/components/ui/button";
 import { HERO_CTA_VARIANT_COOKIE, getHeroVisitorType, heroCtaVariant, isHeroCtaVariantValue } from "@/flags";
 
@@ -42,13 +40,9 @@ export default async function HomePage() {
       </div>
 
       <Hero ctaVariant={variant} heroHeadline={heroHeadline} visitorType={visitorType} />
-      <div id="vision">
-        <ProductVision />
-      </div>
       <div id="community">
         <CommunityBand />
       </div>
-      <SiteFooter />
     </main>
   );
 }
