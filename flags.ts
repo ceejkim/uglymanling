@@ -30,6 +30,27 @@ export async function getHeroVisitorType(): Promise<HeroVisitorType> {
   return userId ? "signed_in" : "anonymous";
 }
 
+function getDeterministicVariantIndex(identityId: string) {
+  let hash = 0;
+
+  for (let index = 0; index < identityId.length; index += 1) {
+    hash = (hash * 31 + identityId.charCodeAt(index)) >>> 0;
+  }
+
+  return hash % HERO_CTA_VARIANT_VALUES.length;
+}
+
+async function decideHeroCtaVariantFallback() {
+  const identity = await identifyHeroVisitor();
+  const identityId = identity.user?.id;
+
+  if (!identityId) {
+    return "A" as const;
+  }
+
+  return HERO_CTA_VARIANT_VALUES[getDeterministicVariantIndex(identityId)];
+}
+
 const identifyHeroVisitor = dedupe(async (): Promise<HeroFlagEntities> => {
   const headerStore = await headers();
   const headerId = headerStore.get(HERO_CTA_IDENTITY_ID_HEADER);
@@ -85,5 +106,5 @@ export const heroCtaVariant = process.env.FLAGS
   : flag<HeroCtaVariantValue, HeroFlagEntities>({
       ...heroCtaVariantBase,
       identify: identifyHeroVisitor,
-      decide: () => "A"
+      decide: decideHeroCtaVariantFallback
     });

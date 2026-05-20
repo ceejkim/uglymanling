@@ -16,19 +16,21 @@ export function HeroCtaButton({ variant, heroHeadline, visitorType }: HeroCtaBut
       href="/style/barbers"
       variant="secondary"
       onClick={() => {
-        track("Find Barber Clicked", {
+        const eventPayload = {
           location: "homepage_hero",
+          hero_cta_variant: variant,
+          hero_cta_headline: heroHeadline,
+          hero_visitor_type: visitorType
+        };
+
+        track("Find Barber Clicked", {
+          ...eventPayload,
           variant,
           heroHeadline,
           visitorType
         });
 
-        window.gtag?.("event", "hero_cta_click", {
-          location: "homepage_hero",
-          variant,
-          heroHeadline,
-          visitorType
-        } as Record<string, unknown>);
+        window.gtag?.("event", "hero_cta_click", eventPayload);
       }}
     >
       Find a barber
