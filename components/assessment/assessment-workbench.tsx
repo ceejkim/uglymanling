@@ -329,8 +329,8 @@ export function AssessmentWorkbench() {
             <Button href="/research" variant="ghost">
               Read the evidence first
             </Button>
-            <Button href="/community" variant="ghost">
-              See how other men handled it
+            <Button href="/sign-up?redirect_url=%2Fcommunity%2Fspace" variant="ghost">
+              Join our community
             </Button>
           </div>
           <p style={{ marginTop: "0.75rem", fontSize: "0.9rem", opacity: 0.8 }}>
