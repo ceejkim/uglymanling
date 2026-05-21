@@ -33,6 +33,10 @@ The wizard has completed a deep integration of PostHog analytics into Ugly Manli
 | `subscription_created` | Stripe webhook confirms a new subscription was created. | `app/api/stripe/webhook/route.ts` |
 | `subscription_cancelled` | Stripe webhook confirms a subscription was deleted/cancelled. | `app/api/stripe/webhook/route.ts` |
 | `barber_directory_viewed` | User lands on the barber directory page. Top-of-funnel with city and access level context. | `app/style/barbers/page.tsx` |
+| `footer_cta_clicked` | User clicks a CTA button in the homepage footer (assessment or community join). | `components/homepage/footer-cta.tsx` |
+| `intent_card_clicked` | User clicks a "Pick a lane" quick path card on the homepage intent router. | `components/homepage/intent-router.tsx` |
+| `barber_city_filtered` | User filters the barber directory by city. | `components/barbers/barber-city-filter.tsx` |
+| `portal_session_created` | Authenticated user successfully opens the Stripe billing portal. | `app/api/stripe/portal/route.ts` |
 
 ## Next steps
 

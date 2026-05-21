@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import posthog from "posthog-js";
 
 type BarberCityFilterProps = {
   cities: {
@@ -28,6 +29,8 @@ export function BarberCityFilter({ cities, selectedCity }: BarberCityFilterProps
         aria-label="Filter barbers by city"
         onChange={(event) => {
           const nextCity = event.target.value;
+
+          posthog.capture("barber_city_filtered", { city: nextCity || null });
 
           startTransition(() => {
             router.push(nextCity ? `/style/barbers?city=${encodeURIComponent(nextCity)}` : "/style/barbers");

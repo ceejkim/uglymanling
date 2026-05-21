@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 type PortalRequestBody = {
   customerId?: string;
@@ -42,6 +43,14 @@ export async function POST(request: Request) {
     const session = await stripe.billingPortal.sessions.create({
       customer: body.customerId,
       return_url: buildAbsoluteUrl(request, body.returnPath ?? "/community")
+    });
+
+    await captureServerEvent({
+      distinctId: userId,
+      event: "portal_session_created",
+      properties: {
+        customer_id: body.customerId
+      }
     });
 
     return NextResponse.json({ portalUrl: session.url });

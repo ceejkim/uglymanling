@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 
 export function FooterCta() {
@@ -14,8 +17,17 @@ export function FooterCta() {
                 For uglymanlings who would rather make a plan than freestyle another bad week.
               </p>
               <div className="footer-actions">
-                <Button href="/assessment">Take the assessment</Button>
-                <Button href="/community" variant="secondary">
+                <Button
+                  href="/assessment"
+                  onClick={() => posthog.capture("footer_cta_clicked", { label: "Take the assessment", destination: "/assessment" })}
+                >
+                  Take the assessment
+                </Button>
+                <Button
+                  href="/community"
+                  variant="secondary"
+                  onClick={() => posthog.capture("footer_cta_clicked", { label: "Join the uglymanlings", destination: "/community" })}
+                >
                   Join the uglymanlings
                 </Button>
               </div>
