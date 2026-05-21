@@ -5,6 +5,8 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagPageviews } from "@/components/analytics/google-tag-pageviews";
+import { PostHogPageviews } from "@/components/analytics/posthog-pageviews";
+import { PostHogUserIdentification } from "@/components/analytics/posthog-user-identification";
 import { AuthSync } from "@/components/auth/auth-sync";
 import { SiteFooter } from "@/components/homepage/site-footer";
 import "./globals.css";
@@ -40,8 +42,10 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
       <body>
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up">
           <AuthSync />
+          <PostHogUserIdentification />
           <Suspense fallback={null}>
             <GoogleTagPageviews />
+            <PostHogPageviews />
           </Suspense>
           {children}
           <SiteFooter />

@@ -10,6 +10,7 @@ import {
 } from "@/lib/barber-community";
 import { syncSignedInUser } from "@/lib/clerk-supabase";
 import { getKnownBarberIds } from "@/lib/barber-data";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,15 @@ export async function POST(request: Request) {
         value: body.value
       });
 
+      await captureServerEvent({
+        distinctId: userId,
+        event: "barber_voted",
+        properties: {
+          barber_id: body.barberId,
+          vote_value: body.value
+        }
+      });
+
       return NextResponse.json({ summary });
     }
 
@@ -84,6 +94,15 @@ export async function POST(request: Request) {
         body: trimmedBody,
         id: randomUUID(),
         userId
+      });
+
+      await captureServerEvent({
+        distinctId: userId,
+        event: "barber_comment_posted",
+        properties: {
+          barber_id: body.barberId,
+          comment_length: trimmedBody.length
+        }
       });
 
       return NextResponse.json({ summary });

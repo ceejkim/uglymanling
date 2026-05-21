@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { captureServerEvent } from "@/lib/posthog-server";
+
+function getCustomerId(customer: string | Stripe.Customer | Stripe.DeletedCustomer | null) {
+  if (!customer) {
+    return undefined;
+  }
+
+  return typeof customer === "string" ? customer : customer.id;
+}
 
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
@@ -19,10 +28,59 @@ export async function POST(request: Request) {
     );
 
     switch (event.type) {
-      case "checkout.session.completed":
-      case "customer.subscription.created":
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        await captureServerEvent({
+          distinctId:
+            session.client_reference_id ??
+            session.metadata?.clerk_user_id ??
+            getCustomerId(session.customer) ??
+            session.id,
+          event: "payment_completed",
+          properties: {
+            session_id: session.id,
+            amount_total: session.amount_total,
+            currency: session.currency,
+            price_lookup_key: session.metadata?.price_lookup_key,
+            clerk_user_id: session.metadata?.clerk_user_id
+          }
+        });
+        // TODO: Persist event state to the Ugly Manling database once Supabase is added.
+        break;
+      }
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await captureServerEvent({
+          distinctId:
+            subscription.metadata?.clerk_user_id ??
+            getCustomerId(subscription.customer) ??
+            subscription.id,
+          event: "subscription_created",
+          properties: {
+            subscription_id: subscription.id,
+            status: subscription.status
+          }
+        });
+        // TODO: Persist event state to the Ugly Manling database once Supabase is added.
+        break;
+      }
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await captureServerEvent({
+          distinctId:
+            subscription.metadata?.clerk_user_id ??
+            getCustomerId(subscription.customer) ??
+            subscription.id,
+          event: "subscription_cancelled",
+          properties: {
+            subscription_id: subscription.id,
+            status: subscription.status
+          }
+        });
+        // TODO: Persist event state to the Ugly Manling database once Supabase is added.
+        break;
+      }
       case "customer.subscription.updated":
-      case "customer.subscription.deleted":
       case "invoice.paid":
       case "invoice.payment_failed":
         // TODO: Persist event state to the Ugly Manling database once Supabase is added.

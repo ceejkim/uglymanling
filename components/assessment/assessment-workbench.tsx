@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 
 type Option = {
@@ -150,11 +151,13 @@ function getLane({
 
 function OptionGroup({
   title,
+  group,
   options,
   selected,
   onSelect
 }: {
   title: string;
+  group: string;
   options: Option[];
   selected: string;
   onSelect: (value: string) => void;
@@ -173,7 +176,14 @@ function OptionGroup({
               key={option.value}
               type="button"
               className={`assessment-option${active ? " is-active" : ""}`}
-              onClick={() => onSelect(option.value)}
+              onClick={() => {
+                onSelect(option.value);
+                posthog.capture("assessment_option_selected", {
+                  group,
+                  value: option.value,
+                  label: option.label,
+                });
+              }}
             >
               <strong>{option.label}</strong>
               <span>{option.note}</span>
@@ -229,7 +239,20 @@ export function AssessmentWorkbench() {
       })
     });
 
-    setSaveState(response.ok ? "saved" : "error");
+    if (response.ok) {
+      setSaveState("saved");
+      posthog.capture("assessment_saved", {
+        stage,
+        goal,
+        budget,
+        urgency,
+        lane_title: lane.title,
+        lane_badge: lane.badge,
+      });
+    } else {
+      setSaveState("error");
+      posthog.captureException(new Error("Assessment save failed"));
+    }
   }
 
   return (
@@ -258,24 +281,28 @@ export function AssessmentWorkbench() {
         <div className="assessment-controls">
           <OptionGroup
             title="Where are you right now?"
+            group="stage"
             options={stageOptions}
             selected={stage}
             onSelect={setStage}
           />
           <OptionGroup
             title="What do you want most?"
+            group="goal"
             options={goalOptions}
             selected={goal}
             onSelect={setGoal}
           />
           <OptionGroup
             title="What kind of budget are we working with?"
+            group="budget"
             options={budgetOptions}
             selected={budget}
             onSelect={setBudget}
           />
           <OptionGroup
             title="How urgent does this feel?"
+            group="urgency"
             options={urgencyOptions}
             selected={urgency}
             onSelect={setUrgency}

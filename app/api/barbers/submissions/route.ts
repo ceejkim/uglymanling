@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { makeAuthorLabel } from "@/lib/barber-community";
 import { syncSignedInUser } from "@/lib/clerk-supabase";
 import { upsertSupabaseRow } from "@/lib/supabase";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -63,6 +64,15 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  await captureServerEvent({
+    distinctId: userId,
+    event: "barber_suggested",
+    properties: {
+      barber_name: submission.barberName,
+      barbershop: submission.barbershop
+    }
+  });
 
   return NextResponse.json({ ok: true, submission });
 }

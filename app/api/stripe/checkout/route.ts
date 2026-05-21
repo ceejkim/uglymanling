@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getStripe, getStripePriceId } from "@/lib/stripe";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 type CheckoutRequestBody = {
   cancelPath?: string;
@@ -52,6 +53,16 @@ export async function POST(request: Request) {
         request,
         `${successPath}${successPath.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`
       )
+    });
+
+    await captureServerEvent({
+      distinctId: userId,
+      event: "checkout_session_created",
+      properties: {
+        price_lookup_key: priceLookupKey,
+        mode,
+        session_id: session.id
+      }
     });
 
     return NextResponse.json({ checkoutUrl: session.url, sessionId: session.id });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useUser } from "@clerk/nextjs";
+import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import type { BarberInteractionSummary } from "@/lib/barber-community";
 import type { BarberCandidate } from "@/lib/barber-data";
@@ -224,12 +225,35 @@ function BarberCard({
                 className="barber-card-toggle"
                 aria-expanded={isExpanded}
                 aria-controls={`barber-details-${barber.id}`}
-                onClick={() => setIsExpanded((current) => !current)}
+                onClick={() => {
+                  const next = !isExpanded;
+                  setIsExpanded(next);
+                  if (next) {
+                    posthog.capture("barber_card_expanded", {
+                      barber_id: barber.id,
+                      barber_name: barber.barberName,
+                      city: barber.city,
+                    });
+                  }
+                }}
               >
                 {detailsButtonLabel}
               </button>
               {barber.primaryBookingUrl ? (
-                <a className="barber-link-button barber-link-button-primary barber-link-button-compact" href={barber.primaryBookingUrl} target="_blank" rel="noreferrer">
+                <a
+                  className="barber-link-button barber-link-button-primary barber-link-button-compact"
+                  href={barber.primaryBookingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => {
+                    posthog.capture("barber_book_now_clicked", {
+                      barber_id: barber.id,
+                      barber_name: barber.barberName,
+                      city: barber.city,
+                      booking_url: barber.primaryBookingUrl,
+                    });
+                  }}
+                >
                   Book now
                 </a>
               ) : (

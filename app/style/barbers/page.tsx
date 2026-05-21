@@ -3,6 +3,7 @@ import { BarberCityFilter } from "@/components/barbers/barber-city-filter";
 import { BarberDirectoryInteractive } from "@/components/barbers/barber-directory-interactive";
 import { Button } from "@/components/ui/button";
 import { filterBarberDirectory, getBarberDirectoryCities } from "@/lib/barber-data";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 const NEW_YORK_CITY_SLUG = "new-york";
 const NEW_YORK_CITY_ALT_SLUG = "new-york-city";
@@ -43,6 +44,18 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
     const visibleBarbers = filteredDirectory.visibleBarbers;
     const lockedPreviewBarbers = filteredDirectory.lockedPreviewBarbers;
     const activeCityLabel = cityOptions.find((city) => city.value === selectedCity)?.label ?? fallbackCity.label;
+
+    await captureServerEvent({
+      distinctId: userId ?? "anonymous",
+      event: "barber_directory_viewed",
+      properties: {
+        city: selectedCity,
+        city_label: activeCityLabel,
+        viewer_has_full_access: viewerHasFullAccess,
+        visible_barber_count: visibleBarbers.length,
+        locked_barber_count: lockedPreviewBarbers.length
+      }
+    });
     const heroCopy = viewerHasFullAccess
       ? (
           <>
