@@ -1,4 +1,5 @@
 import { PostHog } from "posthog-node";
+import { posthogHost, posthogProjectToken } from "@/lib/posthog-config";
 
 type PostHogPropertyValue = boolean | number | string | null | undefined;
 
@@ -19,14 +20,12 @@ export async function captureServerEvent({
   event,
   properties = {}
 }: CaptureServerEventInput) {
-  const token = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
-
-  if (!token) {
+  if (!posthogProjectToken) {
     return;
   }
 
-  const posthog = new PostHog(token, {
-    host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+  const posthog = new PostHog(posthogProjectToken, {
+    host: posthogHost,
     flushAt: 1,
     flushInterval: 0
   });

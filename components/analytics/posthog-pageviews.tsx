@@ -3,13 +3,14 @@
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
+import { hasPostHogToken } from "@/lib/posthog-config";
 
 export function PostHogPageviews() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_POSTHOG_TOKEN) {
+    if (typeof window === "undefined" || !hasPostHogToken) {
       return;
     }
 

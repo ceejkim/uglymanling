@@ -3,13 +3,14 @@
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 import posthog from "posthog-js";
+import { hasPostHogToken } from "@/lib/posthog-config";
 
 export function PostHogUserIdentification() {
   const { isLoaded, isSignedIn, user } = useUser();
   const wasSignedIn = useRef(false);
 
   useEffect(() => {
-    if (!isLoaded || !process.env.NEXT_PUBLIC_POSTHOG_TOKEN) {
+    if (!isLoaded || !hasPostHogToken) {
       return;
     }
 

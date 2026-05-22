@@ -1,13 +1,8 @@
 import posthog from "posthog-js";
+import { posthogProjectToken, posthogUiHost } from "@/lib/posthog-config";
 
-const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
-const posthogUiHost =
-  process.env.NEXT_PUBLIC_POSTHOG_HOST?.includes("eu.i.posthog.com")
-    ? "https://eu.posthog.com"
-    : "https://us.posthog.com";
-
-if (posthogToken) {
-  posthog.init(posthogToken, {
+if (posthogProjectToken) {
+  posthog.init(posthogProjectToken, {
     api_host: "/ingest",
     ui_host: posthogUiHost,
     capture_exceptions: true,

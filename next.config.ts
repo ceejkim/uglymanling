@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
+import { posthogHost } from "./lib/posthog-config";
 
-const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com";
 const posthogAssetsHost = posthogHost.includes("eu.i.posthog.com")
   ? "https://eu-assets.i.posthog.com"
   : "https://us-assets.i.posthog.com";
