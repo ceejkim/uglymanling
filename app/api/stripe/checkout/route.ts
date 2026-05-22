@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     await captureServerEvent({
       distinctId: userId,
-      event: "checkout_session_created",
+      event: "stripe_checkout_started",
       properties: {
         price_lookup_key: priceLookupKey,
         mode,

@@ -1,56 +1,79 @@
-<wizard-report>
-# PostHog post-wizard report
+# PostHog Setup Report
 
-The wizard has completed a deep integration of PostHog analytics into Ugly Manling. Here is a summary of every change made:
+## Router and package check
 
-- **`instrumentation-client.ts`** (new) — Initializes `posthog-js` on the client side using Next.js 15.3+ instrumentation. Enables autocapture, session replay, and error tracking via `capture_exceptions: true`. Routes events through `/ingest` reverse proxy for improved ad-blocker resilience.
-- **`lib/posthog-server.ts`** (new) — Singleton `posthog-node` client used by all API routes for server-side event capture with `flushAt: 1` / `flushInterval: 0` to ensure events flush immediately in short-lived serverless functions.
-- **`next.config.ts`** (updated) — Added PostHog reverse proxy rewrites for `/ingest/*`, `/ingest/static/*`, and `/ingest/array/*`, plus `skipTrailingSlashRedirect: true`.
-- **`components/homepage/hero-cta-button.tsx`** (updated) — Added `posthog.capture("hero_cta_clicked", ...)` alongside the existing Vercel analytics call, including A/B variant, headline, and visitor type as properties.
-- **`components/assessment/assessment-workbench.tsx`** (updated) — Added `posthog.capture("assessment_option_selected", ...)` on each option group button click (with group name, value, and label), and `posthog.capture("assessment_saved", ...)` on successful save with full lane context. Also added `posthog.captureException(...)` on save failure for error tracking.
-- **`components/barbers/barber-directory-interactive.tsx`** (updated) — Added `posthog.capture("barber_card_expanded", ...)` when a barber card is expanded, and `posthog.capture("barber_book_now_clicked", ...)` when the booking link is clicked.
-- **`app/api/barbers/interactions/route.ts`** (updated) — Added server-side `barber_voted` and `barber_comment_posted` captures using `posthog-node`, keyed to `userId` as the distinct ID.
-- **`app/api/barbers/submissions/route.ts`** (updated) — Added server-side `barber_suggested` capture after a successful barber submission.
-- **`app/api/stripe/checkout/route.ts`** (updated) — Added server-side `checkout_session_created` capture including price lookup key, mode, and session ID.
-- **`app/api/stripe/webhook/route.ts`** (updated) — Added server-side captures for `payment_completed` (checkout.session.completed), `subscription_created`, and `subscription_cancelled` from Stripe webhook events.
-- **`app/style/barbers/page.tsx`** (updated) — Added server-side `barber_directory_viewed` capture on page render, including city, access level, and barber counts.
-- **`.env.local`** (updated) — Added `NEXT_PUBLIC_POSTHOG_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` environment variables.
+- Router: App Router only. The repo has an [`app/`](/Users/charleskimbell/Rekkoe/app/layout.tsx:1) directory and no `pages/` directory.
+- Installed packages:
+  - `posthog-js`
+  - `posthog-node`
 
-## Events instrumented
+## Files changed
 
-| Event | Description | File |
-|---|---|---|
-| `hero_cta_clicked` | User clicks the primary 'Find a barber' CTA on the homepage hero. Includes A/B variant and visitor type. | `components/homepage/hero-cta-button.tsx` |
-| `assessment_option_selected` | User selects an option within the hair loss assessment (stage, goal, budget, or urgency). | `components/assessment/assessment-workbench.tsx` |
-| `assessment_saved` | User successfully saves their hair loss assessment to their profile. | `components/assessment/assessment-workbench.tsx` |
-| `barber_card_expanded` | User expands a barber card to read comments and see full details. | `components/barbers/barber-directory-interactive.tsx` |
-| `barber_book_now_clicked` | User clicks the 'Book now' link on a barber card. | `components/barbers/barber-directory-interactive.tsx` |
-| `barber_voted` | Authenticated user submits an upvote or downvote on a barber. | `app/api/barbers/interactions/route.ts` |
-| `barber_comment_posted` | Authenticated user posts a community comment on a barber. | `app/api/barbers/interactions/route.ts` |
-| `barber_suggested` | Authenticated user submits a new barber suggestion for directory review. | `app/api/barbers/submissions/route.ts` |
-| `checkout_session_created` | A Stripe checkout session is successfully created for a user. | `app/api/stripe/checkout/route.ts` |
-| `payment_completed` | Stripe webhook confirms a checkout session completed. | `app/api/stripe/webhook/route.ts` |
-| `subscription_created` | Stripe webhook confirms a new subscription was created. | `app/api/stripe/webhook/route.ts` |
-| `subscription_cancelled` | Stripe webhook confirms a subscription was deleted/cancelled. | `app/api/stripe/webhook/route.ts` |
-| `barber_directory_viewed` | User lands on the barber directory page. Top-of-funnel with city and access level context. | `app/style/barbers/page.tsx` |
-| `footer_cta_clicked` | User clicks a CTA button in the homepage footer (assessment or community join). | `components/homepage/footer-cta.tsx` |
-| `intent_card_clicked` | User clicks a "Pick a lane" quick path card on the homepage intent router. | `components/homepage/intent-router.tsx` |
-| `barber_city_filtered` | User filters the barber directory by city. | `components/barbers/barber-city-filter.tsx` |
-| `portal_session_created` | Authenticated user successfully opens the Stripe billing portal. | `app/api/stripe/portal/route.ts` |
+- [`app/layout.tsx`](/Users/charleskimbell/Rekkoe/app/layout.tsx:1)  
+  Mounted a root `PostHogProvider` in the App Router layout without changing the existing Vercel Flags or Clerk setup.
+- [`components/analytics/posthog-provider.tsx`](/Users/charleskimbell/Rekkoe/components/analytics/posthog-provider.tsx:1)  
+  Added a client-only provider that exposes `window.posthog`, keeps user identification in one place, and captures pageviews on client-side navigation via `Suspense`.
+- [`lib/posthog-config.ts`](/Users/charleskimbell/Rekkoe/lib/posthog-config.ts:1)  
+  Added env fallback support for `NEXT_PUBLIC_POSTHOG_KEY`, then `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, then legacy `NEXT_PUBLIC_POSTHOG_TOKEN`.
+- [`app/api/stripe/checkout/route.ts`](/Users/charleskimbell/Rekkoe/app/api/stripe/checkout/route.ts:1)  
+  Updated the server-side checkout event to `stripe_checkout_started`.
+- [`.env.local`](/Users/charleskimbell/Rekkoe/.env.local:14)  
+  Normalized the local PostHog host to the ingest host recommended by PostHog docs.
 
-## Next steps
+## Events in the funnel
 
-We've built some insights and a dashboard for you to keep an eye on user behavior, based on the events we just instrumented:
+- `barber_directory_viewed`  
+  Captured server-side in [`app/style/barbers/page.tsx`](/Users/charleskimbell/Rekkoe/app/style/barbers/page.tsx:48).
+- `footer_cta_clicked`  
+  Captured client-side in [`components/homepage/footer-cta.tsx`](/Users/charleskimbell/Rekkoe/components/homepage/footer-cta.tsx:19).
+- `intent_card_clicked`  
+  Captured client-side in [`components/homepage/intent-router.tsx`](/Users/charleskimbell/Rekkoe/components/homepage/intent-router.tsx:17).
+- `subscription_created`  
+  Captured server-side from the Stripe webhook in [`app/api/stripe/webhook/route.ts`](/Users/charleskimbell/Rekkoe/app/api/stripe/webhook/route.ts:51).
+- `subscription_cancelled`  
+  Captured server-side from the Stripe webhook in [`app/api/stripe/webhook/route.ts`](/Users/charleskimbell/Rekkoe/app/api/stripe/webhook/route.ts:67).
+- `stripe_checkout_started`  
+  Captured server-side when checkout session creation succeeds in [`app/api/stripe/checkout/route.ts`](/Users/charleskimbell/Rekkoe/app/api/stripe/checkout/route.ts:58).
 
-- [Analytics basics dashboard](https://us.posthog.com/project/434207/dashboard/1612741)
-- [Hero CTA clicks over time](https://us.posthog.com/project/434207/insights/dX9xsr4h) — homepage A/B variant performance
-- [Barber directory → checkout conversion funnel](https://us.posthog.com/project/434207/insights/hBeKuCNK) — end-to-end purchase conversion
-- [Assessment completions](https://us.posthog.com/project/434207/insights/V2CTcjWz) — user activation signal
-- [Community engagement (votes, comments, submissions)](https://us.posthog.com/project/434207/insights/yNgZZywE) — community health
-- [Subscription health (created vs cancelled)](https://us.posthog.com/project/434207/insights/cVJqLOJ3) — churn signal
+## Env vars required in Vercel
 
-### Agent skill
+Use one of these token vars:
 
-We've left an agent skill folder in your project. You can use this context for further agent development when using Claude Code. This will help ensure the model provides the most up-to-date approaches for integrating PostHog.
+- `NEXT_PUBLIC_POSTHOG_KEY`
+- `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`
 
-</wizard-report>
+Also required:
+
+- `NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com`
+
+Notes:
+
+- The code supports the legacy `NEXT_PUBLIC_POSTHOG_TOKEN` env var as a fallback.
+- Local [`.env.local`](/Users/charleskimbell/Rekkoe/.env.local:14) currently includes `NEXT_PUBLIC_POSTHOG_HOST` and `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`.
+
+## Verification
+
+In the browser console after loading the app:
+
+```js
+window.posthog
+window.posthog.capture("test_event")
+```
+
+You should also be able to navigate between routes and see `$pageview` events captured because pageviews are tracked from a client component mounted in the root layout.
+
+In PostHog:
+
+1. Open your project in PostHog.
+2. Go to `Activity` or `Events`.
+3. Trigger a local test event from the console or click through the homepage and barber funnel.
+4. Confirm you see events like `test_event`, `$pageview`, `footer_cta_clicked`, and `stripe_checkout_started`.
+
+## Common issues checked
+
+- App uses App Router, not Pages Router.
+- `posthog-js` is only imported in client components.
+- `posthog-node` is used for server-side capture.
+- `useSearchParams` is wrapped in `Suspense`.
+- Client init happens via `instrumentation-client.ts`, so the provider does not call `posthog.init` again.
+- Env mismatch is handled for `NEXT_PUBLIC_POSTHOG_KEY` vs `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`.

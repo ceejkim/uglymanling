@@ -17,7 +17,9 @@ function normalizePostHogHost(host?: string) {
 }
 
 export const posthogProjectToken =
-  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ??
+  process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ??
+  process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
 
 export const posthogHost = normalizePostHogHost(process.env.NEXT_PUBLIC_POSTHOG_HOST);
 
