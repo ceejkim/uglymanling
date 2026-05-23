@@ -33,6 +33,10 @@ function getSupabaseClient(useServiceRole = false): SupabaseClient {
   return createSupabaseServerClient(apiKey);
 }
 
+export function getSupabaseAdminClient() {
+  return getSupabaseClient(true);
+}
+
 function parseFilter(filter: string) {
   const [column, expression] = filter.split("=", 2);
 

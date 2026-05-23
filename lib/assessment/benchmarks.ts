@@ -28,13 +28,18 @@ export type AssessmentBenchmarkPayload = {
 };
 
 const stageRank: Record<string, number> = {
-  I: 1,
-  II: 2,
-  III: 3,
-  III_vertex: 4,
-  IV: 5,
-  V_plus: 6,
-  not_sure: 3
+  "ludwig:frontal_accentuated": 3,
+  "ludwig:ludwig_i": 1,
+  "ludwig:ludwig_ii": 3,
+  "ludwig:ludwig_iii": 5,
+  "ludwig:not_sure": 3,
+  "norwood:I": 1,
+  "norwood:II": 2,
+  "norwood:III": 3,
+  "norwood:III_vertex": 4,
+  "norwood:IV": 5,
+  "norwood:V_plus": 6,
+  "norwood:not_sure": 3
 };
 
 function buildConfidence(cohortSize: number): "high" | "low" | "medium" {
@@ -69,6 +74,30 @@ function getMode(values: string[]) {
   return winner;
 }
 
+function getClassificationStage(answers: AssessmentAnswerMap) {
+  if (answers.norwood_stage) {
+    return {
+      questionId: "norwood_stage",
+      value: answers.norwood_stage,
+      rankKey: `norwood:${answers.norwood_stage}`
+    };
+  }
+
+  if (answers.ludwig_stage) {
+    return {
+      questionId: "ludwig_stage",
+      value: answers.ludwig_stage,
+      rankKey: `ludwig:${answers.ludwig_stage}`
+    };
+  }
+
+  return {
+    questionId: "norwood_stage",
+    value: "not_sure",
+    rankKey: "norwood:not_sure"
+  };
+}
+
 export async function buildBenchmarkPayload(
   sessionId: string,
   answers: AssessmentAnswerMap
@@ -99,7 +128,10 @@ export async function buildBenchmarkPayload(
   const ids = completedOnly.map((row) => row.id).join(",");
   const answerRows = await selectSupabaseRows<AnswerRow>({
     table: "assessment_answers",
-    filters: [`session_id=in.(${ids})`, "question_id=in.(norwood_stage,primary_goal,next_step_preference)"],
+    filters: [
+      `session_id=in.(${ids})`,
+      "question_id=in.(norwood_stage,ludwig_stage,primary_goal,next_step_preference,anonymous_research_consent)"
+    ],
     orderBy: "answered_at",
     ascending: true
   });
@@ -124,14 +156,17 @@ export async function buildBenchmarkPayload(
     }))
     .filter((row) => Object.keys(row.answers).length > 0);
 
-  const strictCohort = candidateSessions.filter(
-    (row) =>
-      row.answers.norwood_stage === answers.norwood_stage &&
-      row.answers.primary_goal === answers.primary_goal
-  );
-  const stageOnlyCohort = candidateSessions.filter(
-    (row) => row.answers.norwood_stage === answers.norwood_stage
-  );
+  const currentStage = getClassificationStage(answers);
+  const strictCohort = candidateSessions.filter((row) => {
+    const rowStage = getClassificationStage(row.answers);
+
+    return rowStage.rankKey === currentStage.rankKey && row.answers.primary_goal === answers.primary_goal;
+  });
+  const stageOnlyCohort = candidateSessions.filter((row) => {
+    const rowStage = getClassificationStage(row.answers);
+
+    return rowStage.rankKey === currentStage.rankKey;
+  });
   const cohort =
     strictCohort.length >= 8
       ? strictCohort
@@ -141,9 +176,9 @@ export async function buildBenchmarkPayload(
 
   const cohortLabel =
     cohort === strictCohort
-      ? "Users with your stage and primary goal"
+      ? "Users with your classification and primary goal"
       : cohort === stageOnlyCohort
-        ? "Users at a similar Norwood stage"
+        ? "Users with a similar classification"
         : "All completed users";
 
   const cohortSize = cohort.length;
@@ -163,12 +198,12 @@ export async function buildBenchmarkPayload(
   }
 
   const stageValues = cohort
-    .map((row) => row.answers.norwood_stage)
-    .filter((value): value is string => Boolean(value));
+    .map((row) => getClassificationStage(row.answers).rankKey)
+    .filter(Boolean);
   const nextStepValues = cohort
     .map((row) => row.answers.next_step_preference)
     .filter((value): value is string => Boolean(value));
-  const currentStageRank = stageRank[answers.norwood_stage ?? "not_sure"] ?? 3;
+  const currentStageRank = stageRank[currentStage.rankKey] ?? 3;
   const earlierCount = stageValues.filter((value) => (stageRank[value] ?? 3) > currentStageRank).length;
   const percentileEarlier = Math.round((earlierCount / Math.max(stageValues.length, 1)) * 100);
   const nextStepMode = getMode(nextStepValues);
@@ -193,7 +228,14 @@ export async function buildBenchmarkPayload(
   if (answers.primary_goal && assessmentQuestionsById.primary_goal) {
     insights.push({
       id: "goal_alignment",
-      value: `Your current priority reads as ${getQuestionLabel("primary_goal", answers.primary_goal).toLowerCase()}, which tends to cluster with calmer decision-making than random product hopping.`
+      value: `Your current priority reads as ${getQuestionLabel("primary_goal", answers.primary_goal).toLowerCase()}, which is useful for comparing treatment timing, lifestyle patterns, and progress tracking.`
+    });
+  }
+
+  if (answers[currentStage.questionId]) {
+    insights.push({
+      id: "classification_label",
+      value: `Your baseline classification is ${getQuestionLabel(currentStage.questionId, currentStage.value).toLowerCase()}.`
     });
   }
 

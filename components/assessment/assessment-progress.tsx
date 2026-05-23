@@ -19,7 +19,7 @@ export function AssessmentProgress({
     <div className="assessment-progress-card grain-card">
       <div className="assessment-progress-topline">
         <div>
-          <span className="eyebrow">2 minute assessment</span>
+          <span className="eyebrow">6-8 minute anonymous survey</span>
           <p className="assessment-progress-copy">
             Section {Math.min(currentSectionIndex + 1, sectionCount)} of {sectionCount}
           </p>
@@ -33,9 +33,8 @@ export function AssessmentProgress({
         <span style={{ width: `${progressPercent}%` }} />
       </div>
       <p className="assessment-progress-footnote">
-        {completedQuestions} answered so far. Built to give you a clearer next move, not false hope.
+        {completedQuestions} answered so far. Anonymous responses help the community see patterns more clearly.
       </p>
     </div>
   );
 }
-

@@ -1,7 +1,13 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { syncSignedInUser } from "@/lib/clerk-supabase";
-import { assessmentQuestions, assessmentVersion, type AssessmentAnswerMap } from "@/lib/assessment/questions";
+import {
+  assessmentQuestions,
+  assessmentVersion,
+  getVisibleAssessmentQuestions,
+  parseAnswerValueList,
+  type AssessmentAnswerMap
+} from "@/lib/assessment/questions";
 import { buildAndPersistAssessmentResult } from "@/lib/assessment/results";
 import { buildLegacyAssessmentPayload } from "@/lib/assessment/summary";
 import { selectSupabaseRows, upsertSupabaseRow } from "@/lib/supabase";
@@ -32,6 +38,7 @@ type AssessmentSessionRow = {
 type AssessmentAnswerRow = {
   answer_label: string | null;
   answer_value: string | null;
+  answer_values: string[];
   changed_from: string | null;
   elapsed_ms: number;
   question_id: string;
@@ -332,6 +339,7 @@ export async function POST(request: Request) {
           values: {
             answer_label: body.answerLabel ?? body.answerValue,
             answer_value: body.answerValue,
+            answer_values: parseAnswerValueList(body.answerValue),
             changed_from: body.changedFrom ?? null,
             elapsed_ms: body.elapsedMs ?? 0,
             question_id: body.questionId,
@@ -370,6 +378,9 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Unknown session" }, { status: 404 });
         }
 
+        const visibleQuestions = getVisibleAssessmentQuestions(body.answers);
+        const lastVisibleQuestion = visibleQuestions[visibleQuestions.length - 1];
+
         const [completedSession] = await upsertSupabaseRow<AssessmentSessionRow>({
           table: "assessment_sessions",
           values: {
@@ -377,8 +388,8 @@ export async function POST(request: Request) {
             clerk_user_id: userId ?? session.clerk_user_id,
             completed_at: new Date().toISOString(),
             completion_status: "completed",
-            last_question_id: assessmentQuestions[assessmentQuestions.length - 1]?.id ?? session.last_question_id,
-            last_section_id: assessmentQuestions[assessmentQuestions.length - 1]?.sectionId ?? session.last_section_id,
+            last_question_id: lastVisibleQuestion?.id ?? assessmentQuestions[assessmentQuestions.length - 1]?.id ?? session.last_question_id,
+            last_section_id: lastVisibleQuestion?.sectionId ?? assessmentQuestions[assessmentQuestions.length - 1]?.sectionId ?? session.last_section_id,
             total_elapsed_ms: body.totalElapsedMs ?? session.total_elapsed_ms ?? 0
           },
           onConflict: "id"

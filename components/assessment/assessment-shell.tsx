@@ -16,7 +16,7 @@ export function AssessmentShell({ children, footer, progress }: AssessmentShellP
           <BrandMark compact />
         </Link>
         <div className="assessment-topbar-meta">
-          <p>Private by default. Quick by design.</p>
+          <p>Anonymous by default. Built with the community.</p>
           <Link href="/">Back to home</Link>
         </div>
       </header>
@@ -26,4 +26,3 @@ export function AssessmentShell({ children, footer, progress }: AssessmentShellP
     </div>
   );
 }
-

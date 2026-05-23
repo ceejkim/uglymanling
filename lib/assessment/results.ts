@@ -42,16 +42,20 @@ type AssessmentResultRow = {
 };
 
 function inferProfileBand(summary: AssessmentCompletionSummary) {
-  if (summary.badge === "Fastest relief") {
-    return "style_first";
+  if (summary.badge === "Research-ready baseline") {
+    return "research_ready";
   }
 
-  if (summary.badge === "Higher urgency profile") {
-    return "high_urgency";
+  if (summary.badge === "Higher support profile") {
+    return "higher_support";
   }
 
-  if (summary.badge === "Good intervention window") {
-    return "stabilization_window";
+  if (summary.badge === "Good planning window") {
+    return "planning_window";
+  }
+
+  if (summary.badge === "Multi-factor profile") {
+    return "multi_factor";
   }
 
   return "clarity_first";

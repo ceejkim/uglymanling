@@ -1,4 +1,4 @@
-import type { AssessmentAnswerMap } from "@/lib/assessment/questions";
+import { parseAnswerValueList, type AssessmentAnswerMap } from "@/lib/assessment/questions";
 import { scoreAssessment, type AssessmentScores } from "@/lib/assessment/scoring";
 
 export type AssessmentRecommendation = {
@@ -20,12 +20,29 @@ function getDrafts(
   answers: AssessmentAnswerMap,
   scores: AssessmentScores
 ): RecommendationDraft[] {
+  const primaryConcerns = [
+    answers.loss_pattern_primary,
+    ...parseAnswerValueList(answers.primary_concern_area)
+  ].filter((value): value is string => Boolean(value));
+  const sideEffects = parseAnswerValueList(answers.side_effects ?? answers.treatment_side_effects);
+  const labFlags = parseAnswerValueList(answers.abnormal_labs ?? answers.abnormal_lab_markers).filter(
+    (value) => value !== "not_sure"
+  );
+  const wantsTracking =
+    answers.longitudinal_interest === "yes" || answers.next_step_preference === "tracking";
+  const hasVisibleConcern = primaryConcerns.some((value) =>
+    ["hairline", "temples", "crown", "diffuse", "shedding", "top_diffuse", "overall_density"].includes(value)
+  );
+
   return [
     {
       key: "barber_directory",
       title: "Find a barber who knows how to work with thinning density",
       whyItMatches:
-        answers.current_hairstyle_confidence === "low" || answers.primary_goal === "appearance"
+        hasVisibleConcern ||
+        Number(answers.confidence_impact ?? 0) >= 7 ||
+        answers.current_hairstyle_confidence === "low" ||
+        answers.current_hairstyle_confidence === "very_low"
           ? "Your answers suggest visible presentation is one of the highest-leverage fixes."
           : "A better haircut can reduce noise fast while you figure out deeper decisions.",
       expectedValue: "Sharper framing, lower styling friction, and a faster confidence lift.",
@@ -39,25 +56,25 @@ function getDrafts(
     },
     {
       key: "consult",
-      title: "Book a 1:1 consult if you want the shortest path to clarity",
+      title: "Talk through the clinical and treatment signals with a qualified expert",
       whyItMatches:
-        scores.expertSupportScore >= 50
-          ? "You look more likely to benefit from direct guidance than from another week of fragmented reading."
+        scores.expertSupportScore >= 50 || sideEffects.some((value) => value !== "none") || labFlags.length > 0
+          ? "Your profile has enough medical, lab, progression, or side-effect context that interpretation matters."
           : "A consult is useful if you want help narrowing the real options without spinning.",
-      expectedValue: "Faster decision quality, fewer random experiments, and better prioritization.",
+      expectedValue: "Faster decision quality, fewer random experiments, and a clearer safety conversation.",
       timeToValue: "fast",
       destinationType: "consult",
       destinationPath: "/consult",
       score:
         scores.expertSupportScore +
         (answers.next_step_preference === "consult" ? 18 : 0) +
-        (answers.confidence_impact === "very_high" ? 8 : 0)
+        (Number(answers.confidence_impact ?? 0) >= 9 ? 8 : 0)
     },
     {
       key: "research",
       title: "Read the evidence without falling into product chaos",
       whyItMatches:
-        answers.primary_goal === "clarity" || answers.current_treatment_status === "researching"
+        answers.primary_goal === "root_cause" || answers.current_treatment_status === "researching"
           ? "You seem motivated by understanding what is worth doing before you commit."
           : "A smaller evidence pass can help you avoid low-quality next steps.",
       expectedValue: "Cleaner decision criteria and less wasted money.",
@@ -70,12 +87,14 @@ function getDrafts(
     },
     {
       key: "community",
-      title: "See how other men with similar pressure handled it",
+      title: "See anonymous community patterns from people with similar profiles",
       whyItMatches:
-        answers.next_step_preference === "community" || answers.primary_goal === "clarity"
-          ? "You appear likely to benefit from grounded examples, not just theory."
-          : "Community proof can add context once you have a basic plan.",
-      expectedValue: "Pattern recognition, social proof, and fewer isolated decisions.",
+        answers.next_step_preference === "community" ||
+        answers.anonymous_research_consent === "yes" ||
+        wantsTracking
+          ? "You appear likely to benefit from aggregate patterns, grounded examples, and follow-up data."
+          : "Community data can add context once you have a basic plan.",
+      expectedValue: "Pattern recognition, trend context, and fewer isolated decisions.",
       timeToValue: "medium",
       destinationType: "community",
       destinationPath: "/community",
@@ -103,4 +122,3 @@ export function buildRecommendations(answers: AssessmentAnswerMap) {
     whyItMatches: draft.whyItMatches
   }));
 }
-

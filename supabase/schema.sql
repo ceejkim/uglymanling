@@ -101,6 +101,42 @@ create table if not exists public.assessment_recommendation_clicks (
   clicked_at timestamptz not null default now()
 );
 
+do $$
+begin
+  if exists (select 1 from information_schema.schemata where schema_name = 'storage') then
+    execute $storage_bucket$
+      insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+      values (
+        'assessment-images',
+        'assessment-images',
+        false,
+        8388608,
+        array['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
+      )
+      on conflict (id) do update
+      set
+        public = excluded.public,
+        file_size_limit = excluded.file_size_limit,
+        allowed_mime_types = excluded.allowed_mime_types
+    $storage_bucket$;
+  end if;
+end $$;
+
+create table if not exists public.assessment_image_uploads (
+  id uuid primary key default gen_random_uuid(),
+  session_id uuid not null references public.assessment_sessions(id) on delete cascade,
+  question_id text not null,
+  image_slot text not null,
+  storage_bucket text not null default 'assessment-images',
+  storage_path text not null,
+  file_name text not null,
+  mime_type text not null,
+  file_size integer not null check (file_size > 0),
+  width integer,
+  height integer,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.subscriptions (
   stripe_customer_id text primary key,
   clerk_user_id text not null references public.profiles(clerk_user_id) on delete cascade,
@@ -281,6 +317,13 @@ where completed_at is not null;
 create index if not exists assessment_answers_question_answered_at_idx
 on public.assessment_answers (question_id, answered_at desc);
 
+create index if not exists assessment_answers_question_value_idx
+on public.assessment_answers (question_id, answer_value)
+where answer_value is not null;
+
+create index if not exists assessment_answers_answer_values_gin_idx
+on public.assessment_answers using gin (answer_values);
+
 create index if not exists assessment_answers_section_answered_at_idx
 on public.assessment_answers (section_id, answered_at desc);
 
@@ -293,6 +336,12 @@ where question_id is not null;
 
 create index if not exists assessment_recommendation_clicks_recommendation_clicked_at_idx
 on public.assessment_recommendation_clicks (recommendation_key, clicked_at desc);
+
+create index if not exists assessment_image_uploads_session_created_at_idx
+on public.assessment_image_uploads (session_id, created_at desc);
+
+create index if not exists assessment_image_uploads_question_slot_idx
+on public.assessment_image_uploads (question_id, image_slot);
 
 create index if not exists subscriptions_clerk_user_updated_at_idx
 on public.subscriptions (clerk_user_id, updated_at desc);

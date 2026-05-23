@@ -1,4 +1,8 @@
-import { getQuestionLabel, type AssessmentAnswerMap } from "@/lib/assessment/questions";
+import {
+  getQuestionLabel,
+  parseAnswerValueList,
+  type AssessmentAnswerMap
+} from "@/lib/assessment/questions";
 
 type LegacyLane = {
   badge: string;
@@ -31,9 +35,9 @@ function getLane({
       summary:
         "The fastest visible win is likely a smarter presentation move first, then a more measured decision on treatment.",
       checklist: [
-        "Tighten the haircut and grooming strategy around your current density.",
-        "Use research to eliminate noise, not delay action.",
-        "Pull in expert help only if you want a second opinion on treatment."
+        "Tighten the haircut and grooming strategy around current density.",
+        "Use evidence to remove noise, not delay action.",
+        "Track changes so future decisions are less emotional."
       ],
       badge: "Fast visible gain"
     };
@@ -41,13 +45,13 @@ function getLane({
 
   if (goal === "regrow" && (urgency === "high" || budget === "all-in")) {
     return {
-      title: "Treatment sprint lane",
+      title: "Treatment review lane",
       summary:
-        "You are likely to benefit from a more direct treatment review instead of stitching together random advice.",
+        "You are likely to benefit from a more direct treatment review instead of stitching together fragmented advice.",
       checklist: [
         "Map the treatment path before spending into guesswork.",
-        "Shorten the path to clarity with real expert context if needed.",
-        "Track any intervention deliberately so you know what is helping."
+        "Separate evidence-backed options from community noise.",
+        "Track adherence, photos, and side effects deliberately."
       ],
       badge: "High support"
     };
@@ -57,11 +61,11 @@ function getLane({
     return {
       title: "Reality-based planning lane",
       summary:
-        "A mixed strategy is probably strongest here: presentation first, treatment only where it still earns its cost.",
+        "A mixed strategy is probably strongest here: presentation, treatment history, and goals should be weighed together.",
       checklist: [
-        "Clarify whether your goal is maintenance, presentation, or education.",
-        "Ignore miracle product logic.",
-        "Lean on expert judgment where the downside of guessing is higher."
+        "Clarify whether the main goal is maintenance, regrowth, presentation, or root-cause clarity.",
+        "Avoid miracle-product logic.",
+        "Use expert interpretation where the downside of guessing is higher."
       ],
       badge: "Most honest"
     };
@@ -70,9 +74,9 @@ function getLane({
   return {
     title: "Stabilize and learn lane",
     summary:
-      "You still have room to make calm, evidence-backed moves without turning this into a full-time hobby.",
+      "You still have room to make calm, evidence-aware moves while contributing useful pattern data.",
     checklist: [
-      "Focus on the few levers that matter.",
+      "Focus on the variables that can be tracked reliably.",
       "Prefer simple repeatable habits over complexity.",
       "Use community proof as context, not as medical advice."
     ],
@@ -80,17 +84,20 @@ function getLane({
   };
 }
 
-export function getCompatibilityStage(norwoodStage: string) {
-  switch (norwoodStage) {
-    case "IV":
-      return "accelerating";
+export function getCompatibilityStage(classificationStage: string) {
+  switch (classificationStage) {
     case "V_plus":
+    case "ludwig_iii_ludwig":
       return "advanced";
     case "III":
     case "III_vertex":
+    case "IV":
+    case "ludwig_ii_ludwig":
+    case "frontal_accentuated_ludwig":
       return "accelerating";
     case "I":
     case "II":
+    case "ludwig_i_ludwig":
     case "not_sure":
     default:
       return "early";
@@ -105,6 +112,7 @@ export function getCompatibilityGoal(primaryGoal: string) {
       return "regrow";
     case "stabilize":
     case "clarity":
+    case "root_cause":
     default:
       return "stabilize";
   }
@@ -114,6 +122,7 @@ export function getCompatibilityBudget(budgetBand: string) {
   switch (budgetBand) {
     case "lean":
       return "lean";
+    case "invested":
     case "all_in":
       return "all-in";
     case "balanced":
@@ -134,9 +143,14 @@ export function getCompatibilityUrgency(urgencyLevel: string) {
 }
 
 export function buildLegacyAssessmentPayload(answers: AssessmentAnswerMap) {
-  const stage = getCompatibilityStage(answers.norwood_stage ?? "not_sure");
-  const goal = getCompatibilityGoal(answers.primary_goal ?? "clarity");
-  const budget = getCompatibilityBudget(answers.budget_band ?? "balanced");
+  const classificationStage = answers.norwood_stage
+    ? answers.norwood_stage
+    : answers.ludwig_stage
+      ? `${answers.ludwig_stage}_ludwig`
+      : "not_sure";
+  const stage = getCompatibilityStage(classificationStage);
+  const goal = getCompatibilityGoal(answers.primary_goal ?? "root_cause");
+  const budget = getCompatibilityBudget(answers.budget_band ?? "depends");
   const urgency = getCompatibilityUrgency(answers.urgency_level ?? "medium");
   const lane = getLane({ stage, goal, budget, urgency });
 
@@ -152,26 +166,48 @@ export function buildLegacyAssessmentPayload(answers: AssessmentAnswerMap) {
   };
 }
 
+function getClassificationLabel(answers: AssessmentAnswerMap) {
+  if (answers.norwood_stage) {
+    return getQuestionLabel("norwood_stage", answers.norwood_stage);
+  }
+
+  if (answers.ludwig_stage) {
+    return getQuestionLabel("ludwig_stage", answers.ludwig_stage);
+  }
+
+  return "Your classification";
+}
+
 export function buildAssessmentCompletionSummary(
   answers: AssessmentAnswerMap
 ): AssessmentCompletionSummary {
-  const primaryGoal = answers.primary_goal ?? "clarity";
+  const primaryGoal = answers.primary_goal ?? "root_cause";
   const treatmentStatus = answers.current_treatment_status ?? "researching";
-  const confidenceImpact = answers.confidence_impact ?? "moderate";
-  const styleConfidence = answers.current_hairstyle_confidence ?? "okay";
+  const confidenceImpact = Number(answers.confidence_impact ?? 0);
   const nextStep = answers.next_step_preference ?? "research";
-  const stageLabel = getQuestionLabel("norwood_stage", answers.norwood_stage ?? "not_sure");
+  const stageLabel = getClassificationLabel(answers);
+  const labFlags = parseAnswerValueList(answers.abnormal_labs ?? answers.abnormal_lab_markers).filter(
+    (value) => value !== "not_sure"
+  );
+  const treatmentSideEffects = parseAnswerValueList(answers.side_effects ?? answers.treatment_side_effects).filter(
+    (value) => value !== "none"
+  );
+  const medicalContext = [
+    ...parseAnswerValueList(answers.hormonal_history),
+    ...parseAnswerValueList(answers.autoimmune_skin_history ?? answers.autoimmune_skin_conditions),
+    ...parseAnswerValueList(answers.metabolic_history)
+  ].filter((value) => !["none", "none_known", "not_sure", "prefer_not_to_say"].includes(value));
 
-  if (primaryGoal === "appearance") {
+  if (confidenceImpact >= 7) {
     return {
-      title: "Your profile leans style-first.",
+      title: "Your profile deserves both data and support.",
       detail:
-        "The strongest short-term win is probably a better presentation move before you disappear into treatment rabbit holes.",
-      badge: "Fastest relief",
+        "Your answers suggest the emotional load is meaningful. A strong next step should reduce uncertainty without making this feel heavier than it already does.",
+      badge: "Higher support profile",
       bullets: [
-        `${stageLabel} is often more manageable than it feels when the cut is working.`,
-        "Your answers point toward visible confidence gains before deeper intervention.",
-        `A ${nextStep === "barber" ? "barber-led" : "style-led"} next step is likely to feel most rewarding.`
+        `${stageLabel} is one useful signal, but progression, stress, treatment history, and goals matter too.`,
+        "Presentation support and evidence-aware planning can work together.",
+        `Your preferred next step is ${getQuestionLabel("next_step_preference", nextStep).toLowerCase()}.`
       ]
     };
   }
@@ -180,40 +216,39 @@ export function buildAssessmentCompletionSummary(
     return {
       title: "You still have room to act calmly.",
       detail:
-        "This looks more like a decision-quality problem than a no-hope problem. A simple evidence-backed plan should beat random experimentation.",
-      badge: "Good intervention window",
+        "This looks like a good moment for structure: classify the pattern, understand possible contributors, and avoid random experimentation.",
+      badge: "Good planning window",
       bullets: [
         `${stageLabel} does not automatically mean you need an extreme response.`,
-        "Starting with structure now is likely better than collecting more vague opinions.",
-        "You should be able to narrow the next move without overcommitting."
+        "Your answers can help the community compare early action, lifestyle patterns, and treatment timing.",
+        "A simple tracking plan can make future changes easier to interpret."
       ]
     };
   }
 
-  if (confidenceImpact === "high" || confidenceImpact === "very_high" || styleConfidence === "very_low") {
+  if (labFlags.length > 0 || medicalContext.length > 0 || treatmentSideEffects.length > 0) {
     return {
-      title: "Support and presentation should work together.",
+      title: "Your profile has useful clinical context.",
       detail:
-        "Your answers suggest the emotional weight is high enough that speed and clarity matter more than theoretical perfection.",
-      badge: "Higher urgency profile",
+        "The strongest insight may come from connecting hair-loss pattern, labs, medical history, medication exposure, and treatment response rather than looking at one variable alone.",
+      badge: "Multi-factor profile",
       bullets: [
-        "A better cut or grooming reset could create relief faster than more reading.",
-        "If you want the shortest path to clarity, expert guidance may be worth it.",
-        "You do not need to solve every hair question before making a useful first move."
+        "Flagged labs, medical history, or side effects are valuable structured signals for aggregate analysis.",
+        "This is the kind of profile where careful interpretation beats one-size-fits-all advice.",
+        "Longitudinal tracking could be especially useful if you change treatments or correct deficiencies."
       ]
     };
   }
 
   return {
-    title: "You are closer to a clarity-first profile.",
+    title: "You are helping turn scattered experiences into clearer patterns.",
     detail:
-      "You likely need a cleaner framework more than a dramatic intervention. That is a good place to start.",
-    badge: "Strong foundation",
+      "Your answers create a structured baseline that can support community insights, treatment comparisons, and future progress tracking.",
+    badge: "Research-ready baseline",
     bullets: [
-      `${stageLabel} is only one signal. The surrounding grooming and confidence context matters too.`,
-      "A structured next step should help more than another week of scrolling.",
-      "You look well suited to a simple plan that keeps optionality open."
+      `${stageLabel} is only one signal. Lifestyle, medical context, goals, and treatment history add the useful texture.`,
+      "The dataset gets stronger when members contribute honest, normalized answers.",
+      "You can use this baseline later for progress photos, treatment timelines, and personalized insights."
     ]
   };
 }
-
