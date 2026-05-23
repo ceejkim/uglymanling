@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Norwood III Vertex</title>
+  <desc id="desc">Small top-view guide showing slight temple recession with a distinct thinning area at the crown.</desc>
+  <defs>
+    <clipPath id="head">
+      <ellipse cx="80" cy="62" rx="48" ry="52" />
+    </clipPath>
+  </defs>
+  <rect width="160" height="120" rx="18" fill="#edf4f8" />
+  <ellipse cx="80" cy="62" rx="49" ry="53" fill="#f2ccb3" stroke="#d7ab92" stroke-width="2" />
+  <g clip-path="url(#head)">
+    <ellipse cx="80" cy="62" rx="48" ry="52" fill="#23384b" />
+    <path d="M56 18 C67 26 93 26 104 18 C97 16 89 14 80 14 C71 14 63 16 56 18Z" fill="#f2ccb3" opacity="0.96" />
+    <path d="M37 24 C50 27 58 39 58 52 C48 50 40 43 35 35 C35 30 36 27 37 24Z" fill="#f2ccb3" stroke="#d7ab92" stroke-width="1.2" />
+    <path d="M123 24 C110 27 102 39 102 52 C112 50 120 43 125 35 C125 30 124 27 123 24Z" fill="#f2ccb3" stroke="#d7ab92" stroke-width="1.2" />
+    <ellipse cx="80" cy="63" rx="17" ry="20" fill="#f2ccb3" stroke="#d7ab92" stroke-width="1.4" />
+    <path d="M49 87 C62 98 98 98 111 87" fill="none" stroke="#31495f" stroke-width="3" stroke-linecap="round" opacity="0.55" />
+  </g>
+  <ellipse cx="80" cy="62" rx="49" ry="53" fill="none" stroke="#162a3b" stroke-width="2" opacity="0.32" />
+</svg>

@@ -87,6 +87,9 @@ function getLane({
 export function getCompatibilityStage(classificationStage: string) {
   switch (classificationStage) {
     case "V_plus":
+    case "V":
+    case "VI":
+    case "VII":
     case "ludwig_iii_ludwig":
       return "advanced";
     case "III":

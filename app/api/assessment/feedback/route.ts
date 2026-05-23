@@ -75,7 +75,9 @@ export async function POST(request: Request) {
 
     switch (body.action) {
       case "question_feedback": {
-        if (!body.questionId || !body.sentiment) {
+        const feedbackBody = body.body?.trim() ?? "";
+
+        if (!body.questionId || feedbackBody.length === 0) {
           return NextResponse.json({ error: "Invalid question feedback payload" }, { status: 400 });
         }
 
@@ -83,11 +85,11 @@ export async function POST(request: Request) {
           table: "assessment_feedback",
           values: {
             id: crypto.randomUUID(),
-            body: body.body ?? null,
+            body: feedbackBody,
             feedback_scope: "question",
             question_id: body.questionId,
             rating: null,
-            sentiment: body.sentiment,
+            sentiment: body.sentiment ?? null,
             session_id: session.id
           }
         });
@@ -96,9 +98,10 @@ export async function POST(request: Request) {
           distinctId: session.clerk_user_id ?? session.id,
           event: "assessment_feedback_submitted",
           properties: {
+            feedback_length: feedbackBody.length,
             question_id: body.questionId,
             scope: "question",
-            sentiment: body.sentiment,
+            sentiment: body.sentiment ?? null,
             session_id: session.id
           }
         });
@@ -180,4 +183,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

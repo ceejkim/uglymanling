@@ -104,6 +104,9 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
   if (
     answers.norwood_stage === "IV" ||
     answers.norwood_stage === "V_plus" ||
+    answers.norwood_stage === "V" ||
+    answers.norwood_stage === "VI" ||
+    answers.norwood_stage === "VII" ||
     answers.ludwig_stage === "ludwig_ii" ||
     answers.ludwig_stage === "ludwig_iii"
   ) {

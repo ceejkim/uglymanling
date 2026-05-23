@@ -38,7 +38,10 @@ const stageRank: Record<string, number> = {
   "norwood:III": 3,
   "norwood:III_vertex": 4,
   "norwood:IV": 5,
+  "norwood:V": 6,
   "norwood:V_plus": 6,
+  "norwood:VI": 7,
+  "norwood:VII": 8,
   "norwood:not_sure": 3
 };
 

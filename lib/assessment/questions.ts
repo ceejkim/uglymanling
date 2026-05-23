@@ -1,4 +1,4 @@
-export const assessmentVersion = "2026-05-community-survey-v2";
+export const assessmentVersion = "2026-05-community-survey-v3";
 
 export type AssessmentInput =
   | "cards"
@@ -32,6 +32,8 @@ export type AssessmentSection = {
 export type AssessmentOption = {
   description?: string;
   exclusive?: boolean;
+  imageAlt?: string;
+  imageSrc?: string;
   label: string;
   shortLabel?: string;
   value: string;
@@ -249,12 +251,78 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     responseFormat: "single_choice",
     tags: ["classification", "norwood", "pattern"],
     options: [
-      { value: "I", label: "Norwood I", shortLabel: "I", description: "Minimal visible recession", visual: { level: 1, scale: "norwood" } },
-      { value: "II", label: "Norwood II", shortLabel: "II", description: "Early temple recession", visual: { level: 2, scale: "norwood" } },
-      { value: "III", label: "Norwood III", shortLabel: "III", description: "Clear frontal recession", visual: { level: 3, scale: "norwood" } },
-      { value: "III_vertex", label: "III Vertex", shortLabel: "III V", description: "Temple change with crown thinning", visual: { level: 4, scale: "norwood" } },
-      { value: "IV", label: "Norwood IV", shortLabel: "IV", description: "Frontal and crown loss are both visible", visual: { level: 5, scale: "norwood" } },
-      { value: "V_plus", label: "Norwood V+", shortLabel: "V+", description: "More advanced pattern loss", visual: { level: 6, scale: "norwood" } },
+      {
+        value: "I",
+        label: "Norwood I",
+        shortLabel: "I",
+        description: "Little or no visible recession",
+        imageAlt: "Top-view illustration of Norwood stage I with an intact hairline.",
+        imageSrc: "/images/assessment/norwood/norwood-1.svg",
+        visual: { level: 1, scale: "norwood" }
+      },
+      {
+        value: "II",
+        label: "Norwood II",
+        shortLabel: "II",
+        description: "Slight temple recession",
+        imageAlt: "Top-view illustration of Norwood stage II with slight temple recession.",
+        imageSrc: "/images/assessment/norwood/norwood-2.svg",
+        visual: { level: 2, scale: "norwood" }
+      },
+      {
+        value: "III",
+        label: "Norwood III",
+        shortLabel: "III",
+        description: "Deeper temple recession",
+        imageAlt: "Top-view illustration of Norwood stage III with deeper frontal recession.",
+        imageSrc: "/images/assessment/norwood/norwood-3.svg",
+        visual: { level: 3, scale: "norwood" }
+      },
+      {
+        value: "III_vertex",
+        label: "Norwood III Vertex",
+        shortLabel: "III V",
+        description: "Stage II hairline with crown thinning",
+        imageAlt: "Top-view illustration of Norwood stage III Vertex with crown thinning.",
+        imageSrc: "/images/assessment/norwood/norwood-3-vertex.svg",
+        visual: { level: 4, scale: "norwood" }
+      },
+      {
+        value: "IV",
+        label: "Norwood IV",
+        shortLabel: "IV",
+        description: "Frontal recession and crown loss",
+        imageAlt: "Top-view illustration of Norwood stage IV with frontal and crown loss separated by hair.",
+        imageSrc: "/images/assessment/norwood/norwood-4.svg",
+        visual: { level: 5, scale: "norwood" }
+      },
+      {
+        value: "V",
+        label: "Norwood V",
+        shortLabel: "V",
+        description: "Larger front and crown areas, narrow bridge",
+        imageAlt: "Top-view illustration of Norwood stage V with larger frontal and crown loss separated by a narrow bridge.",
+        imageSrc: "/images/assessment/norwood/norwood-5.svg",
+        visual: { level: 6, scale: "norwood" }
+      },
+      {
+        value: "VI",
+        label: "Norwood VI",
+        shortLabel: "VI",
+        description: "Frontal and crown areas mostly joined",
+        imageAlt: "Top-view illustration of Norwood stage VI where frontal and crown hair loss have joined.",
+        imageSrc: "/images/assessment/norwood/norwood-6.svg",
+        visual: { level: 7, scale: "norwood" }
+      },
+      {
+        value: "VII",
+        label: "Norwood VII",
+        shortLabel: "VII",
+        description: "Thin horseshoe band remains",
+        imageAlt: "Top-view illustration of Norwood stage VII with only a thin horseshoe band of hair around the sides.",
+        imageSrc: "/images/assessment/norwood/norwood-7.svg",
+        visual: { level: 8, scale: "norwood" }
+      },
       { value: "not_sure", label: "Not sure", shortLabel: "?", description: "I would rather classify later", visual: { level: 3, scale: "pattern" } }
     ]
   }),
@@ -1418,6 +1486,10 @@ export function getAnswerValuesForStorage(questionToStore: AssessmentQuestion, v
 
 export function getQuestionLabel(questionId: string, value: string) {
   const questionToLabel = assessmentQuestionsById[questionId];
+
+  if (questionId === "norwood_stage" && value === "V_plus") {
+    return "Norwood V+";
+  }
 
   if (!questionToLabel) {
     return value;

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" role="img" aria-labelledby="title desc">
+  <title id="title">Norwood VII</title>
+  <desc id="desc">Small top-view guide showing extensive top loss with only a thin horseshoe band of hair around the sides.</desc>
+  <defs>
+    <clipPath id="head">
+      <ellipse cx="80" cy="62" rx="48" ry="52" />
+    </clipPath>
+  </defs>
+  <rect width="160" height="120" rx="18" fill="#edf4f8" />
+  <ellipse cx="80" cy="62" rx="49" ry="53" fill="#f2ccb3" stroke="#d7ab92" stroke-width="2" />
+  <g clip-path="url(#head)">
+    <ellipse cx="80" cy="62" rx="48" ry="52" fill="#23384b" />
+    <path d="M38 17 C53 24 61 40 62 60 C63 82 68 98 80 105 C92 98 97 82 98 60 C99 40 107 24 122 17 C127 38 125 67 113 91 C104 107 94 113 80 114 C66 113 56 107 47 91 C35 67 33 38 38 17Z" fill="#f2ccb3" stroke="#d7ab92" stroke-width="1.4" />
+    <path d="M49 96 C63 105 97 105 111 96" fill="none" stroke="#31495f" stroke-width="3" stroke-linecap="round" opacity="0.55" />
+  </g>
+  <ellipse cx="80" cy="62" rx="49" ry="53" fill="none" stroke="#162a3b" stroke-width="2" opacity="0.32" />
+</svg>

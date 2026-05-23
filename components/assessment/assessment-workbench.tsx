@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AssessmentProgress } from "@/components/assessment/assessment-progress";
 import { AssessmentShell } from "@/components/assessment/assessment-shell";
@@ -49,6 +50,13 @@ type SessionBootstrapResponse = {
 };
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+type QuestionFeedbackStatus = "idle" | "saving" | "saved" | "error";
+
+type SectionCelebration = {
+  nextTitle?: string;
+  sectionId: string;
+  title: string;
+};
 
 function safeStorageGet(key: string) {
   try {
@@ -171,6 +179,19 @@ async function bootstrapSession() {
 }
 
 function ScaleVisual({ option }: { option: AssessmentOption }) {
+  if (option.imageSrc) {
+    return (
+      <Image
+        className="assessment-scale-image"
+        src={option.imageSrc}
+        alt={option.imageAlt ?? `${option.label} visual guide`}
+        width={160}
+        height={120}
+        loading="lazy"
+      />
+    );
+  }
+
   if (!option.visual) {
     return <span className="assessment-stage-pill">{option.shortLabel ?? option.label}</span>;
   }
@@ -274,21 +295,19 @@ function MultiSelectQuestion({
               key={option.value}
               type="button"
               className={getQuestionCardClass(question.input, active)}
-              onClick={() => setDraftValues((values) => toggleMultiValue(question, values, option))}
+              onClick={() =>
+                setDraftValues((values) => {
+                  const nextValues = toggleMultiValue(question, values, option);
+                  onSelect(serializeAnswerValueList(nextValues));
+                  return nextValues;
+                })
+              }
             >
               {option.label}
             </button>
           );
         })}
       </div>
-      <button
-        type="button"
-        className="assessment-inline-button assessment-continue-button"
-        disabled={draftValues.length === 0}
-        onClick={() => onSelect(serializeAnswerValueList(draftValues))}
-      >
-        Continue
-      </button>
     </div>
   );
 }
@@ -339,7 +358,7 @@ function SliderQuestion({
         className="assessment-inline-button assessment-continue-button"
         onClick={() => onSelect(String(draftValue))}
       >
-        Continue
+        Save rating
       </button>
     </div>
   );
@@ -446,7 +465,7 @@ function UploadQuestion({
           className="assessment-inline-button assessment-continue-button"
           onClick={() => onSelect(serializeUploadManifest(manifest))}
         >
-          Continue with photos
+          Save photos
         </button>
       ) : null}
       <button
@@ -454,7 +473,7 @@ function UploadQuestion({
         className="assessment-inline-button assessment-continue-button"
         onClick={skipPhotos}
       >
-        Skip photos for now
+        Skip photos
       </button>
     </div>
   );
@@ -533,7 +552,10 @@ export function AssessmentWorkbench() {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
   const [hasEnteredSurvey, setHasEnteredSurvey] = useState(false);
+  const [questionFeedbackBody, setQuestionFeedbackBody] = useState("");
+  const [questionFeedbackStatus, setQuestionFeedbackStatus] = useState<QuestionFeedbackStatus>("idle");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [sectionCelebration, setSectionCelebration] = useState<SectionCelebration | null>(null);
   const [session, setSession] = useState<SessionRecord | null>(null);
   const hasBootstrappedRef = useRef(false);
   const hasTrackedLandingRef = useRef(false);
@@ -545,6 +567,13 @@ export function AssessmentWorkbench() {
   const visibleSections = getVisibleAssessmentSections(answers);
   const filteredAnswers = getFilteredVisibleAnswers(answers);
   const completedQuestions = visibleQuestions.filter((question) => isQuestionAnswered(question, answers)).length;
+  const completedSectionIds = visibleSections
+    .filter((section) => {
+      const sectionQuestions = visibleQuestions.filter((question) => question.sectionId === section.id);
+
+      return sectionQuestions.length > 0 && sectionQuestions.every((question) => isQuestionAnswered(question, answers));
+    })
+    .map((section) => section.id);
   const currentQuestion = visibleQuestions[currentIndex];
   const currentSectionIndex = visibleSections.findIndex(
     (section) => section.id === currentQuestion?.sectionId
@@ -555,25 +584,46 @@ export function AssessmentWorkbench() {
       : Math.round((completedQuestions / visibleQuestions.length) * 100);
   const remainingQuestions = Math.max(visibleQuestions.length - completedQuestions, 0);
   const completionSummary = buildAssessmentCompletionSummary(filteredAnswers);
+  const isCurrentQuestionAnswered = currentQuestion
+    ? isQuestionAnswered(currentQuestion, answers)
+    : false;
+  const isFinalVisibleQuestion = currentIndex >= visibleQuestions.length - 1;
 
-  async function submitQuestionFeedback(questionId: string, sentiment: -1 | 1) {
+  async function submitQuestionFeedback(questionId: string) {
     if (!session) {
       return;
     }
 
-    await fetch("/api/assessment/feedback", {
+    const trimmedFeedback = questionFeedbackBody.trim();
+
+    if (!trimmedFeedback) {
+      setQuestionFeedbackStatus("error");
+      return;
+    }
+
+    setQuestionFeedbackStatus("saving");
+
+    const response = await fetch("/api/assessment/feedback", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         action: "question_feedback",
+        body: trimmedFeedback,
         questionId,
         resumeToken: session.resumeToken,
-        sentiment,
         sessionId: session.id
       })
     });
+
+    if (!response.ok) {
+      setQuestionFeedbackStatus("error");
+      return;
+    }
+
+    setQuestionFeedbackBody("");
+    setQuestionFeedbackStatus("saved");
 
     const entryContext = buildEntryContext();
 
@@ -590,8 +640,8 @@ export function AssessmentWorkbench() {
         utmSource: entryContext.utmSource
       },
       {
+        feedback_length: trimmedFeedback.length,
         question_id: questionId,
-        sentiment,
         scope: "question"
       }
     );
@@ -631,6 +681,21 @@ export function AssessmentWorkbench() {
       setCurrentIndex(visibleQuestions.length - 1);
     }
   }, [currentIndex, visibleQuestions.length]);
+
+  useEffect(() => {
+    setQuestionFeedbackBody("");
+    setQuestionFeedbackStatus("idle");
+  }, [currentQuestion?.id]);
+
+  useEffect(() => {
+    if (!sectionCelebration) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setSectionCelebration(null), 5200);
+
+    return () => window.clearTimeout(timeout);
+  }, [sectionCelebration]);
 
   useEffect(() => {
     if (hasBootstrappedRef.current || typeof window === "undefined") {
@@ -810,6 +875,101 @@ export function AssessmentWorkbench() {
     };
   }, [completedQuestions, currentQuestion, isComplete, isSignedIn, session, userId]);
 
+  async function completeAssessment(nextAnswers: AssessmentAnswerMap) {
+    if (!session) {
+      return;
+    }
+
+    const entryContext = buildEntryContext();
+    const visibleAnswerPayload = getFilteredVisibleAnswers(nextAnswers);
+
+    try {
+      const response = await fetch("/api/assessment/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "complete",
+          answers: visibleAnswerPayload,
+          resumeToken: session.resumeToken,
+          sessionId: session.id,
+          totalElapsedMs: Date.now() - startedAtRef.current
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to complete assessment.");
+      }
+
+      setIsComplete(true);
+      setSession({
+        ...session,
+        completionStatus: "completed"
+      });
+      safeStorageRemove(activeSessionIdKey);
+      safeStorageRemove(activeSessionTokenKey);
+
+      captureAssessmentEvent(
+        "assessment_completed",
+        {
+          clerkUserId: userId,
+          entrySource: entryContext.entrySource,
+          isAuthenticated: isSignedIn,
+          posthogDistinctId: getPostHogDistinctId(),
+          sessionId: session.id,
+          utmCampaign: entryContext.utmCampaign,
+          utmMedium: entryContext.utmMedium,
+          utmSource: entryContext.utmSource
+        },
+        {
+          total_elapsed_ms: Date.now() - startedAtRef.current
+        }
+      );
+
+      router.push(`/assessment/results/${session.id}?rt=${session.resumeToken}`);
+    } catch (error) {
+      setSaveStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to complete assessment.");
+    }
+  }
+
+  function moveToNextQuestion(question: AssessmentQuestion, nextVisibleQuestions: AssessmentQuestion[], nextAnswers: AssessmentAnswerMap) {
+    const currentVisibleIndex = nextVisibleQuestions.findIndex(
+      (candidate) => candidate.id === question.id
+    );
+    const allVisibleQuestionsAnswered = nextVisibleQuestions.every((candidate) =>
+      isQuestionAnswered(candidate, nextAnswers)
+    );
+
+    if (allVisibleQuestionsAnswered && currentVisibleIndex >= nextVisibleQuestions.length - 1) {
+      void completeAssessment(nextAnswers);
+      return;
+    }
+
+    const fallbackIndex = getNextIncompleteQuestionIndex(nextAnswers);
+    const nextIndex =
+      currentVisibleIndex === -1
+        ? fallbackIndex
+        : Math.min(currentVisibleIndex + 1, nextVisibleQuestions.length - 1);
+
+    setCurrentIndex(nextIndex === currentVisibleIndex ? fallbackIndex : nextIndex);
+  }
+
+  function handleNextQuestion() {
+    if (!currentQuestion) {
+      return;
+    }
+
+    if (!isQuestionAnswered(currentQuestion, answers)) {
+      setErrorMessage("Choose or save an answer to continue.");
+      return;
+    }
+
+    setErrorMessage(null);
+    moveToNextQuestion(currentQuestion, getVisibleAssessmentQuestions(answers), answers);
+  }
+
   async function persistAnswer(question: AssessmentQuestion, answerValue: string, previousValue?: string) {
     if (!session) {
       return;
@@ -854,7 +1014,7 @@ export function AssessmentWorkbench() {
         questions_remaining: Math.max(nextVisibleQuestions.length - nextCompletedQuestions, 0),
         section_id: question.sectionId,
         step_index: currentIndex,
-        was_auto_advanced: question.autoAdvance ?? false
+        was_auto_advanced: false
       }
     );
 
@@ -906,6 +1066,7 @@ export function AssessmentWorkbench() {
     } catch (error) {
       setSaveStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Failed to save answer.");
+      return;
     }
 
     const sectionQuestions = nextVisibleQuestions.filter(
@@ -917,6 +1078,17 @@ export function AssessmentWorkbench() {
 
     if (isSectionComplete && !completedSectionsRef.current.has(question.sectionId)) {
       completedSectionsRef.current.add(question.sectionId);
+      const completedSectionIndex = nextVisibleSections.findIndex((section) => section.id === question.sectionId);
+      const completedSection = nextVisibleSections[completedSectionIndex];
+      const nextSection = nextVisibleSections[completedSectionIndex + 1];
+
+      if (completedSection) {
+        setSectionCelebration({
+          nextTitle: nextSection?.title,
+          sectionId: completedSection.id,
+          title: completedSection.title
+        });
+      }
 
       captureAssessmentEvent(
         "assessment_section_completed",
@@ -939,77 +1111,6 @@ export function AssessmentWorkbench() {
       );
     }
 
-    const visibleAnswerPayload = getFilteredVisibleAnswers(nextAnswers);
-    const isLastQuestion = nextVisibleQuestions.every((candidate) =>
-      isQuestionAnswered(candidate, nextAnswers)
-    );
-
-    if (isLastQuestion) {
-      try {
-        const response = await fetch("/api/assessment/sessions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            action: "complete",
-            answers: visibleAnswerPayload,
-            resumeToken: session.resumeToken,
-            sessionId: session.id,
-            totalElapsedMs: Date.now() - startedAtRef.current
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to complete assessment.");
-        }
-
-        setIsComplete(true);
-        setSession({
-          ...session,
-          completionStatus: "completed"
-        });
-        safeStorageRemove(activeSessionIdKey);
-        safeStorageRemove(activeSessionTokenKey);
-
-        captureAssessmentEvent(
-          "assessment_completed",
-          {
-            clerkUserId: userId,
-            entrySource: entryContext.entrySource,
-            isAuthenticated: isSignedIn,
-            posthogDistinctId: getPostHogDistinctId(),
-            sessionId: session.id,
-            utmCampaign: entryContext.utmCampaign,
-            utmMedium: entryContext.utmMedium,
-            utmSource: entryContext.utmSource
-          },
-          {
-            total_elapsed_ms: Date.now() - startedAtRef.current
-          }
-        );
-
-        router.push(`/assessment/results/${session.id}?rt=${session.resumeToken}`);
-      } catch (error) {
-        setSaveStatus("error");
-        setErrorMessage(error instanceof Error ? error.message : "Failed to complete assessment.");
-      }
-
-      return;
-    }
-
-    window.setTimeout(() => {
-      const currentVisibleIndex = nextVisibleQuestions.findIndex(
-        (candidate) => candidate.id === question.id
-      );
-      const fallbackIndex = getNextIncompleteQuestionIndex(nextAnswers);
-      const nextIndex =
-        currentVisibleIndex === -1
-          ? fallbackIndex
-          : Math.min(currentVisibleIndex + 1, nextVisibleQuestions.length - 1);
-
-      setCurrentIndex(nextIndex);
-    }, question.autoAdvance ? 220 : 0);
   }
 
   if (isBootstrapping) {
@@ -1048,11 +1149,12 @@ export function AssessmentWorkbench() {
       <AssessmentShell
         progress={
           <AssessmentProgress
+            completedSectionIds={[]}
             completedQuestions={0}
             currentSectionIndex={0}
             progressPercent={0}
             remainingQuestions={visibleQuestions.length}
-            sectionCount={visibleSections.length}
+            sections={visibleSections}
             statusLabel={isLoaded ? getStatusLabel(saveStatus) : "Loading session"}
           />
         }
@@ -1098,32 +1200,58 @@ export function AssessmentWorkbench() {
     <AssessmentShell
       progress={
         <AssessmentProgress
+          completedSectionIds={isComplete ? visibleSections.map((section) => section.id) : completedSectionIds}
           completedQuestions={completedQuestions}
           currentSectionIndex={isComplete ? visibleSections.length - 1 : Math.max(currentSectionIndex, 0)}
           progressPercent={isComplete ? 100 : progressPercent}
           remainingQuestions={isComplete ? 0 : remainingQuestions}
-          sectionCount={visibleSections.length}
+          sections={visibleSections}
           statusLabel={isLoaded ? getStatusLabel(saveStatus) : "Loading session"}
         />
       }
       footer={
         !isComplete ? (
           <>
-            <button
-              type="button"
-              className="assessment-nav-button"
-              disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
-            >
-              Back
-            </button>
+            <div className="assessment-nav-actions">
+              <button
+                type="button"
+                className="assessment-nav-button"
+                disabled={currentIndex === 0}
+                onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                className="assessment-nav-button assessment-nav-button-primary"
+                disabled={!isCurrentQuestionAnswered || saveStatus === "saving"}
+                onClick={() => handleNextQuestion()}
+              >
+                {isFinalVisibleQuestion ? "Finish" : "Next"}
+              </button>
+            </div>
             <p className="assessment-mobile-bar-copy">
-              {errorMessage ? errorMessage : "Progress saves as you go."}
+              {errorMessage
+                ? errorMessage
+                : isCurrentQuestionAnswered
+                  ? "Answer saved. Move when you are ready."
+                  : "Choose or save an answer to continue."}
             </p>
           </>
         ) : undefined
       }
     >
+      {sectionCelebration && !isComplete ? (
+        <div className="assessment-section-complete" role="status" aria-live="polite">
+          <span>Section complete</span>
+          <strong>Congrats, you completed {sectionCelebration.title}.</strong>
+          <p>
+            {sectionCelebration.nextTitle
+              ? `Next up: ${sectionCelebration.nextTitle}.`
+              : "You are on the final stretch."}
+          </p>
+        </div>
+      ) : null}
       {isComplete ? (
         <section className="assessment-complete grain-card">
           <div className="assessment-complete-header">
@@ -1191,22 +1319,33 @@ export function AssessmentWorkbench() {
             }
           />
           <div className="assessment-question-feedback">
-            <span>Was this question useful?</span>
-            <div>
+            <label htmlFor={`question-feedback-${currentQuestion.id}`}>
+              Give feedback on this question
+            </label>
+            <div className="assessment-question-feedback-entry">
+              <textarea
+                id={`question-feedback-${currentQuestion.id}`}
+                className="assessment-question-feedback-input"
+                value={questionFeedbackBody}
+                placeholder="Tell us what felt unclear, missing, or useful."
+                rows={3}
+                onChange={(event) => {
+                  setQuestionFeedbackBody(event.target.value);
+                  if (questionFeedbackStatus !== "idle") {
+                    setQuestionFeedbackStatus("idle");
+                  }
+                }}
+              />
               <button
                 type="button"
-                className="assessment-feedback-chip"
-                onClick={() => void submitQuestionFeedback(currentQuestion.id, 1)}
+                className="assessment-feedback-submit"
+                disabled={questionFeedbackStatus === "saving" || questionFeedbackBody.trim().length === 0}
+                onClick={() => void submitQuestionFeedback(currentQuestion.id)}
               >
-                Useful
+                {questionFeedbackStatus === "saving" ? "Sending" : "Send feedback"}
               </button>
-              <button
-                type="button"
-                className="assessment-feedback-chip"
-                onClick={() => void submitQuestionFeedback(currentQuestion.id, -1)}
-              >
-                Off
-              </button>
+              {questionFeedbackStatus === "saved" ? <p>Thanks. Your note helps improve the survey.</p> : null}
+              {questionFeedbackStatus === "error" ? <p>Please add a short note before sending.</p> : null}
             </div>
           </div>
           <div className="assessment-question-foot">
