@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const footerGroups = [
   {
@@ -36,6 +39,12 @@ const footerGroups = [
 ] as const;
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/assessment")) {
+    return null;
+  }
+
   return (
     <footer className="section site-footer-section">
       <div className="page-shell">

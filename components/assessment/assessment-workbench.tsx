@@ -1,392 +1,818 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import posthog from "posthog-js";
+import { useRouter } from "next/navigation";
+import { AssessmentProgress } from "@/components/assessment/assessment-progress";
+import { AssessmentShell } from "@/components/assessment/assessment-shell";
 import { Button } from "@/components/ui/button";
+import {
+  captureAssessmentEvent,
+  getPostHogDistinctId
+} from "@/lib/analytics/assessment-events";
+import {
+  assessmentQuestions,
+  assessmentSections,
+  assessmentSectionsById,
+  assessmentVersion,
+  getNextIncompleteQuestionIndex,
+  getQuestionLabel,
+  type AssessmentAnswerMap,
+  type AssessmentQuestion
+} from "@/lib/assessment/questions";
+import { buildAssessmentCompletionSummary } from "@/lib/assessment/summary";
 
-type Option = {
-  value: string;
-  label: string;
-  note: string;
+const activeSessionIdKey = "uglymanling.assessment.active_session_id";
+const activeSessionTokenKey = "uglymanling.assessment.active_resume_token";
+const anonymousIdKey = "uglymanling.assessment.anonymous_id";
+
+type SessionRecord = {
+  completionStatus: "started" | "completed" | "abandoned";
+  id: string;
+  resumeToken: string;
+  totalElapsedMs: number;
 };
 
-const stageOptions: Option[] = [
-  {
-    value: "early",
-    label: "Early changes",
-    note: "Hairline or crown changes are showing up, but the situation still feels reversible."
-  },
-  {
-    value: "accelerating",
-    label: "Accelerating loss",
-    note: "You feel like things have clearly sped up and you do not want to wing it."
-  },
-  {
-    value: "advanced",
-    label: "Advanced loss",
-    note: "You need practical choices, not fantasy, because the loss is already obvious."
-  }
-];
+type SessionBootstrapResponse = {
+  answers: AssessmentAnswerMap;
+  didResume: boolean;
+  session: SessionRecord;
+};
 
-const goalOptions: Option[] = [
-  {
-    value: "stabilize",
-    label: "Stabilize and stop panic",
-    note: "Reduce uncertainty and figure out the least chaotic next move."
-  },
-  {
-    value: "regrow",
-    label: "Regrowth and treatment",
-    note: "You want the strongest honest treatment path the budget can support."
-  },
-  {
-    value: "appearance",
-    label: "Look better fast",
-    note: "You care most about confidence, style, grooming, and visible wins."
-  }
-];
+type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-const budgetOptions: Option[] = [
-  {
-    value: "lean",
-    label: "Keep it lean",
-    note: "Low-cost actions first. No luxury nonsense."
-  },
-  {
-    value: "balanced",
-    label: "Balanced",
-    note: "You will spend if the move is justified and useful."
-  },
-  {
-    value: "all-in",
-    label: "All-in",
-    note: "You are willing to pay for the strongest path and expert guidance."
+function safeStorageGet(key: string) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
   }
-];
+}
 
-const urgencyOptions: Option[] = [
-  {
-    value: "low",
-    label: "I want clarity",
-    note: "You are not in crisis. You want a good plan before acting."
-  },
-  {
-    value: "medium",
-    label: "I should move soon",
-    note: "You do not want to drift for another couple of months."
-  },
-  {
-    value: "high",
-    label: "Fix this now",
-    note: "You want a near-term action path because confidence is taking a hit."
+function safeStorageSet(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage issues so the assessment still works.
   }
-];
+}
 
-function getLane({
-  stage,
-  goal,
-  budget,
-  urgency
-}: {
-  stage: string;
-  goal: string;
-  budget: string;
-  urgency: string;
-}) {
-  if (goal === "appearance") {
-    return {
-      title: "Style and confidence lane",
-      summary:
-        "Start with the fastest visible wins. Improve the look now, then decide how much treatment work is still worth doing.",
-      checklist: [
-        "Pick a haircut and grooming strategy that matches your current density.",
-        "Use the research hub only to cut through hype, not to stall action.",
-        "Book expert help only if you want a second opinion on treatment."
-      ],
-      badge: "Fastest relief"
-    };
+function safeStorageRemove(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore storage issues so the assessment still works.
+  }
+}
+
+function makeAnonymousId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
   }
 
-  if (goal === "regrow" && (urgency === "high" || budget === "all-in")) {
-    return {
-      title: "Treatment sprint lane",
-      summary:
-        "You need a direct treatment path with expert backup, tight expectations, and fewer random experiments.",
-      checklist: [
-        "Start with a practical treatment review and product mapping.",
-        "Escalate into a consult instead of stitching advice together from internet fragments.",
-        "Track progress deliberately so you know what is working."
-      ],
-      badge: "High support"
-    };
+  return `anon_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function getOrCreateAnonymousId() {
+  const existing = safeStorageGet(anonymousIdKey);
+
+  if (existing) {
+    return existing;
   }
 
-  if (stage === "advanced") {
-    return {
-      title: "Reality-based planning lane",
-      summary:
-        "The best outcome may be a mixed strategy: appearance improvements first, treatment only where it is still justified.",
-      checklist: [
-        "Clarify whether your goal is maintenance, presentation, or transplant exploration.",
-        "Avoid vague miracle products and force every option to earn its cost.",
-        "Use consult support for decisions with real downside."
-      ],
-      badge: "Most honest"
-    };
-  }
+  const nextId = makeAnonymousId();
+  safeStorageSet(anonymousIdKey, nextId);
+  return nextId;
+}
+
+function buildEntryContext() {
+  const params = new URLSearchParams(window.location.search);
 
   return {
-    title: "Stabilize and learn lane",
-    summary:
-      "You are still early enough to make calm, evidence-backed moves without turning this into a full-time hobby.",
-    checklist: [
-      "Learn the few levers that matter and ignore the rest.",
-      "Build a simple starter plan you can actually follow.",
-      "Use community stories as proof and context, not as medical advice."
-    ],
-    badge: "Best starting point"
+    entryPath: window.location.pathname,
+    entrySource: params.get("src") ?? "direct",
+    utmCampaign: params.get("utm_campaign"),
+    utmMedium: params.get("utm_medium"),
+    utmSource: params.get("utm_source")
   };
 }
 
-function OptionGroup({
-  title,
-  group,
-  options,
-  selected,
+function getQuestionCardClass(input: AssessmentQuestion["input"], active: boolean) {
+  if (input === "norwood") {
+    return `assessment-stage-card${active ? " is-active" : ""}`;
+  }
+
+  if (input === "chips") {
+    return `assessment-chip${active ? " is-active" : ""}`;
+  }
+
+  return `assessment-option-card${active ? " is-active" : ""}`;
+}
+
+function getQuestionCountForSection(sectionId: string) {
+  return assessmentQuestions.filter((question) => question.sectionId === sectionId).length;
+}
+
+function getStatusLabel(saveStatus: SaveStatus) {
+  switch (saveStatus) {
+    case "saving":
+      return "Saving progress";
+    case "saved":
+      return "Progress saved";
+    case "error":
+      return "Save needs retry";
+    case "idle":
+    default:
+      return "Private by default";
+  }
+}
+
+async function bootstrapSession() {
+  const anonymousId = getOrCreateAnonymousId();
+  const entryContext = buildEntryContext();
+  const response = await fetch("/api/assessment/sessions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      action: "start_or_resume",
+      anonymousId,
+      assessmentVersion,
+      entryPath: entryContext.entryPath,
+      entrySource: entryContext.entrySource,
+      posthogDistinctId: getPostHogDistinctId(),
+      resumeToken: safeStorageGet(activeSessionTokenKey),
+      sessionId: safeStorageGet(activeSessionIdKey),
+      utmCampaign: entryContext.utmCampaign,
+      utmMedium: entryContext.utmMedium,
+      utmSource: entryContext.utmSource
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to start assessment session.");
+  }
+
+  const payload = (await response.json()) as SessionBootstrapResponse;
+  safeStorageSet(activeSessionIdKey, payload.session.id);
+  safeStorageSet(activeSessionTokenKey, payload.session.resumeToken);
+
+  return payload;
+}
+
+function QuestionOptions({
+  question,
+  selectedValue,
   onSelect
 }: {
-  title: string;
-  group: string;
-  options: Option[];
-  selected: string;
   onSelect: (value: string) => void;
+  question: AssessmentQuestion;
+  selectedValue?: string;
 }) {
-  return (
-    <section className="assessment-group grain-card">
-      <div>
-        <p className="assessment-group-label">{title}</p>
-      </div>
-      <div className="assessment-option-grid">
-        {options.map((option) => {
-          const active = option.value === selected;
+  const groupClassName =
+    question.input === "norwood"
+      ? "assessment-stage-rail"
+      : question.input === "chips"
+        ? "assessment-chip-group"
+        : "assessment-option-grid";
 
-          return (
-            <button
-              key={option.value}
-              type="button"
-              className={`assessment-option${active ? " is-active" : ""}`}
-              onClick={() => {
-                onSelect(option.value);
-                posthog.capture("assessment_option_selected", {
-                  group,
-                  value: option.value,
-                  label: option.label,
-                });
-              }}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.note}</span>
-            </button>
-          );
-        })}
-      </div>
-    </section>
+  return (
+    <div className={groupClassName}>
+      {question.options.map((option) => {
+        const active = selectedValue === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={getQuestionCardClass(question.input, active)}
+            onClick={() => onSelect(option.value)}
+          >
+            {question.input === "norwood" ? (
+              <>
+                <span className="assessment-stage-pill">{option.shortLabel ?? option.label}</span>
+                <strong>{option.label}</strong>
+                <span>{option.description}</span>
+              </>
+            ) : (
+              <>
+                <strong>{option.label}</strong>
+                {option.description ? <span>{option.description}</span> : null}
+              </>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
 export function AssessmentWorkbench() {
-  const { isSignedIn } = useAuth();
-  const [stage, setStage] = useState(stageOptions[1].value);
-  const [goal, setGoal] = useState(goalOptions[0].value);
-  const [budget, setBudget] = useState(budgetOptions[1].value);
-  const [urgency, setUrgency] = useState(urgencyOptions[1].value);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const router = useRouter();
+  const [answers, setAnswers] = useState<AssessmentAnswerMap>({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isComplete, setIsComplete] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [session, setSession] = useState<SessionRecord | null>(null);
+  const hasBootstrappedRef = useRef(false);
+  const hasTrackedLandingRef = useRef(false);
+  const completedSectionsRef = useRef<Set<string>>(new Set());
+  const questionEnteredAtRef = useRef<number>(Date.now());
+  const startedAtRef = useRef<number>(Date.now());
 
-  const lane = useMemo(
-    () =>
-      getLane({
-        stage,
-        goal,
-        budget,
-        urgency
-      }),
-    [budget, goal, stage, urgency]
+  const completedQuestions = assessmentQuestions.filter((question) => answers[question.id]).length;
+  const currentQuestion = assessmentQuestions[currentIndex];
+  const currentSectionIndex = assessmentSections.findIndex(
+    (section) => section.id === currentQuestion?.sectionId
   );
+  const progressPercent =
+    assessmentQuestions.length === 0
+      ? 0
+      : Math.round((completedQuestions / assessmentQuestions.length) * 100);
+  const remainingQuestions = Math.max(assessmentQuestions.length - completedQuestions, 0);
+  const completionSummary = buildAssessmentCompletionSummary(answers);
 
-  async function handleSave() {
-    if (!isSignedIn) {
-      setSaveState("error");
+  async function submitQuestionFeedback(questionId: string, sentiment: -1 | 1) {
+    if (!session) {
       return;
     }
 
-    setSaveState("saving");
-
-    const response = await fetch("/api/assessment", {
+    await fetch("/api/assessment/feedback", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        stage,
-        goal,
-        budget,
-        urgency,
-        laneTitle: lane.title,
-        laneSummary: lane.summary,
-        laneBadge: lane.badge,
-        laneChecklist: lane.checklist
+        action: "question_feedback",
+        questionId,
+        resumeToken: session.resumeToken,
+        sentiment,
+        sessionId: session.id
       })
     });
 
-    if (response.ok) {
-      setSaveState("saved");
-      posthog.capture("assessment_saved", {
-        stage,
-        goal,
-        budget,
-        urgency,
-        lane_title: lane.title,
-        lane_badge: lane.badge,
-      });
-    } else {
-      setSaveState("error");
-      posthog.captureException(new Error("Assessment save failed"));
+    const entryContext = buildEntryContext();
+
+    captureAssessmentEvent(
+      "assessment_feedback_submitted",
+      {
+        clerkUserId: userId,
+        entrySource: entryContext.entrySource,
+        isAuthenticated: isSignedIn,
+        posthogDistinctId: getPostHogDistinctId(),
+        sessionId: session.id,
+        utmCampaign: entryContext.utmCampaign,
+        utmMedium: entryContext.utmMedium,
+        utmSource: entryContext.utmSource
+      },
+      {
+        question_id: questionId,
+        sentiment,
+        scope: "question"
+      }
+    );
+  }
+
+  useEffect(() => {
+    if (hasTrackedLandingRef.current || typeof window === "undefined") {
+      return;
     }
+
+    hasTrackedLandingRef.current = true;
+    const entryContext = buildEntryContext();
+
+    captureAssessmentEvent(
+      "assessment_landing_viewed",
+      {
+        clerkUserId: userId,
+        entrySource: entryContext.entrySource,
+        isAuthenticated: isSignedIn,
+        posthogDistinctId: getPostHogDistinctId(),
+        utmCampaign: entryContext.utmCampaign,
+        utmMedium: entryContext.utmMedium,
+        utmSource: entryContext.utmSource
+      },
+      {
+        path: entryContext.entryPath
+      }
+    );
+  }, [isSignedIn, userId]);
+
+  useEffect(() => {
+    if (hasBootstrappedRef.current || typeof window === "undefined") {
+      return;
+    }
+
+    hasBootstrappedRef.current = true;
+
+    void (async () => {
+      try {
+        const payload = await bootstrapSession();
+        const resumedAnswers = payload.answers ?? {};
+        const nextIndex = getNextIncompleteQuestionIndex(resumedAnswers);
+        const entryContext = buildEntryContext();
+
+        setAnswers(resumedAnswers);
+        setCurrentIndex(nextIndex);
+        setSession(payload.session);
+        setIsComplete(payload.session.completionStatus === "completed");
+        startedAtRef.current = Date.now() - payload.session.totalElapsedMs;
+        questionEnteredAtRef.current = Date.now();
+
+        assessmentSections.forEach((section) => {
+          const isSectionComplete =
+            assessmentQuestions.filter((question) => question.sectionId === section.id).every((question) => resumedAnswers[question.id]);
+
+          if (isSectionComplete) {
+            completedSectionsRef.current.add(section.id);
+          }
+        });
+
+        captureAssessmentEvent(
+          payload.didResume ? "assessment_resumed" : "assessment_started",
+          {
+            clerkUserId: userId,
+            entrySource: entryContext.entrySource,
+            isAuthenticated: isSignedIn,
+            posthogDistinctId: getPostHogDistinctId(),
+            sessionId: payload.session.id,
+            utmCampaign: entryContext.utmCampaign,
+            utmMedium: entryContext.utmMedium,
+            utmSource: entryContext.utmSource
+          },
+          {
+            answers_completed: Object.keys(resumedAnswers).length
+          }
+        );
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Unable to load the assessment.");
+      } finally {
+        setIsBootstrapping(false);
+      }
+    })();
+  }, [isSignedIn, userId]);
+
+  useEffect(() => {
+    if (!session || isComplete || !currentQuestion) {
+      return;
+    }
+
+    const entryContext = buildEntryContext();
+    questionEnteredAtRef.current = Date.now();
+
+    captureAssessmentEvent(
+      "assessment_question_viewed",
+      {
+        clerkUserId: userId,
+        entrySource: entryContext.entrySource,
+        isAuthenticated: isSignedIn,
+        posthogDistinctId: getPostHogDistinctId(),
+        sessionId: session.id,
+        utmCampaign: entryContext.utmCampaign,
+        utmMedium: entryContext.utmMedium,
+        utmSource: entryContext.utmSource
+      },
+      {
+        question_id: currentQuestion.id,
+        questions_remaining: remainingQuestions,
+        section_id: currentQuestion.sectionId,
+        step_index: currentIndex
+      }
+    );
+  }, [currentIndex, currentQuestion, isComplete, isSignedIn, remainingQuestions, session, userId]);
+
+  useEffect(() => {
+    if (!session || !userId) {
+      return;
+    }
+
+    void fetch("/api/assessment/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        action: "start_or_resume",
+        anonymousId: safeStorageGet(anonymousIdKey) ?? getOrCreateAnonymousId(),
+        assessmentVersion,
+        posthogDistinctId: getPostHogDistinctId(),
+        resumeToken: session.resumeToken,
+        sessionId: session.id
+      })
+    }).catch(() => {
+      // Best effort session linking only.
+    });
+  }, [session, userId]);
+
+  useEffect(() => {
+    if (!session || isComplete) {
+      return;
+    }
+
+    const handlePageHide = () => {
+      const current = assessmentQuestions[currentIndex];
+      const body = JSON.stringify({
+        action: "abandon",
+        lastQuestionId: current?.id ?? null,
+        lastSectionId: current?.sectionId ?? null,
+        resumeToken: session.resumeToken,
+        sessionId: session.id,
+        totalElapsedMs: Date.now() - startedAtRef.current
+      });
+
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(
+            "/api/assessment/sessions",
+            new Blob([body], { type: "application/json" })
+          );
+        } else {
+          void fetch("/api/assessment/sessions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body,
+            keepalive: true
+          });
+        }
+      } catch {
+        // Best effort only.
+      }
+
+      const entryContext = buildEntryContext();
+
+      captureAssessmentEvent(
+        "assessment_abandoned",
+        {
+          clerkUserId: userId,
+          entrySource: entryContext.entrySource,
+          isAuthenticated: isSignedIn,
+          posthogDistinctId: getPostHogDistinctId(),
+          sessionId: session.id,
+          utmCampaign: entryContext.utmCampaign,
+          utmMedium: entryContext.utmMedium,
+          utmSource: entryContext.utmSource
+        },
+        {
+          answers_completed: completedQuestions,
+          last_question_id: current?.id ?? undefined,
+          last_section_id: current?.sectionId ?? undefined,
+          total_elapsed_ms: Date.now() - startedAtRef.current
+        }
+      );
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [completedQuestions, currentIndex, isComplete, isSignedIn, session, userId]);
+
+  async function persistAnswer(question: AssessmentQuestion, answerValue: string, previousValue?: string) {
+    if (!session) {
+      return;
+    }
+
+    const entryContext = buildEntryContext();
+    const elapsedMs = Date.now() - questionEnteredAtRef.current;
+    const answerLabel = getQuestionLabel(question.id, answerValue);
+    const nextAnswers = {
+      ...answers,
+      [question.id]: answerValue
+    };
+
+    setAnswers(nextAnswers);
+    setSaveStatus("saving");
+    setErrorMessage(null);
+
+    captureAssessmentEvent(
+      previousValue && previousValue !== answerValue
+        ? "assessment_question_changed"
+        : "assessment_question_answered",
+      {
+        clerkUserId: userId,
+        entrySource: entryContext.entrySource,
+        isAuthenticated: isSignedIn,
+        posthogDistinctId: getPostHogDistinctId(),
+        sessionId: session.id,
+        utmCampaign: entryContext.utmCampaign,
+        utmMedium: entryContext.utmMedium,
+        utmSource: entryContext.utmSource
+      },
+      {
+        answer_label: answerLabel,
+        answer_value: answerValue,
+        elapsed_ms: elapsedMs,
+        question_id: question.id,
+        questions_remaining: Math.max(assessmentQuestions.length - Object.keys(nextAnswers).length, 0),
+        section_id: question.sectionId,
+        step_index: currentIndex,
+        was_auto_advanced: question.autoAdvance ?? false
+      }
+    );
+
+    try {
+      const response = await fetch("/api/assessment/sessions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          action: "save_answer",
+          answerLabel,
+          answerValue,
+          changedFrom: previousValue ?? null,
+          elapsedMs,
+          questionId: question.id,
+          resumeToken: session.resumeToken,
+          sectionId: question.sectionId,
+          sessionId: session.id,
+          stepIndex: currentIndex,
+          totalElapsedMs: Date.now() - startedAtRef.current
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save answer.");
+      }
+
+      setSaveStatus("saved");
+
+      captureAssessmentEvent(
+        "assessment_progress_saved",
+        {
+          clerkUserId: userId,
+          entrySource: entryContext.entrySource,
+          isAuthenticated: isSignedIn,
+          posthogDistinctId: getPostHogDistinctId(),
+          sessionId: session.id,
+          utmCampaign: entryContext.utmCampaign,
+          utmMedium: entryContext.utmMedium,
+          utmSource: entryContext.utmSource
+        },
+        {
+          question_id: question.id,
+          section_id: question.sectionId,
+          step_index: currentIndex
+        }
+      );
+    } catch (error) {
+      setSaveStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "Failed to save answer.");
+    }
+
+    const sectionQuestions = assessmentQuestions.filter(
+      (candidate) => candidate.sectionId === question.sectionId
+    );
+    const isSectionComplete = sectionQuestions.every((candidate) => nextAnswers[candidate.id]);
+
+    if (isSectionComplete && !completedSectionsRef.current.has(question.sectionId)) {
+      completedSectionsRef.current.add(question.sectionId);
+
+      captureAssessmentEvent(
+        "assessment_section_completed",
+        {
+          clerkUserId: userId,
+          entrySource: entryContext.entrySource,
+          isAuthenticated: isSignedIn,
+          posthogDistinctId: getPostHogDistinctId(),
+          sessionId: session.id,
+          utmCampaign: entryContext.utmCampaign,
+          utmMedium: entryContext.utmMedium,
+          utmSource: entryContext.utmSource
+        },
+        {
+          answers_in_section: getQuestionCountForSection(question.sectionId),
+          section_id: question.sectionId,
+          section_index: assessmentSections.findIndex((section) => section.id === question.sectionId),
+          section_elapsed_ms: Date.now() - startedAtRef.current
+        }
+      );
+    }
+
+    const isLastQuestion = currentIndex >= assessmentQuestions.length - 1;
+
+    if (isLastQuestion) {
+      try {
+        const response = await fetch("/api/assessment/sessions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "complete",
+            answers: nextAnswers,
+            resumeToken: session.resumeToken,
+            sessionId: session.id,
+            totalElapsedMs: Date.now() - startedAtRef.current
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to complete assessment.");
+        }
+
+        setIsComplete(true);
+        setSession({
+          ...session,
+          completionStatus: "completed"
+        });
+        safeStorageRemove(activeSessionIdKey);
+        safeStorageRemove(activeSessionTokenKey);
+
+        captureAssessmentEvent(
+          "assessment_completed",
+          {
+            clerkUserId: userId,
+            entrySource: entryContext.entrySource,
+            isAuthenticated: isSignedIn,
+            posthogDistinctId: getPostHogDistinctId(),
+            sessionId: session.id,
+            utmCampaign: entryContext.utmCampaign,
+            utmMedium: entryContext.utmMedium,
+            utmSource: entryContext.utmSource
+          },
+          {
+            total_elapsed_ms: Date.now() - startedAtRef.current
+          }
+        );
+
+        router.push(`/assessment/results/${session.id}?rt=${session.resumeToken}`);
+      } catch (error) {
+        setSaveStatus("error");
+        setErrorMessage(error instanceof Error ? error.message : "Failed to complete assessment.");
+      }
+
+      return;
+    }
+
+    window.setTimeout(() => {
+      setCurrentIndex((index) => Math.min(index + 1, assessmentQuestions.length - 1));
+    }, question.autoAdvance ? 220 : 0);
+  }
+
+  if (isBootstrapping) {
+    return (
+      <div className="assessment-loading grain-card">
+        <span className="eyebrow">Assessment</span>
+        <h1>Setting up your profile.</h1>
+        <p>Building a private session and loading the first step.</p>
+      </div>
+    );
+  }
+
+  if (errorMessage && !session) {
+    return (
+      <div className="assessment-loading grain-card">
+        <span className="eyebrow">Assessment</span>
+        <h1>We could not start the assessment.</h1>
+        <p>{errorMessage}</p>
+        <button
+          type="button"
+          className="assessment-inline-button"
+          onClick={() => window.location.reload()}
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!session || !currentQuestion) {
+    return null;
   }
 
   return (
-    <div className="assessment-shell">
-      <section className="assessment-hero">
-        <div className="assessment-hero-copy">
-          <span className="section-label">Assessment</span>
-          <h1 className="assessment-title">Build a plan before you buy nonsense.</h1>
-          <p className="assessment-copy">
-            This is the first pass at the Ugly Manling decision engine. Tell us where you
-            are, what you care about, and how hard you want to push. The screen responds
-            with a recommended lane and a practical next-step shape.
-          </p>
-        </div>
-        <aside className="assessment-hero-panel grain-card">
-          <p className="assessment-panel-label">What this page should do</p>
-          <ul className="assessment-panel-list">
-            <li>Turn panic into a clear lane.</li>
-            <li>Keep treatment, style, and expert access connected.</li>
-            <li>Show enough structure to feel useful before full onboarding ships.</li>
-          </ul>
-        </aside>
-      </section>
-
-      <section className="assessment-layout">
-        <div className="assessment-controls">
-          <OptionGroup
-            title="Where are you right now?"
-            group="stage"
-            options={stageOptions}
-            selected={stage}
-            onSelect={setStage}
-          />
-          <OptionGroup
-            title="What do you want most?"
-            group="goal"
-            options={goalOptions}
-            selected={goal}
-            onSelect={setGoal}
-          />
-          <OptionGroup
-            title="What kind of budget are we working with?"
-            group="budget"
-            options={budgetOptions}
-            selected={budget}
-            onSelect={setBudget}
-          />
-          <OptionGroup
-            title="How urgent does this feel?"
-            group="urgency"
-            options={urgencyOptions}
-            selected={urgency}
-            onSelect={setUrgency}
-          />
-        </div>
-
-        <aside className="assessment-result grain-card">
-          <div className="assessment-result-header">
-            <span className="eyebrow">Suggested lane</span>
-            <span className="assessment-badge">{lane.badge}</span>
+    <AssessmentShell
+      progress={
+        <AssessmentProgress
+          completedQuestions={completedQuestions}
+          currentSectionIndex={isComplete ? assessmentSections.length - 1 : currentSectionIndex}
+          progressPercent={isComplete ? 100 : progressPercent}
+          remainingQuestions={isComplete ? 0 : remainingQuestions}
+          sectionCount={assessmentSections.length}
+          statusLabel={isLoaded ? getStatusLabel(saveStatus) : "Loading session"}
+        />
+      }
+      footer={
+        !isComplete ? (
+          <>
+            <button
+              type="button"
+              className="assessment-nav-button"
+              disabled={currentIndex === 0}
+              onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+            >
+              Back
+            </button>
+            <p className="assessment-mobile-bar-copy">
+              {errorMessage ? errorMessage : currentQuestion.autoAdvance ? "Tap an answer to continue." : "Choose an option to continue."}
+            </p>
+          </>
+        ) : undefined
+      }
+    >
+      {isComplete ? (
+        <section className="assessment-complete grain-card">
+          <div className="assessment-complete-header">
+            <span className="eyebrow">Foundation complete</span>
+            <span className="assessment-complete-badge">{completionSummary.badge}</span>
           </div>
-          <h2>{lane.title}</h2>
-          <p>{lane.summary}</p>
-          <div className="assessment-checklist">
-            {lane.checklist.map((item) => (
-              <div key={item} className="assessment-check">
+          <h1>{completionSummary.title}</h1>
+          <p>{completionSummary.detail}</p>
+          <div className="assessment-complete-list">
+            {completionSummary.bullets.map((bullet) => (
+              <div key={bullet} className="assessment-complete-item">
                 <span />
-                <p>{item}</p>
+                <p>{bullet}</p>
               </div>
             ))}
           </div>
-          <div className="assessment-actions">
-            <button
-              type="button"
-              onClick={() => void handleSave()}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "3rem",
-                padding: "0.8rem 1.15rem",
-                border: "1px solid var(--primary-deep)",
-                borderRadius: "var(--radius-pill)",
-                background: "var(--primary)",
-                color: "var(--ink-strong)",
-                fontSize: "0.94rem",
-                fontWeight: 800,
-                letterSpacing: "-0.02em",
-                cursor: "pointer"
-              }}
-            >
-              {saveState === "saving"
-                ? "Saving..."
-                : isSignedIn
-                  ? "Save assessment"
-                  : "Sign in to save"}
-            </button>
-            <Button href="/consult" variant="secondary">
-              Talk it through with an expert
+          <div className="assessment-answer-summary">
+            {assessmentSections.map((section) => (
+              <div key={section.id} className="assessment-answer-section">
+                <p>{section.title}</p>
+                <div>
+                  {assessmentQuestions
+                    .filter((question) => question.sectionId === section.id)
+                    .map((question) => (
+                      <span key={question.id}>
+                        {getQuestionLabel(question.id, answers[question.id] ?? "not_sure")}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="assessment-complete-actions">
+            <Button href="/style/barbers" variant="secondary">
+              Find a barber
             </Button>
-            <Button href="/research" variant="ghost">
-              Read the evidence first
+            <Button href="/consult" variant="primary">
+              Talk it through
             </Button>
             <Button href="/community" variant="ghost">
-              See how other men handled it
+              See real examples
             </Button>
           </div>
-          <p style={{ marginTop: "0.75rem", fontSize: "0.9rem", opacity: 0.8 }}>
-            {saveState === "saved" && "Saved to your profile."}
-            {saveState === "error" &&
-              (isSignedIn ? "Save failed. Recheck Supabase table setup." : "Please sign in first.")}
-          </p>
-        </aside>
-      </section>
-
-      <section className="assessment-notes">
-        <div className="grain-card assessment-note-card">
-          <span className="eyebrow">How we think</span>
-          <h3>No miracle claims. No weird shame spiral.</h3>
-          <p>
-            The real product is decision quality. Treatments, experts, grooming, and shop
-            recommendations should all feel like connected next steps instead of random sales
-            surfaces.
-          </p>
-        </div>
-        <div className="grain-card assessment-note-card warm">
-          <span className="eyebrow">Next UI step</span>
-          <h3>This should turn into saved onboarding.</h3>
-          <p>
-            The next iteration can persist answers to a profile, generate a proper plan page,
-            and attach community proof or research modules to each recommendation.
-          </p>
-        </div>
-      </section>
-    </div>
+        </section>
+      ) : (
+        <section className="assessment-question-card grain-card">
+          <div className="assessment-question-meta">
+            <span className="assessment-section-kicker">
+              {assessmentSectionsById[currentQuestion.sectionId]?.title}
+            </span>
+            <p>{currentQuestion.sectionRationale}</p>
+          </div>
+          <div className="assessment-question-copy">
+            <h1>{currentQuestion.prompt}</h1>
+            {currentQuestion.helper ? <p>{currentQuestion.helper}</p> : null}
+          </div>
+          <QuestionOptions
+            question={currentQuestion}
+            selectedValue={answers[currentQuestion.id]}
+            onSelect={(value) =>
+              void persistAnswer(currentQuestion, value, answers[currentQuestion.id])
+            }
+          />
+          <div className="assessment-question-feedback">
+            <span>Was this question useful?</span>
+            <div>
+              <button
+                type="button"
+                className="assessment-feedback-chip"
+                onClick={() => void submitQuestionFeedback(currentQuestion.id, 1)}
+              >
+                Useful
+              </button>
+              <button
+                type="button"
+                className="assessment-feedback-chip"
+                onClick={() => void submitQuestionFeedback(currentQuestion.id, -1)}
+              >
+                Off
+              </button>
+            </div>
+          </div>
+          <div className="assessment-question-foot">
+            <div>
+              <strong>{currentIndex + 1}</strong>
+              <span> of {assessmentQuestions.length}</span>
+            </div>
+            <p>
+              {assessmentSections.findIndex((section) => section.id === currentQuestion.sectionId) +
+                1}{" "}
+              / {assessmentSections.length} sections
+            </p>
+          </div>
+        </section>
+      )}
+    </AssessmentShell>
   );
 }
