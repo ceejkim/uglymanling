@@ -1716,6 +1716,21 @@ main {
   font-weight: 800;
 }
 
+.assessment-question-feedback summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.assessment-question-feedback summary::-webkit-details-marker {
+  display: none;
+}
+
+.assessment-question-feedback[open] summary {
+  color: var(--ink-strong);
+}
+
 .assessment-rating-row,
 .assessment-feedback-actions,
 .assessment-results-links {
@@ -1952,7 +1967,8 @@ main {
 .assessment-results-sidebar,
 .assessment-recommendation-stack,
 .assessment-benchmark-list,
-.assessment-membership-list {
+.assessment-membership-list,
+.assessment-research-list {
   display: grid;
   gap: 1rem;
 }
@@ -2044,6 +2060,67 @@ main {
   margin: 0;
   color: var(--ink);
   line-height: 1.55;
+}
+
+.assessment-report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.assessment-report-item {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.assessment-report-item span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assessment-report-item strong {
+  color: var(--ink-strong);
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.assessment-report-item p,
+.assessment-research-item p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.assessment-report-item.is-positive strong {
+  color: #1b6b48;
+}
+
+.assessment-report-item.is-watch strong {
+  color: #8a5a00;
+}
+
+.assessment-research-list {
+  margin-top: 1rem;
+}
+
+.assessment-research-item {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.assessment-research-item strong {
+  color: var(--ink-strong);
+  line-height: 1.25;
 }
 
 .assessment-recommendation-card {
@@ -3128,6 +3205,7 @@ main {
   }
 
   .assessment-intro-grid,
+  .assessment-report-grid,
   .assessment-upload-grid {
     grid-template-columns: 1fr;
   }
@@ -3729,6 +3807,7 @@ main {
 
   .assessment-intro-grid,
   .assessment-option-grid,
+  .assessment-report-grid,
   .assessment-upload-grid {
     grid-template-columns: 1fr;
   }

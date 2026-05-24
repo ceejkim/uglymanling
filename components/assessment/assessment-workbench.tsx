@@ -1160,28 +1160,26 @@ export function AssessmentWorkbench() {
         }
       >
         <section className="assessment-intro-card grain-card">
-          <span className="eyebrow">Anonymous community survey</span>
-          <h1>Help build the clearest hair loss dataset we can.</h1>
+          <span className="eyebrow">Anonymous hair loss self-assessment</span>
+          <h1>Get a clearer baseline, then help the dataset get smarter.</h1>
           <p>
-            This survey helps the hair loss community better understand the underlying factors,
-            patterns, treatments, and lifestyle variables associated with hair loss. By contributing
-            anonymous information, members can help uncover trends related to progression, recovery,
-            treatment effectiveness, stress, sleep, diet, hormones, medical history, and more. The
-            goal is to create one of the most comprehensive community-driven hair loss datasets
-            available.
+            This gives you a practical read on pattern, pace, treatment context, and next steps.
+            If you opt in, your anonymous answers also strengthen community reports on progression,
+            treatment response, stress, sleep, scalp symptoms, labs, styling, and other signals that
+            isolated forum posts usually miss.
           </p>
           <div className="assessment-intro-grid">
             <div>
-              <strong>6-8 minutes</strong>
-              <span>Mostly taps, sliders, and optional photo uploads.</span>
+              <strong>Personal baseline</strong>
+              <span>See the signals that matter for your next decision.</span>
             </div>
             <div>
               <strong>Anonymous by default</strong>
-              <span>Your responses help generate aggregate insights and educational resources.</span>
+              <span>You choose whether answers enter aggregate community reports.</span>
             </div>
             <div>
-              <strong>Community-driven</strong>
-              <span>Better data can reveal patterns that isolated posts usually miss.</span>
+              <strong>6-8 minutes</strong>
+              <span>Mostly taps, sliders, and optional photo uploads.</span>
             </div>
           </div>
           <button
@@ -1189,7 +1187,7 @@ export function AssessmentWorkbench() {
             className="assessment-inline-button assessment-start-button"
             onClick={() => setHasEnteredSurvey(true)}
           >
-            Start anonymous survey
+            Start my baseline
           </button>
         </section>
       </AssessmentShell>
@@ -1318,11 +1316,12 @@ export function AssessmentWorkbench() {
               void persistAnswer(currentQuestion, value, answers[currentQuestion.id])
             }
           />
-          <div className="assessment-question-feedback">
-            <label htmlFor={`question-feedback-${currentQuestion.id}`}>
-              Give feedback on this question
-            </label>
+          <details className="assessment-question-feedback">
+            <summary>Question unclear?</summary>
             <div className="assessment-question-feedback-entry">
+              <label htmlFor={`question-feedback-${currentQuestion.id}`}>
+                What should we improve about this question?
+              </label>
               <textarea
                 id={`question-feedback-${currentQuestion.id}`}
                 className="assessment-question-feedback-input"
@@ -1347,7 +1346,7 @@ export function AssessmentWorkbench() {
               {questionFeedbackStatus === "saved" ? <p>Thanks. Your note helps improve the survey.</p> : null}
               {questionFeedbackStatus === "error" ? <p>Please add a short note before sending.</p> : null}
             </div>
-          </div>
+          </details>
           <div className="assessment-question-foot">
             <div>
               <strong>{currentIndex + 1}</strong>

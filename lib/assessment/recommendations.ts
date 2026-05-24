@@ -16,12 +16,22 @@ type RecommendationDraft = Omit<AssessmentRecommendation, "confidenceScore"> & {
   score: number;
 };
 
+const confidenceImpactScore: Record<string, number> = {
+  high: 8,
+  low: 2,
+  moderate: 5,
+  very_high: 10
+};
+
 function getDrafts(
   answers: AssessmentAnswerMap,
   scores: AssessmentScores
 ): RecommendationDraft[] {
+  const confidenceImpact = confidenceImpactScore[answers.confidence_impact ?? ""] ?? 0;
+  const researchConsent = answers.anonymous_research_consent ?? answers.anonymous_data_contribution;
   const primaryConcerns = [
     answers.loss_pattern_primary,
+    answers.pattern_general,
     ...parseAnswerValueList(answers.primary_concern_area)
   ].filter((value): value is string => Boolean(value));
   const sideEffects = parseAnswerValueList(answers.side_effects ?? answers.treatment_side_effects);
@@ -29,9 +39,9 @@ function getDrafts(
     (value) => value !== "not_sure"
   );
   const wantsTracking =
-    answers.longitudinal_interest === "yes" || answers.next_step_preference === "tracking";
+    answers.longitudinal_opt_in === "yes" || answers.next_step_preference === "tracking";
   const hasVisibleConcern = primaryConcerns.some((value) =>
-    ["hairline", "temples", "crown", "diffuse", "shedding", "top_diffuse", "overall_density"].includes(value)
+    ["hairline", "temples", "crown", "diffuse", "diffuse_top", "shedding", "top_diffuse", "overall_density", "hairline_temples", "crown_vertex"].includes(value)
   );
 
   return [
@@ -40,7 +50,7 @@ function getDrafts(
       title: "Find a barber who knows how to work with thinning density",
       whyItMatches:
         hasVisibleConcern ||
-        Number(answers.confidence_impact ?? 0) >= 7 ||
+        confidenceImpact >= 7 ||
         answers.current_hairstyle_confidence === "low" ||
         answers.current_hairstyle_confidence === "very_low"
           ? "Your answers suggest visible presentation is one of the highest-leverage fixes."
@@ -68,7 +78,7 @@ function getDrafts(
       score:
         scores.expertSupportScore +
         (answers.next_step_preference === "consult" ? 18 : 0) +
-        (Number(answers.confidence_impact ?? 0) >= 9 ? 8 : 0)
+        (confidenceImpact >= 9 ? 8 : 0)
     },
     {
       key: "research",
@@ -90,7 +100,7 @@ function getDrafts(
       title: "See anonymous community patterns from people with similar profiles",
       whyItMatches:
         answers.next_step_preference === "community" ||
-        answers.anonymous_research_consent === "yes" ||
+        researchConsent === "yes" ||
         wantsTracking
           ? "You appear likely to benefit from aggregate patterns, grounded examples, and follow-up data."
           : "Community data can add context once you have a basic plan.",

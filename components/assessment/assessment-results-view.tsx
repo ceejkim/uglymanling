@@ -13,6 +13,10 @@ type AssessmentResultsViewProps = {
   snapshot: AssessmentResultSnapshot;
 };
 
+function getReportItemClassName(tone?: string) {
+  return `assessment-report-item${tone ? ` is-${tone}` : ""}`;
+}
+
 export function AssessmentResultsView({
   resumeToken,
   sessionId,
@@ -25,6 +29,9 @@ export function AssessmentResultsView({
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [membershipError, setMembershipError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const communityReport = snapshot.benchmarkPayload.communityReport ?? [];
+  const personalReport = snapshot.benchmarkPayload.personalReport ?? [];
+  const researchOpportunities = snapshot.benchmarkPayload.researchOpportunities ?? [];
 
   useEffect(() => {
     captureAssessmentEvent(
@@ -217,6 +224,25 @@ export function AssessmentResultsView({
 
       <section className="assessment-results-grid">
         <div className="assessment-results-column">
+          {personalReport.length > 0 ? (
+            <div className="assessment-results-card grain-card">
+              <span className="eyebrow">Your baseline report</span>
+              <h2>The useful signals in your answers</h2>
+              <p>
+                These are personal survey signals, not a diagnosis. They help you compare with peers and make the next decision less vague.
+              </p>
+              <div className="assessment-report-grid">
+                {personalReport.map((signal) => (
+                  <div key={signal.id} className={getReportItemClassName(signal.tone)}>
+                    <span>{signal.label}</span>
+                    <strong>{signal.value}</strong>
+                    <p>{signal.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="assessment-results-card grain-card">
             <span className="eyebrow">Peer comparison</span>
             <h2>Where you stand relative to peers</h2>
@@ -239,6 +265,25 @@ export function AssessmentResultsView({
               ))}
             </div>
           </div>
+
+          {communityReport.length > 0 ? (
+            <div className="assessment-results-card grain-card">
+              <span className="eyebrow">Community report</span>
+              <h2>What the dataset is starting to show</h2>
+              <p>
+                Like a lightweight community health report: anonymous, aggregate, and cautious until the cohort gets stronger.
+              </p>
+              <div className="assessment-report-grid">
+                {communityReport.map((signal) => (
+                  <div key={signal.id} className={getReportItemClassName(signal.tone)}>
+                    <span>{signal.label}</span>
+                    <strong>{signal.value}</strong>
+                    <p>{signal.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="assessment-results-card grain-card">
             <span className="eyebrow">Quick feedback</span>
@@ -307,6 +352,21 @@ export function AssessmentResultsView({
             </div>
           </div>
 
+          {researchOpportunities.length > 0 ? (
+            <div className="assessment-results-card grain-card">
+              <span className="eyebrow">Research roadmap</span>
+              <h2>Questions worth tracking next</h2>
+              <div className="assessment-research-list">
+                {researchOpportunities.map((item) => (
+                  <div key={item.id} className="assessment-research-item">
+                    <strong>{item.label}</strong>
+                    <p>{item.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="assessment-membership-card grain-card">
             <span className="eyebrow">Member data</span>
             <h2>Go deeper for $4.99/month</h2>
@@ -343,4 +403,3 @@ export function AssessmentResultsView({
     </div>
   );
 }
-

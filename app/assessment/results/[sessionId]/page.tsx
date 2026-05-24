@@ -3,7 +3,8 @@ import { AssessmentResultsView } from "@/components/assessment/assessment-result
 import { getAssessmentAnswers, getAssessmentSession } from "@/lib/assessment/server";
 import {
   buildAndPersistAssessmentResult,
-  getAssessmentResultSnapshot
+  getAssessmentResultSnapshot,
+  resultVersion
 } from "@/lib/assessment/results";
 
 type AssessmentResultsPageProps = {
@@ -54,7 +55,7 @@ export default async function AssessmentResultsPage({
   const answers = await getAssessmentAnswers(sessionId);
   let snapshot = await getAssessmentResultSnapshot(sessionId);
 
-  if (!snapshot) {
+  if (!snapshot || snapshot.resultVersion !== resultVersion) {
     snapshot = await buildAndPersistAssessmentResult(sessionId, answers);
   }
 
@@ -64,4 +65,3 @@ export default async function AssessmentResultsPage({
     </main>
   );
 }
-

@@ -14,7 +14,7 @@ import {
 } from "@/lib/assessment/summary";
 import { selectSupabaseRows, upsertSupabaseRow } from "@/lib/supabase";
 
-export const resultVersion = "2026-05-results-v1";
+export const resultVersion = "2026-05-results-v2";
 
 export type AssessmentResultSnapshot = {
   benchmarkPayload: AssessmentBenchmarkPayload;

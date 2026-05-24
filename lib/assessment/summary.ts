@@ -18,6 +18,13 @@ export type AssessmentCompletionSummary = {
   title: string;
 };
 
+const confidenceImpactScore: Record<string, number> = {
+  high: 8,
+  low: 2,
+  moderate: 5,
+  very_high: 10
+};
+
 function getLane({
   budget,
   goal,
@@ -90,16 +97,20 @@ export function getCompatibilityStage(classificationStage: string) {
     case "V":
     case "VI":
     case "VII":
+    case "III_ludwig":
     case "ludwig_iii_ludwig":
       return "advanced";
     case "III":
     case "III_vertex":
     case "IV":
+    case "II_ludwig":
+    case "frontal_ludwig":
     case "ludwig_ii_ludwig":
     case "frontal_accentuated_ludwig":
       return "accelerating";
     case "I":
     case "II":
+    case "I_ludwig":
     case "ludwig_i_ludwig":
     case "not_sure":
     default:
@@ -113,6 +124,8 @@ export function getCompatibilityGoal(primaryGoal: string) {
       return "appearance";
     case "regrowth":
       return "regrow";
+    case "avoid_transplant":
+    case "maintain":
     case "stabilize":
     case "clarity":
     case "root_cause":
@@ -123,11 +136,14 @@ export function getCompatibilityGoal(primaryGoal: string) {
 
 export function getCompatibilityBudget(budgetBand: string) {
   switch (budgetBand) {
-    case "lean":
+    case "0":
+    case "under_50":
       return "lean";
-    case "invested":
-    case "all_in":
+    case "150_300":
+    case "300_plus":
       return "all-in";
+    case "50_150":
+    case "depends":
     case "balanced":
     default:
       return "balanced";
@@ -186,7 +202,7 @@ export function buildAssessmentCompletionSummary(
 ): AssessmentCompletionSummary {
   const primaryGoal = answers.primary_goal ?? "root_cause";
   const treatmentStatus = answers.current_treatment_status ?? "researching";
-  const confidenceImpact = Number(answers.confidence_impact ?? 0);
+  const confidenceImpact = confidenceImpactScore[answers.confidence_impact ?? ""] ?? 0;
   const nextStep = answers.next_step_preference ?? "research";
   const stageLabel = getClassificationLabel(answers);
   const labFlags = parseAnswerValueList(answers.abnormal_labs ?? answers.abnormal_lab_markers).filter(

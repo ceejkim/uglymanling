@@ -1,4 +1,4 @@
-export const assessmentVersion = "2026-05-community-survey-v3";
+export const assessmentVersion = "2026-05-community-survey-v4";
 
 export type AssessmentInput =
   | "cards"
@@ -190,7 +190,7 @@ export const assessmentSections: AssessmentSection[] = [
 
 export const assessmentQuestions: AssessmentQuestion[] = [
   question("baseline_profile", {
-    id: "anonymous_data_contribution",
+    id: "anonymous_research_consent",
     analyticsCategory: "privacy",
     autoAdvance: true,
     dataType: "nominal",
@@ -237,6 +237,25 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "35_44", label: "35-44" },
       { value: "45_54", label: "45-54" },
       { value: "55_plus", label: "55+" }
+    ]
+  }),
+  question("baseline_profile", {
+    id: "hair_texture",
+    analyticsCategory: "baseline",
+    autoAdvance: true,
+    dataType: "nominal",
+    input: "chips",
+    prompt: "Which hair texture best describes your natural hair?",
+    helper: "This improves styling recommendations and lets community reports compare patterns more fairly.",
+    responseFormat: "single_choice",
+    tags: ["baseline", "hair_texture", "styling"],
+    options: [
+      { value: "straight", label: "Straight" },
+      { value: "wavy", label: "Wavy" },
+      { value: "curly", label: "Curly" },
+      { value: "coily", label: "Coily" },
+      { value: "buzzed_or_shaved", label: "Buzzed/shaved" },
+      { value: "not_sure", label: "Not sure" }
     ]
   }),
   question("baseline_profile", {
@@ -397,6 +416,24 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "rapid_6mo", label: "Rapid in 6 months", description: "The pace feels unusually fast." },
       { value: "episodic_shedding", label: "Shedding episodes", description: "It comes in waves or flares." },
       { value: "not_sure", label: "Not sure", description: "The timeline is hard to judge." }
+    ]
+  }),
+  question("baseline_profile", {
+    id: "shedding_amount",
+    analyticsCategory: "baseline",
+    autoAdvance: true,
+    dataType: "ordinal",
+    input: "cards",
+    prompt: "How much shedding are you noticing right now?",
+    helper: "This helps separate gradual pattern change from active shedding signals.",
+    responseFormat: "single_choice",
+    tags: ["shedding", "trajectory", "telogen"],
+    options: [
+      { value: "not_much", label: "Not much", description: "Mostly noticing shape or density change." },
+      { value: "more_than_usual", label: "More than usual", description: "Extra hairs in shower, sink, or brush." },
+      { value: "heavy_daily", label: "Heavy daily", description: "Shedding feels clearly elevated most days." },
+      { value: "episodic_clumps", label: "Episodes or clumps", description: "It comes in waves or visible bursts." },
+      { value: "not_sure", label: "Not sure", description: "Hard to tell what normal is." }
     ]
   }),
   question("baseline_profile", {
@@ -771,6 +808,26 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("medical_history", {
+    id: "clinical_diagnosis_status",
+    analyticsCategory: "medical",
+    autoAdvance: true,
+    dataType: "nominal",
+    input: "cards",
+    prompt: "Has a clinician ever named the likely type of hair loss?",
+    helper: "This is not required, but it makes aggregate comparisons more trustworthy.",
+    responseFormat: "single_choice",
+    tags: ["diagnosis", "data_quality", "clinical_context"],
+    options: [
+      { value: "androgenetic", label: "Pattern hair loss", description: "Often called androgenetic or male/female pattern hair loss." },
+      { value: "telogen_effluvium", label: "Telogen shedding", description: "Shedding linked to stress, illness, weight change, or another trigger." },
+      { value: "alopecia_areata", label: "Alopecia areata", description: "Patchy autoimmune-related hair loss." },
+      { value: "traction_or_damage", label: "Traction or damage", description: "Styling tension, breakage, or processing was named." },
+      { value: "scarring_or_inflammatory", label: "Scarring/inflammatory", description: "A scarring or inflammatory scalp condition was discussed." },
+      { value: "no_diagnosis", label: "No diagnosis yet", description: "No clinician has named a likely type." },
+      { value: "not_sure", label: "Not sure", description: "I do not remember or it was unclear." }
+    ]
+  }),
+  question("medical_history", {
     id: "female_hormonal_factors",
     analyticsCategory: "medical",
     conditions: [{ questionId: "gender_identity", operator: "equals", value: "female" }],
@@ -955,6 +1012,32 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "supplements", label: "Supplements" },
       { value: "natural_remedies", label: "Natural remedies" },
       { value: "transplant", label: "Hair transplant" }
+    ]
+  }),
+  question("treatment_outcomes", {
+    id: "primary_treatment_focus",
+    analyticsCategory: "treatment",
+    autoAdvance: true,
+    conditions: [{ questionId: "active_treatments", operator: "exists" }],
+    dataType: "nominal",
+    input: "cards",
+    prompt: "Which treatment do you think of as your main path?",
+    helper: "If you use multiple things, choose the one you most want tracked against results.",
+    responseFormat: "single_choice",
+    tags: ["modalities", "outcomes", "treatment"],
+    options: [
+      { value: "topical_minoxidil", label: "Topical minoxidil", description: "Foam, liquid, or topical formulas." },
+      { value: "oral_minoxidil", label: "Oral minoxidil", description: "Prescription oral minoxidil." },
+      { value: "finasteride", label: "Finasteride", description: "Oral or topical finasteride." },
+      { value: "dutasteride", label: "Dutasteride", description: "Oral or topical dutasteride." },
+      { value: "microneedling", label: "Microneedling", description: "At-home or in-office microneedling." },
+      { value: "prp", label: "PRP", description: "Platelet-rich plasma treatments." },
+      { value: "laser", label: "Laser/LLLT", description: "Low-level light therapy devices or in-office laser." },
+      { value: "supplements", label: "Supplements", description: "Vitamins, minerals, or supplement routines." },
+      { value: "natural_remedies", label: "Natural remedies", description: "Oils, botanicals, or non-prescription routines." },
+      { value: "transplant", label: "Hair transplant", description: "Surgical restoration is the main path." },
+      { value: "mixed_stack", label: "Mixed stack", description: "No single treatment leads." },
+      { value: "not_sure", label: "Not sure", description: "I cannot pick one yet." }
     ]
   }),
   question("treatment_outcomes", {

@@ -11,13 +11,32 @@ function clamp(score: number) {
   return Math.max(0, Math.min(100, score));
 }
 
+const confidenceImpactScore: Record<string, number> = {
+  high: 8,
+  low: 2,
+  moderate: 5,
+  very_high: 10
+};
+
+const riskToleranceScore: Record<string, number> = {
+  experimental: 9,
+  high: 8,
+  low: 3,
+  moderate: 5,
+  very_low: 1
+};
+
 export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores {
   let stabilizationIntentScore = 20;
   let appearanceOptimizationScore = 20;
   let expertSupportScore = 16;
   let communityReadinessScore = 12;
+  const confidenceImpact = confidenceImpactScore[answers.confidence_impact ?? ""] ?? 0;
+  const riskTolerance = riskToleranceScore[answers.risk_tolerance ?? ""] ?? 10;
+  const researchConsent = answers.anonymous_research_consent ?? answers.anonymous_data_contribution;
   const primaryConcerns = [
     answers.loss_pattern_primary,
+    answers.pattern_general,
     ...parseAnswerValueList(answers.primary_concern_area)
   ].filter((value): value is string => Boolean(value));
   const treatmentBarriers = parseAnswerValueList(answers.treatment_barriers);
@@ -40,14 +59,20 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     communityReadinessScore += 10;
   }
 
-  if (answers.primary_goal === "stabilize" || answers.primary_goal === "clarity") {
+  if (
+    answers.primary_goal === "stabilize" ||
+    answers.primary_goal === "clarity" ||
+    answers.primary_goal === "maintain" ||
+    answers.primary_goal === "avoid_transplant"
+  ) {
     stabilizationIntentScore += 18;
   }
 
   if (
     answers.current_treatment_status === "none" &&
-    (answers.progression_timeline === "accelerating" ||
-      answers.progression_timeline === "episodic_shedding")
+    (answers.progression_pace === "recent_12mo" ||
+      answers.progression_pace === "rapid_6mo" ||
+      answers.progression_pace === "episodic_shedding")
   ) {
     stabilizationIntentScore += 30;
   }
@@ -82,7 +107,7 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     expertSupportScore += 12;
   }
 
-  if (Number(answers.confidence_impact ?? 0) >= 7) {
+  if (confidenceImpact >= 7) {
     appearanceOptimizationScore += 15;
     expertSupportScore += 15;
   }
@@ -97,7 +122,7 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     appearanceOptimizationScore += 18;
   }
 
-  if (Number(answers.risk_tolerance ?? 10) <= 3 || treatmentBarriers.includes("side_effect_fear")) {
+  if (riskTolerance <= 3 || treatmentBarriers.includes("side_effect_fear")) {
     expertSupportScore += 10;
   }
 
@@ -107,17 +132,17 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     answers.norwood_stage === "V" ||
     answers.norwood_stage === "VI" ||
     answers.norwood_stage === "VII" ||
-    answers.ludwig_stage === "ludwig_ii" ||
-    answers.ludwig_stage === "ludwig_iii"
+    answers.ludwig_stage === "II" ||
+    answers.ludwig_stage === "III"
   ) {
     expertSupportScore += 16;
   }
 
-  if (answers.budget_band === "invested" || answers.budget_band === "all_in") {
+  if (answers.budget_band === "150_300" || answers.budget_band === "300_plus") {
     expertSupportScore += 12;
   }
 
-  if (answers.budget_band === "lean") {
+  if (answers.budget_band === "0" || answers.budget_band === "under_50") {
     appearanceOptimizationScore += 6;
     expertSupportScore -= 6;
   }
@@ -135,11 +160,11 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     expertSupportScore += 12;
   }
 
-  if (answers.anonymous_research_consent === "yes") {
+  if (researchConsent === "yes") {
     communityReadinessScore += 16;
   }
 
-  if (answers.longitudinal_interest === "yes" || answers.next_step_preference === "tracking") {
+  if (answers.longitudinal_opt_in === "yes" || answers.next_step_preference === "tracking") {
     communityReadinessScore += 12;
     stabilizationIntentScore += 8;
   }
