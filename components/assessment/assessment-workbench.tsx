@@ -550,6 +550,7 @@ export function AssessmentWorkbench() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isBuildingResults, setIsBuildingResults] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [hasEnteredSurvey, setHasEnteredSurvey] = useState(false);
   const [questionFeedbackBody, setQuestionFeedbackBody] = useState("");
@@ -561,6 +562,7 @@ export function AssessmentWorkbench() {
   const hasTrackedLandingRef = useRef(false);
   const completedSectionsRef = useRef<Set<string>>(new Set());
   const questionEnteredAtRef = useRef<number>(Date.now());
+  const resultRedirectTimeoutRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(Date.now());
 
   const visibleQuestions = getVisibleAssessmentQuestions(answers);
@@ -671,6 +673,14 @@ export function AssessmentWorkbench() {
       }
     );
   }, [isSignedIn, userId]);
+
+  useEffect(() => {
+    return () => {
+      if (resultRedirectTimeoutRef.current) {
+        window.clearTimeout(resultRedirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (visibleQuestions.length === 0) {
@@ -903,6 +913,7 @@ export function AssessmentWorkbench() {
       }
 
       setIsComplete(true);
+      setIsBuildingResults(true);
       setSession({
         ...session,
         completionStatus: "completed"
@@ -927,8 +938,11 @@ export function AssessmentWorkbench() {
         }
       );
 
-      router.push(`/assessment/results/${session.id}?rt=${session.resumeToken}`);
+      resultRedirectTimeoutRef.current = window.setTimeout(() => {
+        router.push(`/assessment/results/${session.id}?rt=${session.resumeToken}`);
+      }, 2300);
     } catch (error) {
+      setIsBuildingResults(false);
       setSaveStatus("error");
       setErrorMessage(error instanceof Error ? error.message : "Failed to complete assessment.");
     }
@@ -1250,7 +1264,17 @@ export function AssessmentWorkbench() {
           </p>
         </div>
       ) : null}
-      {isComplete ? (
+      {isComplete && isBuildingResults ? (
+        <section className="assessment-results-building grain-card" role="status" aria-live="polite">
+          <span className="eyebrow">Results</span>
+          <h1>Building your hair profile.</h1>
+          <div className="assessment-build-steps">
+            <span>Building your hair profile...</span>
+            <span>Comparing your pattern...</span>
+            <span>Finding your highest-leverage next steps...</span>
+          </div>
+        </section>
+      ) : isComplete ? (
         <section className="assessment-complete grain-card">
           <div className="assessment-complete-header">
             <span className="eyebrow">Foundation complete</span>

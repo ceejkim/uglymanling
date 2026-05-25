@@ -53,7 +53,7 @@ export default async function AssessmentResultsPage({
   }
 
   const answers = await getAssessmentAnswers(sessionId);
-  let snapshot = await getAssessmentResultSnapshot(sessionId);
+  let snapshot = await getAssessmentResultSnapshot(sessionId, answers);
 
   if (!snapshot || snapshot.resultVersion !== resultVersion) {
     snapshot = await buildAndPersistAssessmentResult(sessionId, answers);

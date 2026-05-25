@@ -18,7 +18,15 @@ export type AssessmentEventName =
   | "assessment_peer_comparison_viewed"
   | "assessment_recommendation_impression"
   | "assessment_membership_offer_viewed"
-  | "assessment_membership_cta_clicked";
+  | "assessment_membership_cta_clicked"
+  | "results_viewed"
+  | "insight_card_flipped"
+  | "next_step_card_clicked"
+  | "dermatologist_cta_clicked"
+  | "barber_cta_clicked"
+  | "style_cta_clicked"
+  | "lifestyle_cta_clicked"
+  | "section_scrolled";
 
 type AssessmentEventProperties = Record<string, boolean | number | string | null | undefined>;
 

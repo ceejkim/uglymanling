@@ -3,6 +3,10 @@ import {
   buildBenchmarkPayload,
   type AssessmentBenchmarkPayload
 } from "@/lib/assessment/benchmarks";
+import {
+  buildAssessmentDashboardMetrics,
+  type AssessmentDashboardMetrics
+} from "@/lib/assessment/derived-metrics";
 import { type AssessmentAnswerMap } from "@/lib/assessment/questions";
 import {
   buildRecommendations,
@@ -14,11 +18,12 @@ import {
 } from "@/lib/assessment/summary";
 import { selectSupabaseRows, upsertSupabaseRow } from "@/lib/supabase";
 
-export const resultVersion = "2026-05-results-v2";
+export const resultVersion = "2026-05-results-dashboard-v1";
 
 export type AssessmentResultSnapshot = {
   benchmarkPayload: AssessmentBenchmarkPayload;
   createdAt?: string;
+  derivedMetrics: AssessmentDashboardMetrics;
   membershipOfferVariant: string;
   profileBand: string;
   recommendationPayload: AssessmentRecommendation[];
@@ -61,10 +66,16 @@ function inferProfileBand(summary: AssessmentCompletionSummary) {
   return "clarity_first";
 }
 
-function mapRowToSnapshot(row: AssessmentResultRow): AssessmentResultSnapshot {
+function mapRowToSnapshot(
+  row: AssessmentResultRow,
+  answers: AssessmentAnswerMap = {}
+): AssessmentResultSnapshot {
+  const derivedMetrics = buildAssessmentDashboardMetrics(answers, row.benchmark_payload);
+
   return {
     benchmarkPayload: row.benchmark_payload,
     createdAt: row.created_at,
+    derivedMetrics,
     membershipOfferVariant: row.membership_offer_variant ?? "baseline",
     profileBand: row.profile_band,
     recommendationPayload: row.recommendation_payload,
@@ -86,47 +97,59 @@ export async function buildAndPersistAssessmentResult(
   const summary = buildAssessmentCompletionSummary(answers);
   const recommendationPayload = buildRecommendations(answers);
   const benchmarkPayload = await buildBenchmarkPayload(sessionId, answers);
+  const derivedMetrics = buildAssessmentDashboardMetrics(answers, benchmarkPayload);
   const profileBand = inferProfileBand(summary);
+  const resultValues = {
+    benchmark_payload: benchmarkPayload,
+    membership_offer_variant: "baseline",
+    profile_band: profileBand,
+    recommendation_payload: recommendationPayload,
+    result_version: resultVersion,
+    session_id: sessionId,
+    summary_badge: summary.badge,
+    summary_body: summary.detail,
+    summary_bullets: summary.bullets,
+    summary_title: summary.title
+  };
 
   const [row] = await upsertSupabaseRow<AssessmentResultRow>({
     table: "assessment_results",
-    values: {
-      benchmark_payload: benchmarkPayload,
-      membership_offer_variant: "baseline",
-      profile_band: profileBand,
-      recommendation_payload: recommendationPayload,
-      result_version: resultVersion,
-      session_id: sessionId,
-      summary_badge: summary.badge,
-      summary_body: summary.detail,
-      summary_bullets: summary.bullets,
-      summary_title: summary.title
-    },
+    values: resultValues,
     onConflict: "session_id"
   });
 
-  return mapRowToSnapshot(
-    row ?? {
-      benchmark_payload: benchmarkPayload,
-      membership_offer_variant: "baseline",
-      profile_band: profileBand,
-      recommendation_payload: recommendationPayload,
-      result_version: resultVersion,
-      session_id: sessionId,
-      summary_badge: summary.badge,
-      summary_body: summary.detail,
-      summary_bullets: summary.bullets,
-      summary_title: summary.title
-    }
-  );
+  try {
+    await upsertSupabaseRow({
+      table: "assessment_results",
+      values: {
+        ...resultValues,
+        derived_metrics_json: derivedMetrics,
+        result_cards_json: derivedMetrics.resultCardKeys
+      },
+      onConflict: "session_id"
+    });
+  } catch {
+    // Dashboard columns are migration-backed. Core result persistence still works before migration.
+  }
+
+  return {
+    ...mapRowToSnapshot(
+      row ?? resultValues,
+      answers
+    ),
+    derivedMetrics
+  };
 }
 
-export async function getAssessmentResultSnapshot(sessionId: string) {
+export async function getAssessmentResultSnapshot(
+  sessionId: string,
+  answers: AssessmentAnswerMap = {}
+) {
   const rows = await selectSupabaseRows<AssessmentResultRow>({
     table: "assessment_results",
     filters: [`session_id=eq.${sessionId}`],
     limit: 1
   });
 
-  return rows[0] ? mapRowToSnapshot(rows[0]) : null;
+  return rows[0] ? mapRowToSnapshot(rows[0], answers) : null;
 }

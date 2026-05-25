@@ -9,6 +9,7 @@ import {
   type AssessmentAnswerMap
 } from "@/lib/assessment/questions";
 import { buildAndPersistAssessmentResult } from "@/lib/assessment/results";
+import type { AssessmentDashboardMetrics } from "@/lib/assessment/derived-metrics";
 import { buildLegacyAssessmentPayload } from "@/lib/assessment/summary";
 import { selectSupabaseRows, upsertSupabaseRow } from "@/lib/supabase";
 
@@ -236,6 +237,38 @@ async function upsertLegacyAssessmentSubmission(
   });
 }
 
+async function persistDashboardSessionFields({
+  answers,
+  metrics,
+  session
+}: {
+  answers: AssessmentAnswerMap;
+  metrics: AssessmentDashboardMetrics;
+  session: AssessmentSessionRow;
+}) {
+  try {
+    await upsertSupabaseRow({
+      table: "assessment_sessions",
+      values: {
+        ...session,
+        age_bucket: metrics.ageBucket,
+        concern_level: metrics.concernLevel,
+        derived_metrics_json: metrics,
+        lifestyle_flags: metrics.lifestyleFlags,
+        medical_flags: metrics.medicalFlags,
+        pace_score: metrics.paceScore,
+        raw_response_json: answers,
+        self_reported_stage: metrics.selfReportedStage,
+        style_flags: metrics.styleFlags,
+        visible_loss_score: metrics.visibleLossScore
+      },
+      onConflict: "id"
+    });
+  } catch {
+    // New dashboard columns are migration-backed. Completion should still succeed before migration.
+  }
+}
+
 export async function POST(request: Request) {
   const { userId } = await auth();
 
@@ -401,7 +434,13 @@ export async function POST(request: Request) {
           await upsertLegacyAssessmentSubmission(clerkUserId, body.sessionId, body.answers);
         }
 
-        await buildAndPersistAssessmentResult(body.sessionId, body.answers);
+        const snapshot = await buildAndPersistAssessmentResult(body.sessionId, body.answers);
+
+        await persistDashboardSessionFields({
+          answers: body.answers,
+          metrics: snapshot.derivedMetrics,
+          session: completedSession ?? session
+        });
 
         return NextResponse.json({
           ok: true,
