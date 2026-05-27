@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useUser } from "@clerk/nextjs";
-import posthog from "posthog-js";
+import { captureProductEvent } from "@/lib/analytics/event-tracking";
 import { Button } from "@/components/ui/button";
 import type { BarberInteractionSummary } from "@/lib/barber-community";
 import type { BarberCandidate } from "@/lib/barber-data";
@@ -229,7 +229,7 @@ function BarberCard({
                   const next = !isExpanded;
                   setIsExpanded(next);
                   if (next) {
-                    posthog.capture("barber_card_expanded", {
+                    captureProductEvent("barber_card_expanded", {
                       barber_id: barber.id,
                       barber_name: barber.barberName,
                       city: barber.city,
@@ -246,7 +246,7 @@ function BarberCard({
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => {
-                    posthog.capture("barber_book_now_clicked", {
+                    captureProductEvent("barber_book_now_clicked", {
                       barber_id: barber.id,
                       barber_name: barber.barberName,
                       city: barber.city,

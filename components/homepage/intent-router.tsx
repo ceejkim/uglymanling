@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import posthog from "posthog-js";
+import { captureProductEvent } from "@/lib/analytics/event-tracking";
 import { quickPaths } from "@/lib/homepage-content";
 
 export function IntentRouter() {
@@ -22,7 +22,7 @@ export function IntentRouter() {
                 display: "grid",
                 gap: "0.55rem"
               }}
-              onClick={() => posthog.capture("intent_card_clicked", { label: path.label, destination: path.href })}
+              onClick={() => captureProductEvent("intent_card_clicked", { label: path.label, destination: path.href })}
             >
               <div className="intent-card-top">
                 <span className="eyebrow">{path.label}</span>
