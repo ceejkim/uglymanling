@@ -8,8 +8,6 @@ import { captureServerEvent } from "@/lib/posthog-server";
 const NEW_YORK_CITY_SLUG = "new-york";
 const NEW_YORK_CITY_ALT_SLUG = "new-york-city";
 const NEW_YORK_CITY_LABEL = "New York";
-const BARBER_SIGN_IN_HREF = "/sign-in?redirect_url=%2Fstyle%2Fbarbers";
-const BARBER_SIGN_UP_HREF = "/sign-up?redirect_url=%2Fstyle%2Fbarbers";
 
 type BarberDirectoryPageProps = {
   searchParams?: Promise<{
@@ -19,7 +17,6 @@ type BarberDirectoryPageProps = {
 
 export default async function BarberDirectoryPage({ searchParams }: BarberDirectoryPageProps) {
   const { userId } = await auth();
-  const viewerHasFullAccess = Boolean(userId);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const requestedCity = resolvedSearchParams?.city;
 
@@ -38,7 +35,7 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
     const selectedCity = requestedCity && requestedCityIsKnown ? requestedCity : fallbackCity.value;
     const filteredDirectory = await filterBarberDirectory({
       city: selectedCity,
-      access: viewerHasFullAccess ? "members" : "public"
+      access: "members"
     });
 
     const visibleBarbers = filteredDirectory.visibleBarbers;
@@ -51,23 +48,16 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
       properties: {
         city: selectedCity,
         city_label: activeCityLabel,
-        viewer_has_full_access: viewerHasFullAccess,
+        viewer_has_full_access: true,
         visible_barber_count: visibleBarbers.length,
         locked_barber_count: lockedPreviewBarbers.length
       }
     });
-    const heroCopy = viewerHasFullAccess
-      ? (
-          <>
-            Showing <strong>{visibleBarbers.length}</strong> {activeCityLabel} barber{visibleBarbers.length === 1 ? "" : "s"}.
-          </>
-        )
-      : (
-          <>
-            Showing <strong>{visibleBarbers.length}</strong> verified {activeCityLabel} barber
-            {visibleBarbers.length === 1 ? "" : "s"}. Sign in to unlock <strong>{lockedPreviewBarbers.length}</strong> more.
-          </>
-        );
+    const heroCopy = (
+      <>
+        Showing <strong>{visibleBarbers.length}</strong> {activeCityLabel} barber{visibleBarbers.length === 1 ? "" : "s"}.
+      </>
+    );
 
     return (
       <main className="barber-directory-page">
@@ -82,14 +72,9 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
             <div className="barber-directory-hero-footer">
               <p>{heroCopy}</p>
               <div className="barber-directory-hero-actions">
-                <Button href={viewerHasFullAccess ? "/community/space" : BARBER_SIGN_IN_HREF}>
-                  {viewerHasFullAccess ? "Members area" : "Sign in to unlock all"}
+                <Button href="/community/space">
+                  Members area
                 </Button>
-                {!viewerHasFullAccess ? (
-                  <Button href={BARBER_SIGN_UP_HREF} variant="secondary">
-                    Create free account
-                  </Button>
-                ) : null}
                 <Button href="/" variant="ghost">
                   Back to homepage
                 </Button>
@@ -99,30 +84,11 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
 
           <BarberCityFilter cities={cityOptions} selectedCity={selectedCity} />
 
-          {!viewerHasFullAccess ? (
-            <section className="barber-signin-notice grain-card" aria-labelledby="barber-signin-notice-title">
-              <div>
-                <span className="section-label">Free account required</span>
-                <h2 id="barber-signin-notice-title">Sign in to see every {activeCityLabel} barber.</h2>
-                <p>
-                  You can preview verified picks now. Signing in unlocks the full {activeCityLabel} shortlist, community comments,
-                  and voting.
-                </p>
-              </div>
-              <div className="barber-signin-notice-actions">
-                <Button href={BARBER_SIGN_IN_HREF} variant="secondary">
-                  Sign in
-                </Button>
-                <Button href={BARBER_SIGN_UP_HREF}>Create free account</Button>
-              </div>
-            </section>
-          ) : null}
-
           <section className="barber-directory-results-head">
             <div>
               <span className="eyebrow">{activeCityLabel}</span>
-              <h2>{viewerHasFullAccess ? `Best barbers in ${activeCityLabel}` : `Verified ${activeCityLabel} barbers`}</h2>
-              <p>{viewerHasFullAccess ? `You are seeing the full ${activeCityLabel} directory.` : "Sign in to unlock hidden picks."}</p>
+              <h2>{`Best barbers in ${activeCityLabel}`}</h2>
+              <p>{`You are seeing the full ${activeCityLabel} directory.`}</p>
             </div>
           </section>
 
@@ -130,7 +96,7 @@ export default async function BarberDirectoryPage({ searchParams }: BarberDirect
             barbers={visibleBarbers}
             lockedPreviewBarbers={lockedPreviewBarbers}
             selectedCityLabel={activeCityLabel}
-            viewerHasFullAccess={viewerHasFullAccess}
+            viewerHasFullAccess={true}
           />
 
           <section className="barber-page-footer">
