@@ -53,10 +53,53 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 type QuestionFeedbackStatus = "idle" | "saving" | "saved" | "error";
 
 type SectionCelebration = {
+  insight?: string;
   nextTitle?: string;
   sectionId: string;
   title: string;
 };
+
+function buildSectionInsight(sectionQuestions: AssessmentQuestion[], answerMap: AssessmentAnswerMap) {
+  const scored = sectionQuestions
+    .map((question) => {
+      const answerValue = answerMap[question.id];
+
+      if (!answerValue) {
+        return null;
+      }
+
+      const answerLabel = getQuestionLabel(question.id, answerValue);
+      const benchmarkScore =
+        answerValue === "not_sure" || answerValue === "prefer_not"
+          ? 1
+          : answerValue.includes("rapid") ||
+              answerValue.includes("heavy") ||
+              answerValue.includes("clumps")
+            ? 5
+            : answerValue.includes("yes")
+              ? 4
+              : 3;
+
+      return {
+        answerLabel,
+        benchmarkScore,
+        question
+      };
+    })
+    .filter(
+      (item): item is { answerLabel: string; benchmarkScore: number; question: AssessmentQuestion } =>
+        Boolean(item)
+    )
+    .sort((a, b) => b.benchmarkScore - a.benchmarkScore);
+
+  const top = scored[0];
+
+  if (!top) {
+    return "Insight pending — answer one more question to unlock your benchmark highlight.";
+  }
+
+  return `Top benchmark insight: ${top.answerLabel} stood out most in ${top.question.sectionTitle} compared with typical response patterns.`;
+}
 
 function safeStorageGet(key: string) {
   try {
@@ -1098,6 +1141,7 @@ export function AssessmentWorkbench() {
 
       if (completedSection) {
         setSectionCelebration({
+          insight: buildSectionInsight(sectionQuestions, nextAnswers),
           nextTitle: nextSection?.title,
           sectionId: completedSection.id,
           title: completedSection.title
@@ -1262,6 +1306,7 @@ export function AssessmentWorkbench() {
               ? `Next up: ${sectionCelebration.nextTitle}.`
               : "You are on the final stretch."}
           </p>
+          <p>{sectionCelebration.insight}</p>
         </div>
       ) : null}
       {isComplete && isBuildingResults ? (
