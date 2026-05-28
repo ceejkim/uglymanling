@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import { hasPostHogToken } from "@/lib/posthog-config";
+import { captureProductEvent } from "@/lib/analytics/event-tracking";
 import { assessmentVersion } from "@/lib/assessment/questions";
 
 export type AssessmentEventName =
@@ -64,13 +64,7 @@ export function captureAssessmentEvent(
   baseProperties: AssessmentBaseProperties,
   properties: AssessmentEventProperties = {}
 ) {
-  if (!hasPostHogToken) {
-    return;
-  }
-
-  posthog.capture(
-    event,
-    compactProperties({
+  captureProductEvent(event, compactProperties({
       assessment_version: baseProperties.assessmentVersionOverride ?? assessmentVersion,
       clerk_user_id: baseProperties.clerkUserId ?? undefined,
       entry_source: baseProperties.entrySource ?? undefined,

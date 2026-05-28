@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
-import posthog from "posthog-js";
+import { captureProductEvent } from "@/lib/analytics/event-tracking";
 import type { HeroCtaVariantValue, HeroVisitorType } from "@/flags";
 import { Button } from "@/components/ui/button";
 
@@ -31,14 +31,7 @@ export function HeroCtaButton({ variant, heroHeadline, visitorType }: HeroCtaBut
           visitorType
         });
 
-        window.gtag?.("event", "hero_cta_click", eventPayload);
-
-        posthog.capture("hero_cta_clicked", {
-          location: "homepage_hero",
-          hero_cta_variant: variant,
-          hero_cta_headline: heroHeadline,
-          hero_visitor_type: visitorType,
-        });
+        captureProductEvent("hero_cta_clicked", eventPayload);
       }}
     >
       Find a barber
