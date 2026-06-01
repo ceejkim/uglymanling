@@ -8,6 +8,7 @@ import {
   parseAnswerValueList,
   type AssessmentAnswerMap
 } from "@/lib/assessment/questions";
+import { buildAssessmentAnswerInsight } from "@/lib/assessment/insights";
 import { buildAndPersistAssessmentResult } from "@/lib/assessment/results";
 import type { AssessmentDashboardMetrics } from "@/lib/assessment/derived-metrics";
 import { buildLegacyAssessmentPayload } from "@/lib/assessment/summary";
@@ -398,7 +399,24 @@ export async function POST(request: Request) {
           onConflict: "id"
         });
 
-        return NextResponse.json({ ok: true, session: toClientSession(updatedSession ?? session) });
+        let answerInsight = null;
+
+        try {
+          const updatedAnswers = await loadAnswers(body.sessionId);
+          answerInsight = await buildAssessmentAnswerInsight({
+            answerValue: body.answerValue,
+            answers: updatedAnswers,
+            question
+          });
+        } catch {
+          answerInsight = null;
+        }
+
+        return NextResponse.json({
+          answerInsight,
+          ok: true,
+          session: toClientSession(updatedSession ?? session)
+        });
       }
       case "complete": {
         if (!body.sessionId || !body.resumeToken || !body.answers) {

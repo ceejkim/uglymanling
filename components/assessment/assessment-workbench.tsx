@@ -30,6 +30,7 @@ import {
   type AssessmentUploadSlot,
   type UploadManifest
 } from "@/lib/assessment/questions";
+import type { AssessmentAnswerInsight } from "@/lib/assessment/insights";
 import { buildAssessmentCompletionSummary } from "@/lib/assessment/summary";
 
 const activeSessionIdKey = "uglymanling.assessment.active_session_id";
@@ -52,53 +53,188 @@ type SessionBootstrapResponse = {
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type QuestionFeedbackStatus = "idle" | "saving" | "saved" | "error";
 
+type SectionMiniReport = {
+  bullets: string[];
+  communityInsight?: string;
+  headline: string;
+};
+
 type SectionCelebration = {
-  insight?: string;
   nextTitle?: string;
+  report: SectionMiniReport;
   sectionId: string;
   title: string;
 };
 
-function buildSectionInsight(sectionQuestions: AssessmentQuestion[], answerMap: AssessmentAnswerMap) {
-  const scored = sectionQuestions
-    .map((question) => {
-      const answerValue = answerMap[question.id];
+type SaveAnswerResponse = {
+  answerInsight?: AssessmentAnswerInsight | null;
+  ok: boolean;
+  session: SessionRecord;
+};
 
-      if (!answerValue) {
-        return null;
-      }
+function getAnswerLabel(answerMap: AssessmentAnswerMap, questionId: string) {
+  const answerValue = answerMap[questionId];
 
-      const answerLabel = getQuestionLabel(question.id, answerValue);
-      const benchmarkScore =
-        answerValue === "not_sure" || answerValue === "prefer_not"
-          ? 1
-          : answerValue.includes("rapid") ||
-              answerValue.includes("heavy") ||
-              answerValue.includes("clumps")
-            ? 5
-            : answerValue.includes("yes")
-              ? 4
-              : 3;
+  return answerValue ? getQuestionLabel(questionId, answerValue) : null;
+}
 
-      return {
-        answerLabel,
-        benchmarkScore,
-        question
-      };
-    })
-    .filter(
-      (item): item is { answerLabel: string; benchmarkScore: number; question: AssessmentQuestion } =>
-        Boolean(item)
-    )
-    .sort((a, b) => b.benchmarkScore - a.benchmarkScore);
+function joinAvailable(parts: Array<string | null | undefined>, fallback: string) {
+  const available = parts.filter((part): part is string => Boolean(part));
 
-  const top = scored[0];
+  return available.length > 0 ? available.join("; ") : fallback;
+}
 
-  if (!top) {
-    return "Insight pending — answer one more question to unlock your benchmark highlight.";
-  }
+function buildSectionMiniReport(
+  sectionQuestions: AssessmentQuestion[],
+  answerMap: AssessmentAnswerMap,
+  insights: Record<string, AssessmentAnswerInsight>
+): SectionMiniReport {
+  const sectionId = sectionQuestions[0]?.sectionId ?? "";
+  const sectionTitle = sectionQuestions[0]?.sectionTitle ?? "this section";
+  const answeredQuestions = sectionQuestions.filter((question) => answerMap[question.id]);
+  const communityInsight = sectionQuestions
+    .map((question) => insights[question.id])
+    .find((insight) => insight?.isAnonymousAggregate)?.body;
+  const fallbackBullets = answeredQuestions.slice(0, 3).map((question) => {
+    const label = getQuestionLabel(question.id, answerMap[question.id]);
 
-  return `Top benchmark insight: ${top.answerLabel} stood out most in ${top.question.sectionTitle} compared with typical response patterns.`;
+    return `${question.prompt.replace(/\?$/, "")}: ${label}.`;
+  });
+
+  const bulletsBySection: Record<string, string[]> = {
+    baseline_profile: [
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "norwood_stage"),
+          getAnswerLabel(answerMap, "ludwig_stage"),
+          getAnswerLabel(answerMap, "pattern_general")
+        ],
+        "Pattern anchor captured"
+      ),
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "progression_pace")
+            ? `Pace: ${getAnswerLabel(answerMap, "progression_pace")}`
+            : null,
+          getAnswerLabel(answerMap, "shedding_amount")
+            ? `shedding: ${getAnswerLabel(answerMap, "shedding_amount")}`
+            : null
+        ],
+        "Pace and shedding baseline captured"
+      ),
+      getAnswerLabel(answerMap, "primary_concern_area")
+        ? `Main concern areas: ${getAnswerLabel(answerMap, "primary_concern_area")}.`
+        : "Concern area baseline captured."
+    ],
+    goals_impact: [
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "confidence_impact")
+            ? `Confidence impact: ${getAnswerLabel(answerMap, "confidence_impact")}`
+            : null,
+          getAnswerLabel(answerMap, "current_hairstyle_confidence")
+            ? `style comfort: ${getAnswerLabel(answerMap, "current_hairstyle_confidence")}`
+            : null
+        ],
+        "Impact and style confidence captured"
+      ),
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "primary_goal")
+            ? `Goal: ${getAnswerLabel(answerMap, "primary_goal")}`
+            : null,
+          getAnswerLabel(answerMap, "urgency_level")
+            ? `urgency: ${getAnswerLabel(answerMap, "urgency_level")}`
+            : null
+        ],
+        "Goal and urgency captured"
+      ),
+      getAnswerLabel(answerMap, "next_step_preference")
+        ? `Preferred next step: ${getAnswerLabel(answerMap, "next_step_preference")}.`
+        : "Next-step preference captured."
+    ],
+    lifestyle_habits: [
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "sleep_duration")
+            ? `Sleep: ${getAnswerLabel(answerMap, "sleep_duration")}`
+            : null,
+          getAnswerLabel(answerMap, "sleep_quality")
+            ? `quality: ${getAnswerLabel(answerMap, "sleep_quality")}`
+            : null,
+          getAnswerLabel(answerMap, "stress_level")
+            ? `stress: ${getAnswerLabel(answerMap, "stress_level")}`
+            : null
+        ],
+        "Recovery context captured"
+      ),
+      getAnswerLabel(answerMap, "nutrition_gaps")
+        ? `Nutrition signal: ${getAnswerLabel(answerMap, "nutrition_gaps")}.`
+        : "Nutrition signal captured.",
+      getAnswerLabel(answerMap, "scalp_symptoms")
+        ? `Scalp signal: ${getAnswerLabel(answerMap, "scalp_symptoms")}.`
+        : "Scalp signal captured."
+    ],
+    medical_history: [
+      getAnswerLabel(answerMap, "clinical_diagnosis_status")
+        ? `Clinical context: ${getAnswerLabel(answerMap, "clinical_diagnosis_status")}.`
+        : "Clinical context captured.",
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "bloodwork_recent")
+            ? `Bloodwork: ${getAnswerLabel(answerMap, "bloodwork_recent")}`
+            : null,
+          getAnswerLabel(answerMap, "abnormal_lab_markers")
+            ? `markers: ${getAnswerLabel(answerMap, "abnormal_lab_markers")}`
+            : null
+        ],
+        "Lab context captured"
+      ),
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "hormonal_history"),
+          getAnswerLabel(answerMap, "autoimmune_skin_conditions"),
+          getAnswerLabel(answerMap, "medications_history")
+        ],
+        "Rule-out context captured"
+      )
+    ],
+    treatment_outcomes: [
+      getAnswerLabel(answerMap, "current_treatment_status")
+        ? `Treatment status: ${getAnswerLabel(answerMap, "current_treatment_status")}.`
+        : "Treatment status captured.",
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "primary_treatment_focus")
+            ? `Main path: ${getAnswerLabel(answerMap, "primary_treatment_focus")}`
+            : null,
+          getAnswerLabel(answerMap, "active_treatments")
+            ? `used: ${getAnswerLabel(answerMap, "active_treatments")}`
+            : null
+        ],
+        "Treatment path captured"
+      ),
+      joinAvailable(
+        [
+          getAnswerLabel(answerMap, "treatment_result")
+            ? `Result: ${getAnswerLabel(answerMap, "treatment_result")}`
+            : null,
+          getAnswerLabel(answerMap, "treatment_barriers")
+            ? `barriers: ${getAnswerLabel(answerMap, "treatment_barriers")}`
+            : null
+        ],
+        "Outcome and barriers captured"
+      )
+    ]
+  };
+
+  return {
+    bullets: (bulletsBySection[sectionId] ?? fallbackBullets)
+      .filter(Boolean)
+      .slice(0, 3),
+    communityInsight,
+    headline: `${answeredQuestions.length} signals captured for ${sectionTitle}.`
+  };
 }
 
 function safeStorageGet(key: string) {
@@ -586,10 +722,43 @@ function QuestionOptions({
   );
 }
 
+function QuickAnswerInsight({
+  insight,
+  isAnswered,
+  isSaving
+}: {
+  insight?: AssessmentAnswerInsight;
+  isAnswered: boolean;
+  isSaving: boolean;
+}) {
+  if (!isAnswered && !isSaving) {
+    return null;
+  }
+
+  const label = insight?.isAnonymousAggregate ? "Community insight" : "Personal insight";
+
+  return (
+    <aside
+      className={`assessment-answer-insight${insight ? "" : " is-loading"}`}
+      aria-live="polite"
+    >
+      <span>{isSaving && !insight ? "Building insight" : label}</span>
+      <strong>{insight?.title ?? "Saving your answer"}</strong>
+      <p>
+        {isSaving && !insight
+          ? "We are saving the response before comparing it with the benchmark pool."
+          : insight?.body ?? "Answer saved. The comparison will appear as the benchmark pool grows."}
+      </p>
+      {insight?.footnote ? <small>{insight.footnote}</small> : null}
+    </aside>
+  );
+}
+
 export function AssessmentWorkbench() {
   const { isLoaded, isSignedIn, userId } = useAuth();
   const router = useRouter();
   const [answers, setAnswers] = useState<AssessmentAnswerMap>({});
+  const [answerInsights, setAnswerInsights] = useState<Record<string, AssessmentAnswerInsight>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -1044,10 +1213,16 @@ export function AssessmentWorkbench() {
     const nextCompletedQuestions = nextVisibleQuestions.filter((candidate) =>
       isQuestionAnswered(candidate, nextAnswers)
     ).length;
+    const nextAnswerInsightsBase = {
+      ...answerInsights
+    };
+    delete nextAnswerInsightsBase[question.id];
 
     setAnswers(nextAnswers);
+    setAnswerInsights(nextAnswerInsightsBase);
     setSaveStatus("saving");
     setErrorMessage(null);
+    let nextAnswerInsights = nextAnswerInsightsBase;
 
     captureAssessmentEvent(
       previousValue && previousValue !== answerValue
@@ -1100,6 +1275,15 @@ export function AssessmentWorkbench() {
         throw new Error("Failed to save answer.");
       }
 
+      const payload = (await response.json().catch(() => null)) as SaveAnswerResponse | null;
+      nextAnswerInsights = payload?.answerInsight
+        ? {
+            ...nextAnswerInsightsBase,
+            [question.id]: payload.answerInsight
+          }
+        : nextAnswerInsightsBase;
+
+      setAnswerInsights(nextAnswerInsights);
       setSaveStatus("saved");
 
       captureAssessmentEvent(
@@ -1141,8 +1325,8 @@ export function AssessmentWorkbench() {
 
       if (completedSection) {
         setSectionCelebration({
-          insight: buildSectionInsight(sectionQuestions, nextAnswers),
           nextTitle: nextSection?.title,
+          report: buildSectionMiniReport(sectionQuestions, nextAnswers, nextAnswerInsights),
           sectionId: completedSection.id,
           title: completedSection.title
         });
@@ -1236,7 +1420,7 @@ export function AssessmentWorkbench() {
               <span>You choose whether answers enter aggregate community reports.</span>
             </div>
             <div>
-              <strong>6-8 minutes</strong>
+              <strong>5-7 minutes</strong>
               <span>Mostly taps, sliders, and optional photo uploads.</span>
             </div>
           </div>
@@ -1300,13 +1484,22 @@ export function AssessmentWorkbench() {
       {sectionCelebration && !isComplete ? (
         <div className="assessment-section-complete" role="status" aria-live="polite">
           <span>Section complete</span>
-          <strong>Congrats, you completed {sectionCelebration.title}.</strong>
+          <strong>{sectionCelebration.report.headline}</strong>
           <p>
             {sectionCelebration.nextTitle
               ? `Next up: ${sectionCelebration.nextTitle}.`
               : "You are on the final stretch."}
           </p>
-          <p>{sectionCelebration.insight}</p>
+          <ul className="assessment-section-report-list">
+            {sectionCelebration.report.bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+          {sectionCelebration.report.communityInsight ? (
+            <p className="assessment-section-community-note">
+              {sectionCelebration.report.communityInsight}
+            </p>
+          ) : null}
         </div>
       ) : null}
       {isComplete && isBuildingResults ? (
@@ -1384,6 +1577,11 @@ export function AssessmentWorkbench() {
             onSelect={(value) =>
               void persistAnswer(currentQuestion, value, answers[currentQuestion.id])
             }
+          />
+          <QuickAnswerInsight
+            insight={answerInsights[currentQuestion.id]}
+            isAnswered={isCurrentQuestionAnswered}
+            isSaving={saveStatus === "saving"}
           />
           <details className="assessment-question-feedback">
             <summary>Question unclear?</summary>

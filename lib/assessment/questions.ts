@@ -1,4 +1,4 @@
-export const assessmentVersion = "2026-05-community-survey-v4";
+export const assessmentVersion = "2026-06-community-survey-v5";
 
 export type AssessmentInput =
   | "cards"
@@ -173,12 +173,6 @@ function question(
         : undefined)
   };
 }
-
-const yesNoUnsure: AssessmentOption[] = [
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
-  { value: "not_sure", label: "Not sure" }
-];
 
 export const assessmentSections: AssessmentSection[] = [
   sectionContent.baseline_profile,
@@ -529,17 +523,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("lifestyle_habits", {
-    id: "alcohol_shedding_correlation",
-    analyticsCategory: "lifestyle",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "chips",
-    prompt: "Have you noticed more shedding after heavier alcohol periods?",
-    responseFormat: "single_choice",
-    tags: ["alcohol", "shedding"],
-    options: yesNoUnsure
-  }),
-  question("lifestyle_habits", {
     id: "sleep_duration",
     analyticsCategory: "lifestyle",
     autoAdvance: true,
@@ -611,22 +594,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("lifestyle_habits", {
-    id: "screen_sitting_hours",
-    analyticsCategory: "lifestyle",
-    autoAdvance: true,
-    dataType: "ordinal",
-    input: "chips",
-    prompt: "How sedentary is a typical day?",
-    responseFormat: "single_choice",
-    tags: ["screen_time", "sedentary", "occupation"],
-    options: [
-      { value: "active_job", label: "Active job/life" },
-      { value: "under_4", label: "<4 sitting hours" },
-      { value: "4_8", label: "4-8 sitting hours" },
-      { value: "8_plus", label: "8+ sitting hours" }
-    ]
-  }),
-  question("lifestyle_habits", {
     id: "diet_pattern",
     analyticsCategory: "lifestyle",
     autoAdvance: true,
@@ -663,39 +630,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("lifestyle_habits", {
-    id: "exercise_frequency",
-    analyticsCategory: "lifestyle",
-    autoAdvance: true,
-    dataType: "ordinal",
-    input: "chips",
-    prompt: "How often do you exercise?",
-    responseFormat: "single_choice",
-    tags: ["fitness", "metabolic"],
-    options: [
-      { value: "rarely", label: "Rarely" },
-      { value: "1_2_week", label: "1-2x/week" },
-      { value: "3_4_week", label: "3-4x/week" },
-      { value: "5_plus_week", label: "5+x/week" }
-    ]
-  }),
-  question("lifestyle_habits", {
-    id: "exercise_type",
-    analyticsCategory: "lifestyle",
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "What types of exercise are most common for you?",
-    responseFormat: "multi_select",
-    tags: ["fitness", "hormones"],
-    options: [
-      { value: "none", label: "None", exclusive: true },
-      { value: "walking", label: "Walking" },
-      { value: "cardio", label: "Cardio" },
-      { value: "strength", label: "Strength training" },
-      { value: "endurance", label: "Endurance training" },
-      { value: "combat_sports", label: "Combat sports" }
-    ]
-  }),
-  question("lifestyle_habits", {
     id: "hormone_ped_use",
     analyticsCategory: "lifestyle",
     dataType: "multi_nominal",
@@ -729,41 +663,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "oiliness", label: "Oiliness" },
       { value: "pain_burning", label: "Pain or burning" },
       { value: "dandruff", label: "Dandruff" }
-    ]
-  }),
-  question("lifestyle_habits", {
-    id: "scalp_hair_habits",
-    analyticsCategory: "lifestyle",
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "Which hair or scalp habits apply most weeks?",
-    responseFormat: "multi_select",
-    tags: ["scalp_habits", "styling", "environment"],
-    options: [
-      { value: "low_manipulation", label: "Low manipulation", exclusive: true },
-      { value: "daily_washing", label: "Daily washing" },
-      { value: "infrequent_washing", label: "Infrequent washing" },
-      { value: "heavy_products", label: "Heavy styling products" },
-      { value: "heat_tools", label: "Heat tools" },
-      { value: "dye_bleach", label: "Dye or bleach" },
-      { value: "tight_hats_styles", label: "Tight hats or styles" }
-    ]
-  }),
-  question("lifestyle_habits", {
-    id: "environment_exposure",
-    analyticsCategory: "lifestyle",
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "Any environmental factors you suspect matter?",
-    responseFormat: "multi_select",
-    tags: ["environment", "sun", "water"],
-    options: [
-      { value: "not_sure", label: "Not sure", exclusive: true },
-      { value: "hard_water", label: "Hard water" },
-      { value: "urban_pollution", label: "Urban pollution" },
-      { value: "high_sun", label: "High sun exposure" },
-      { value: "low_sun", label: "Very low sun exposure" },
-      { value: "frequent_hats", label: "Frequent hat use" }
     ]
   }),
   question("lifestyle_habits", {
@@ -1138,42 +1037,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "stigma", label: "Stigma or privacy" }
     ]
   }),
-  question("treatment_outcomes", {
-    id: "transplant_history",
-    analyticsCategory: "treatment",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "chips",
-    prompt: "Have you had a hair transplant?",
-    responseFormat: "single_choice",
-    tags: ["surgery", "transplant"],
-    options: [
-      { value: "yes", label: "Yes" },
-      { value: "planned", label: "Planning one" },
-      { value: "considering", label: "Considering" },
-      { value: "no", label: "No" }
-    ]
-  }),
-  question("treatment_outcomes", {
-    id: "transplant_details",
-    analyticsCategory: "treatment",
-    conditions: [{ questionId: "transplant_history", operator: "equals", value: "yes" }],
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "Which transplant details apply?",
-    responseFormat: "multi_select",
-    tags: ["outcomes", "transplant"],
-    options: [
-      { value: "not_sure", label: "Not sure", exclusive: true },
-      { value: "fue", label: "FUE" },
-      { value: "fut", label: "FUT" },
-      { value: "under_2000_grafts", label: "Under 2,000 grafts" },
-      { value: "2000_4000_grafts", label: "2,000-4,000 grafts" },
-      { value: "4000_plus_grafts", label: "4,000+ grafts" },
-      { value: "shock_loss", label: "Shock loss" },
-      { value: "satisfied", label: "Satisfied overall" }
-    ]
-  }),
 
   question("goals_impact", {
     id: "confidence_impact",
@@ -1295,25 +1158,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("goals_impact", {
-    id: "information_sources",
-    analyticsCategory: "community",
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "Where do you currently get hair loss information?",
-    responseFormat: "multi_select",
-    tags: ["community", "information_sources", "trust"],
-    options: [
-      { value: "none", label: "Nowhere consistently", exclusive: true },
-      { value: "reddit", label: "Reddit" },
-      { value: "youtube", label: "YouTube" },
-      { value: "tiktok", label: "TikTok" },
-      { value: "doctor", label: "Doctor/dermatologist" },
-      { value: "forums", label: "Forums" },
-      { value: "research_papers", label: "Research papers" },
-      { value: "friends_family", label: "Friends/family" }
-    ]
-  }),
-  question("goals_impact", {
     id: "next_step_preference",
     analyticsCategory: "goals",
     autoAdvance: true,
@@ -1328,23 +1172,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "community", label: "Similar profiles", description: "Learn from people like me." },
       { value: "tracking", label: "Progress tracking", description: "Photos, timeline, reminders." },
       { value: "barber", label: "Appearance support", description: "Haircut or styling guidance." }
-    ]
-  }),
-  question("goals_impact", {
-    id: "progress_tracking_interest",
-    analyticsCategory: "community",
-    dataType: "multi_nominal",
-    input: "multi_select",
-    prompt: "Which future tracking features would you actually use?",
-    responseFormat: "multi_select",
-    tags: ["ai_recommendations", "longitudinal", "progress_tracking"],
-    options: [
-      { value: "none", label: "None for now", exclusive: true },
-      { value: "progress_journal", label: "Progress journal" },
-      { value: "treatment_timeline", label: "Treatment timeline" },
-      { value: "photo_comparison", label: "Image comparisons" },
-      { value: "ai_recommendations", label: "AI recommendations" },
-      { value: "community_reports", label: "Community reports" }
     ]
   }),
   question("goals_impact", {
