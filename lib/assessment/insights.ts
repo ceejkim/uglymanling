@@ -114,9 +114,9 @@ function buildConsentInsight(answerValue: string, answerLabel: string): Assessme
       answerLabel,
       answerValue,
       body:
-        "Your answers can now improve anonymous community benchmarks while your personal identity stays out of the reports.",
+        "Your answers can now be grouped with others to improve community insights.",
       confidence: "personal",
-      footnote: "Aggregate reports use grouped response patterns, not individual profiles.",
+      footnote: "Community insights use grouped response patterns, not individual profiles.",
       isAnonymousAggregate: false,
       questionId: "anonymous_research_consent",
       source: "privacy",
@@ -128,9 +128,9 @@ function buildConsentInsight(answerValue: string, answerLabel: string): Assessme
     answerLabel,
     answerValue,
     body:
-      "No problem. You will still get a personal report, and this response stays out of aggregate community benchmarks.",
+      "No problem. You will still get your personal report, and this response stays out of community trend reports.",
     confidence: "personal",
-    footnote: "You can keep using the assessment without contributing anonymous research data.",
+    footnote: "Only explicit yes responses are included in grouped community insights.",
     isAnonymousAggregate: false,
     questionId: "anonymous_research_consent",
     source: "privacy",

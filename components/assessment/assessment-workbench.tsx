@@ -689,11 +689,15 @@ function QuestionOptions({
   }
 
   const groupClassName = getGroupClassName(question.input);
+  const normalizedSelectedValue =
+    question.id === "anonymous_research_consent" && selectedValue === "not_sure"
+      ? "no"
+      : selectedValue;
 
   return (
     <div className={groupClassName}>
       {(question.options ?? []).map((option) => {
-        const active = selectedValue === option.value;
+        const active = normalizedSelectedValue === option.value;
 
         return (
           <button
@@ -722,6 +726,22 @@ function QuestionOptions({
   );
 }
 
+const insightThinkingPhrases = [
+  "Flocking the check",
+  "Balders unite",
+  "Polishing the dome data",
+  "Checking the feather math",
+  "Sorting the scalp signals",
+  "Consulting the tiny duck ledger"
+];
+
+function getInsightThinkingPhrase(insight?: AssessmentAnswerInsight) {
+  const seed = insight?.questionId ?? insight?.title ?? "saving";
+  const seedTotal = seed.split("").reduce((total, character) => total + character.charCodeAt(0), 0);
+
+  return insightThinkingPhrases[seedTotal % insightThinkingPhrases.length];
+}
+
 function QuickAnswerInsight({
   insight,
   isAnswered,
@@ -736,20 +756,44 @@ function QuickAnswerInsight({
   }
 
   const label = insight?.isAnonymousAggregate ? "Community insight" : "Personal insight";
+  const isThinking = isSaving && !insight;
+  const thinkingPhrase = isThinking ? "Flocking the check" : getInsightThinkingPhrase(insight);
 
   return (
     <aside
       className={`assessment-answer-insight${insight ? "" : " is-loading"}`}
       aria-live="polite"
     >
-      <span>{isSaving && !insight ? "Building insight" : label}</span>
-      <strong>{insight?.title ?? "Saving your answer"}</strong>
-      <p>
-        {isSaving && !insight
+      <div className="assessment-answer-insight-head">
+        <div
+          className={`assessment-answer-insight-duck${isThinking ? " is-thinking" : ""}`}
+          aria-hidden="true"
+        >
+          <Image
+            src="/brand/mascots/uglymanlings-duck-primary.png"
+            alt=""
+            width={42}
+            height={42}
+          />
+        </div>
+        <div className="assessment-answer-insight-labels">
+          <span className="assessment-answer-insight-kicker">
+            {isThinking ? "Building insight" : label}
+          </span>
+          <span className="assessment-answer-insight-thinking">{thinkingPhrase}</span>
+        </div>
+      </div>
+      <strong className="assessment-answer-insight-title">
+        {insight?.title ?? "Saving your answer"}
+      </strong>
+      <p className="assessment-answer-insight-body">
+        {isThinking
           ? "We are saving the response before comparing it with the benchmark pool."
           : insight?.body ?? "Answer saved. The comparison will appear as the benchmark pool grows."}
       </p>
-      {insight?.footnote ? <small>{insight.footnote}</small> : null}
+      {insight?.footnote ? (
+        <small className="assessment-answer-insight-footnote">{insight.footnote}</small>
+      ) : null}
     </aside>
   );
 }
@@ -770,9 +814,11 @@ export function AssessmentWorkbench() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [sectionCelebration, setSectionCelebration] = useState<SectionCelebration | null>(null);
   const [session, setSession] = useState<SessionRecord | null>(null);
+  const [showCommunityOptOutNotice, setShowCommunityOptOutNotice] = useState(false);
   const hasBootstrappedRef = useRef(false);
   const hasTrackedLandingRef = useRef(false);
   const completedSectionsRef = useRef<Set<string>>(new Set());
+  const communityOptOutContinueRef = useRef<HTMLButtonElement | null>(null);
   const questionEnteredAtRef = useRef<number>(Date.now());
   const resultRedirectTimeoutRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(Date.now());
@@ -781,13 +827,6 @@ export function AssessmentWorkbench() {
   const visibleSections = getVisibleAssessmentSections(answers);
   const filteredAnswers = getFilteredVisibleAnswers(answers);
   const completedQuestions = visibleQuestions.filter((question) => isQuestionAnswered(question, answers)).length;
-  const completedSectionIds = visibleSections
-    .filter((section) => {
-      const sectionQuestions = visibleQuestions.filter((question) => question.sectionId === section.id);
-
-      return sectionQuestions.length > 0 && sectionQuestions.every((question) => isQuestionAnswered(question, answers));
-    })
-    .map((section) => section.id);
   const currentQuestion = visibleQuestions[currentIndex];
   const currentSectionIndex = visibleSections.findIndex(
     (section) => section.id === currentQuestion?.sectionId
@@ -908,6 +947,24 @@ export function AssessmentWorkbench() {
     setQuestionFeedbackBody("");
     setQuestionFeedbackStatus("idle");
   }, [currentQuestion?.id]);
+
+  useEffect(() => {
+    if (!showCommunityOptOutNotice || typeof window === "undefined") {
+      return;
+    }
+
+    communityOptOutContinueRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowCommunityOptOutNotice(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showCommunityOptOutNotice]);
 
   useEffect(() => {
     if (!sectionCelebration) {
@@ -1286,6 +1343,10 @@ export function AssessmentWorkbench() {
       setAnswerInsights(nextAnswerInsights);
       setSaveStatus("saved");
 
+      if (question.id === "anonymous_research_consent") {
+        setShowCommunityOptOutNotice(answerValue === "no");
+      }
+
       captureAssessmentEvent(
         "assessment_progress_saved",
         {
@@ -1391,13 +1452,13 @@ export function AssessmentWorkbench() {
       <AssessmentShell
         progress={
           <AssessmentProgress
-            completedSectionIds={[]}
-            completedQuestions={0}
+            currentQuestionNumber={1}
             currentSectionIndex={0}
             progressPercent={0}
             remainingQuestions={visibleQuestions.length}
             sections={visibleSections}
             statusLabel={isLoaded ? getStatusLabel(saveStatus) : "Loading session"}
+            totalQuestions={visibleQuestions.length}
           />
         }
       >
@@ -1440,13 +1501,13 @@ export function AssessmentWorkbench() {
     <AssessmentShell
       progress={
         <AssessmentProgress
-          completedSectionIds={isComplete ? visibleSections.map((section) => section.id) : completedSectionIds}
-          completedQuestions={completedQuestions}
+          currentQuestionNumber={isComplete ? visibleQuestions.length : currentIndex + 1}
           currentSectionIndex={isComplete ? visibleSections.length - 1 : Math.max(currentSectionIndex, 0)}
           progressPercent={isComplete ? 100 : progressPercent}
           remainingQuestions={isComplete ? 0 : remainingQuestions}
           sections={visibleSections}
           statusLabel={isLoaded ? getStatusLabel(saveStatus) : "Loading session"}
+          totalQuestions={visibleQuestions.length}
         />
       }
       footer={
@@ -1616,7 +1677,7 @@ export function AssessmentWorkbench() {
           </details>
           <div className="assessment-question-foot">
             <div>
-              <strong>{currentIndex + 1}</strong>
+              <strong>Question {currentIndex + 1}</strong>
               <span> of {visibleQuestions.length}</span>
             </div>
             <p>
@@ -1626,6 +1687,44 @@ export function AssessmentWorkbench() {
           </div>
         </section>
       )}
+      {showCommunityOptOutNotice ? (
+        <div className="assessment-consent-notice-backdrop" role="presentation">
+          <div
+            className="assessment-consent-notice"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="community-opt-out-title"
+            aria-describedby="community-opt-out-description"
+          >
+            <span>Private mode</span>
+            <h2 id="community-opt-out-title">Community insights will be limited.</h2>
+            <p id="community-opt-out-description">
+              Your personal report still works. We will keep your answers out of grouped
+              community trends, so community insights and trend-based next-step context may be lighter.
+            </p>
+            <div className="assessment-consent-notice-actions">
+              <button
+                type="button"
+                className="assessment-consent-notice-primary"
+                ref={communityOptOutContinueRef}
+                onClick={() => {
+                  setShowCommunityOptOutNotice(false);
+                  handleNextQuestion();
+                }}
+              >
+                Continue private
+              </button>
+              <button
+                type="button"
+                className="assessment-consent-notice-secondary"
+                onClick={() => setShowCommunityOptOutNotice(false)}
+              >
+                Change answer
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </AssessmentShell>
   );
 }

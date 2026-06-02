@@ -1,4 +1,4 @@
-export const assessmentVersion = "2026-06-community-survey-v5";
+export const assessmentVersion = "2026-06-community-survey-v6";
 
 export type AssessmentInput =
   | "cards"
@@ -189,13 +189,13 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     autoAdvance: true,
     dataType: "nominal",
     input: "cards",
-    prompt: "Can your anonymous responses be included in aggregate community insights?",
-    helper: "We report trends, not personal profiles. This helps the community compare patterns, treatments, and lifestyle signals more responsibly.",
+    prompt: "Contribute to community insights",
+    helper: "Your report works either way. Yes groups your responses with others; no keeps them out.",
     responseFormat: "single_choice",
     tags: ["privacy", "anonymous", "research_consent"],
     options: [
-      { value: "yes", label: "Yes", description: "Use my anonymous answers for aggregate reports." },
-      { value: "not_sure", label: "Not sure yet", description: "Let me answer, but keep this cautious." }
+      { value: "yes", label: "Yes", description: "Use mine in grouped trends." },
+      { value: "no", label: "No", description: "Keep mine out." }
     ]
   }),
   question("baseline_profile", {
@@ -1396,6 +1396,10 @@ export function getAnswerValuesForStorage(questionToStore: AssessmentQuestion, v
 
 export function getQuestionLabel(questionId: string, value: string) {
   const questionToLabel = assessmentQuestionsById[questionId];
+
+  if (questionId === "anonymous_research_consent" && value === "not_sure") {
+    return "No";
+  }
 
   if (questionId === "norwood_stage" && value === "V_plus") {
     return "Norwood V+";

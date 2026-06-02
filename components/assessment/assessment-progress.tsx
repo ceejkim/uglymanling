@@ -1,6 +1,5 @@
 type AssessmentProgressProps = {
-  completedSectionIds: string[];
-  completedQuestions: number;
+  currentQuestionNumber: number;
   currentSectionIndex: number;
   progressPercent: number;
   remainingQuestions: number;
@@ -9,59 +8,68 @@ type AssessmentProgressProps = {
     title: string;
   }>;
   statusLabel: string;
+  totalQuestions: number;
 };
 
 export function AssessmentProgress({
-  completedSectionIds,
-  completedQuestions,
+  currentQuestionNumber,
   currentSectionIndex,
   progressPercent,
   remainingQuestions,
   sections,
-  statusLabel
+  statusLabel,
+  totalQuestions
 }: AssessmentProgressProps) {
   const activeSection = sections[Math.max(currentSectionIndex, 0)];
-  const completedSectionSet = new Set(completedSectionIds);
+  const safeTotalQuestions = Math.max(totalQuestions, 0);
+  const safeCurrentQuestionNumber =
+    safeTotalQuestions === 0
+      ? 0
+      : Math.min(Math.max(currentQuestionNumber, 1), safeTotalQuestions);
+  const safeCurrentSectionNumber =
+    sections.length === 0
+      ? 0
+      : Math.min(Math.max(currentSectionIndex + 1, 1), sections.length);
+  const questionProgressLabel =
+    safeTotalQuestions > 0
+      ? `Question ${safeCurrentQuestionNumber} of ${safeTotalQuestions}`
+      : "Survey setup";
+  const unansweredLabel = `${remainingQuestions} ${
+    remainingQuestions === 1 ? "question" : "questions"
+  } to answer`;
+  const answeredQuestions = Math.max(safeTotalQuestions - remainingQuestions, 0);
+  const completionValueText =
+    safeTotalQuestions > 0
+      ? `${answeredQuestions} of ${safeTotalQuestions} questions answered`
+      : "Survey progress loading";
 
   return (
-    <div className="assessment-progress-card grain-card">
+    <div className="assessment-progress-card" aria-label="Survey progress">
       <div className="assessment-progress-topline">
-        <div>
-          <span className="eyebrow">6-8 minute baseline report</span>
-          <p className="assessment-progress-copy">
-            {activeSection ? activeSection.title : "Survey"} - Section{" "}
-            {Math.min(currentSectionIndex + 1, sections.length)} of {sections.length}
-          </p>
+        <div className="assessment-progress-context">
+          <strong>{questionProgressLabel}</strong>
+          <span>{activeSection ? activeSection.title : "Survey"}</span>
         </div>
         <div className="assessment-progress-meta">
-          <strong>{remainingQuestions} questions remaining</strong>
-          <span>{statusLabel}</span>
+          <span>
+            Section {safeCurrentSectionNumber} of {sections.length}
+          </span>
+          <span>
+            {unansweredLabel} - {statusLabel}
+          </span>
         </div>
       </div>
-      <div className="assessment-section-track" aria-label="Survey sections">
-        {sections.map((section, index) => {
-          const isComplete = completedSectionSet.has(section.id);
-          const isActive = index === currentSectionIndex;
-          const statusLabelText = isComplete ? "Complete" : isActive ? "Current" : "Upcoming";
-
-          return (
-            <div
-              key={section.id}
-              className={`assessment-section-step${isActive ? " is-active" : ""}${isComplete ? " is-complete" : ""}`}
-            >
-              <span>{isComplete ? "✓" : index + 1}</span>
-              <strong>{section.title}</strong>
-              <small>{statusLabelText}</small>
-            </div>
-          );
-        })}
-      </div>
-      <div className="assessment-progress-track" aria-hidden="true">
+      <div
+        className="assessment-progress-track"
+        role="progressbar"
+        aria-label="Survey completion"
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={progressPercent}
+        aria-valuetext={completionValueText}
+      >
         <span style={{ width: `${progressPercent}%` }} />
       </div>
-      <p className="assessment-progress-footnote">
-        {completedQuestions} answered so far. Clearer answers improve your report and strengthen aggregate insights.
-      </p>
     </div>
   );
 }
