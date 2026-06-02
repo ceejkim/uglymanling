@@ -39,7 +39,7 @@ type InsightStatsRow = {
   sample_size: number | string;
 };
 
-const defaultMinimumSampleSize = 8;
+const liveInsightMinimumSampleSize = 1;
 
 const bundledSeedInsights: Record<string, InsightSeedRow[]> = {
   progression_pace: [
@@ -50,7 +50,7 @@ const bundledSeedInsights: Record<string, InsightSeedRow[]> = {
       insight_template:
         "{percent} of opted-in respondents also described rapid change over 6 months.",
       insight_title: "Fast change deserves a rule-out",
-      min_sample_size: 8,
+      min_sample_size: liveInsightMinimumSampleSize,
       source_label: "anonymous opted-in survey responses"
     }
   ]
@@ -227,7 +227,7 @@ export async function buildAssessmentAnswerInsight({
 
   const seeds = await getSeedRows(question.id, answerValues);
   const seed = seeds[0];
-  const minimumSampleSize = seed?.min_sample_size ?? defaultMinimumSampleSize;
+  const minimumSampleSize = liveInsightMinimumSampleSize;
   const statsRows = await getStatsRows(question.id, answerValues, minimumSampleSize);
   const stats = selectBestStats(statsRows, seed);
   const statsAnswerValue = stats?.answer_value ?? seed?.answer_value ?? answerValues[0] ?? answerValue;
@@ -272,7 +272,7 @@ export async function buildAssessmentAnswerInsight({
       answerValue: statsAnswerValue,
       body: seed.fallback_copy,
       confidence: "low",
-      footnote: `Live percentage appears after ${minimumSampleSize} opted-in responses for this question.`,
+      footnote: "Live percentage appears once opted-in responses exist for this question.",
       isAnonymousAggregate: true,
       questionId: question.id,
       sampleSize: sampleSize || undefined,
@@ -287,7 +287,7 @@ export async function buildAssessmentAnswerInsight({
     answerValue: statsAnswerValue,
     body: `${statsAnswerLabel}: your answer is now part of the anonymous benchmark pool for this question.`,
     confidence: "low",
-    footnote: `Community percentage appears after ${minimumSampleSize} opted-in responses.`,
+    footnote: "Community percentage appears once opted-in responses exist.",
     isAnonymousAggregate: true,
     questionId: question.id,
     sampleSize: sampleSize || undefined,

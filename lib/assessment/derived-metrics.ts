@@ -606,7 +606,7 @@ function buildCommunityComparison(
   benchmarkPayload?: AssessmentBenchmarkPayload
 ): AssessmentDashboardMetrics["communityComparison"] {
   const fallback = populationStats[ageBucket] ?? populationStats["25_34"];
-  const liveCohortIsUseful = Boolean(benchmarkPayload && benchmarkPayload.cohortSize >= 8);
+  const liveCohortIsUseful = Boolean(benchmarkPayload && benchmarkPayload.cohortSize > 0);
   const densityRetentionPercentile = clampScore(
     50 + (fallback.avgVisibleLossScore - visibleLossScore) * 0.86
   );

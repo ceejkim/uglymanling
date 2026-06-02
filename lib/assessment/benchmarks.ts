@@ -445,9 +445,9 @@ export async function buildBenchmarkPayload(
     return rowStage.rankKey === currentStage.rankKey;
   });
   const cohort =
-    strictCohort.length >= 8
+    strictCohort.length > 0
       ? strictCohort
-      : stageOnlyCohort.length >= 8
+      : stageOnlyCohort.length > 0
         ? stageOnlyCohort
         : candidateSessions;
 

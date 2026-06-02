@@ -138,7 +138,7 @@ create table if not exists public.assessment_question_insights (
   insight_title text not null,
   insight_template text not null,
   fallback_copy text not null,
-  min_sample_size integer not null default 8 check (min_sample_size >= 0),
+  min_sample_size integer not null default 1 check (min_sample_size >= 0),
   source_label text not null default 'anonymous opted-in survey responses',
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -163,7 +163,7 @@ values (
   'Fast change deserves a rule-out',
   '{percent} of opted-in respondents also described rapid change over 6 months.',
   'Rapid 6-month change is a useful signal to document. If it continues, a clinician can help rule out shedding triggers, medication effects, thyroid or iron issues, and inflammatory scalp conditions.',
-  8,
+  1,
   'anonymous opted-in survey responses'
 )
 on conflict (question_id, answer_value, insight_kind) do update
@@ -179,7 +179,7 @@ set
 create or replace function public.get_assessment_answer_insight(
   p_question_id text,
   p_answer_values text[],
-  p_min_sample_size integer default 8
+  p_min_sample_size integer default 1
 )
 returns table (
   question_id text,
