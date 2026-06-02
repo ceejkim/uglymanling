@@ -2,7 +2,6 @@ import { getSupabaseAdminClient } from "@/lib/supabase";
 import {
   getAnswerValuesForStorage,
   getQuestionLabel,
-  type AssessmentAnswerMap,
   type AssessmentQuestion
 } from "@/lib/assessment/questions";
 
@@ -41,100 +40,59 @@ type InsightStatsRow = {
 
 const liveInsightMinimumSampleSize = 1;
 
-const bundledSeedInsights: Record<string, InsightSeedRow[]> = {
-  progression_pace: [
-    {
-      answer_value: "rapid_6mo",
-      fallback_copy:
-        "Rapid 6-month change is a useful signal to document. If it continues, a clinician can help rule out shedding triggers, medication effects, thyroid or iron issues, and inflammatory scalp conditions.",
-      insight_template:
-        "{percent} of opted-in respondents also described rapid change over 6 months.",
-      insight_title: "Fast change deserves a rule-out",
-      min_sample_size: liveInsightMinimumSampleSize,
-      source_label: "anonymous opted-in survey responses"
-    }
-  ]
-};
-
 function formatPercent(value: number) {
   return Number.isInteger(value) ? `${value}%` : `${value.toFixed(1)}%`;
 }
 
-function interpolateInsightTemplate(
-  template: string,
-  {
-    answerLabel,
+function buildAnswerShareInsight({
+  answerCount,
+  answerLabel,
+  answerValue,
+  cohortLabel,
+  percent,
+  questionId,
+  sampleSize
+}: {
+  answerCount: number;
+  answerLabel: string;
+  answerValue: string;
+  cohortLabel: string;
+  percent: number;
+  questionId: string;
+  sampleSize: number;
+}): AssessmentAnswerInsight {
+  return {
     answerCount,
+    answerLabel,
+    answerValue,
+    body: `${formatPercent(percent)} of users gave this answer.`,
+    confidence: sampleSize >= 30 ? "medium" : "low",
+    footnote: `Based on ${sampleSize} ${cohortLabel}. You can view this whether or not you contribute.`,
+    isAnonymousAggregate: true,
     percent,
-    sampleSize
-  }: {
-    answerCount: number;
-    answerLabel: string;
-    percent: number;
-    sampleSize: number;
-  }
-) {
-  return template
-    .replaceAll("{answer_count}", String(answerCount))
-    .replaceAll("{answer_label}", answerLabel)
-    .replaceAll("{percent}", formatPercent(percent))
-    .replaceAll("{sample_size}", String(sampleSize));
+    questionId,
+    sampleSize,
+    source: "live_aggregate",
+    title: "Answer share"
+  };
 }
 
-function buildPersonalInsight(question: AssessmentQuestion, answerValue: string, answerLabel: string) {
-  const sectionCopy: Record<string, string> = {
-    baseline_profile:
-      "This helps anchor pattern, pace, and comparison groups before the report interprets anything else.",
-    goals_impact:
-      "This helps turn the final report toward the next step you are most likely to use.",
-    lifestyle_habits:
-      "This adds context for stress, sleep, nutrition, scalp, and routine signals that can make shedding harder to interpret.",
-    medical_history:
-      "This helps separate ordinary pattern change from factors that may be worth ruling out with a clinician.",
-    treatment_outcomes:
-      "This helps compare treatment experience, consistency, barriers, and outcomes without guessing from one data point."
-  };
-
+function buildPendingAnswerShareInsight(
+  question: AssessmentQuestion,
+  answerValue: string,
+  answerLabel: string
+): AssessmentAnswerInsight {
   return {
     answerLabel,
     answerValue,
-    body: `${answerLabel}: ${sectionCopy[question.sectionId] ?? "This answer sharpens your personal report."}`,
-    confidence: "personal" as const,
-    footnote: "Your response is not added to aggregate community reporting unless you opt in.",
+    body: "Community share is still warming up for this answer.",
+    confidence: "personal",
+    footnote:
+      "This appears once there are enough anonymous community responses. Your personal report still uses your answer now.",
     isAnonymousAggregate: false,
     questionId: question.id,
-    source: "privacy" as const,
-    title: "Private insight"
-  };
-}
-
-function buildConsentInsight(answerValue: string, answerLabel: string): AssessmentAnswerInsight {
-  if (answerValue === "yes") {
-    return {
-      answerLabel,
-      answerValue,
-      body:
-        "Your answers can now be grouped with others to improve community insights.",
-      confidence: "personal",
-      footnote: "Community insights use grouped response patterns, not individual profiles.",
-      isAnonymousAggregate: false,
-      questionId: "anonymous_research_consent",
-      source: "privacy",
-      title: "Anonymous insights enabled"
-    };
-  }
-
-  return {
-    answerLabel,
-    answerValue,
-    body:
-      "No problem. You will still get your personal report, and this response stays out of community trend reports.",
-    confidence: "personal",
-    footnote: "Only explicit yes responses are included in grouped community insights.",
-    isAnonymousAggregate: false,
-    questionId: "anonymous_research_consent",
     source: "privacy",
-    title: "Private by default"
+    title: "Answer saved"
   };
 }
 
@@ -143,9 +101,6 @@ async function getSeedRows(questionId: string, answerValues: string[]) {
     return [];
   }
 
-  const bundledSeeds = (bundledSeedInsights[questionId] ?? []).filter((seed) =>
-    answerValues.includes(seed.answer_value)
-  );
   const client = getSupabaseAdminClient();
   const { data, error } = await client
     .from("assessment_question_insights")
@@ -155,16 +110,10 @@ async function getSeedRows(questionId: string, answerValues: string[]) {
     .in("answer_value", answerValues);
 
   if (error) {
-    return bundledSeeds;
+    return [];
   }
 
-  const databaseSeeds = (data ?? []) as InsightSeedRow[];
-  const databaseSeedValues = new Set(databaseSeeds.map((seed) => seed.answer_value));
-
-  return [
-    ...databaseSeeds,
-    ...bundledSeeds.filter((seed) => !databaseSeedValues.has(seed.answer_value))
-  ];
+  return (data ?? []) as InsightSeedRow[];
 }
 
 async function getStatsRows(questionId: string, answerValues: string[], minimumSampleSize: number) {
@@ -186,6 +135,66 @@ async function getStatsRows(questionId: string, answerValues: string[], minimumS
   return (data ?? []) as InsightStatsRow[];
 }
 
+function getEquivalentStoredAnswerValues(questionId: string, answerValue: string) {
+  if (questionId === "anonymous_research_consent" && answerValue === "no") {
+    return ["no", "not_sure"];
+  }
+
+  return [answerValue];
+}
+
+async function getAllResponseStatsRows(questionId: string, answerValues: string[]) {
+  if (answerValues.length === 0) {
+    return [];
+  }
+
+  const client = getSupabaseAdminClient();
+  const { count: sampleSize, error: sampleError } = await client
+    .from("assessment_answers")
+    .select("session_id", { count: "exact", head: true })
+    .eq("question_id", questionId);
+
+  if (sampleError) {
+    return [];
+  }
+
+  const rows = await Promise.all(
+    answerValues.map(async (answerValue): Promise<InsightStatsRow | null> => {
+      const equivalentAnswerValues = getEquivalentStoredAnswerValues(questionId, answerValue);
+      let answerQuery = client
+        .from("assessment_answers")
+        .select("session_id", { count: "exact", head: true })
+        .eq("question_id", questionId);
+
+      answerQuery =
+        equivalentAnswerValues.length === 1
+          ? answerQuery.eq("answer_value", equivalentAnswerValues[0])
+          : answerQuery.in("answer_value", equivalentAnswerValues);
+
+      const { count: answerCount, error } = await answerQuery;
+
+      if (error) {
+        return null;
+      }
+
+      const safeSampleSize = sampleSize ?? 0;
+      const safeAnswerCount = answerCount ?? 0;
+
+      return {
+        answer_count: safeAnswerCount,
+        answer_value: answerValue,
+        has_sufficient_sample: safeSampleSize >= liveInsightMinimumSampleSize,
+        question_id: questionId,
+        response_rate:
+          safeSampleSize > 0 ? Math.round((safeAnswerCount / safeSampleSize) * 1000) / 10 : null,
+        sample_size: safeSampleSize
+      };
+    })
+  );
+
+  return rows.filter((row): row is InsightStatsRow => Boolean(row));
+}
+
 function selectBestStats(rows: InsightStatsRow[], seed?: InsightSeedRow) {
   if (seed) {
     return rows.find((row) => row.answer_value === seed.answer_value) ?? rows[0];
@@ -202,33 +211,25 @@ function selectBestStats(rows: InsightStatsRow[], seed?: InsightSeedRow) {
 
 export async function buildAssessmentAnswerInsight({
   answerValue,
-  answers,
   question
 }: {
   answerValue: string;
-  answers: AssessmentAnswerMap;
   question: AssessmentQuestion;
 }): Promise<AssessmentAnswerInsight> {
   const answerLabel = getQuestionLabel(question.id, answerValue);
-
-  if (question.id === "anonymous_research_consent") {
-    return buildConsentInsight(answerValue, answerLabel);
-  }
-
-  if (answers.anonymous_research_consent !== "yes") {
-    return buildPersonalInsight(question, answerValue, answerLabel);
-  }
-
   const answerValues = getAnswerValuesForStorage(question, answerValue).filter(Boolean);
 
   if (answerValues.length === 0) {
-    return buildPersonalInsight(question, answerValue, answerLabel);
+    return buildPendingAnswerShareInsight(question, answerValue, answerLabel);
   }
 
   const seeds = await getSeedRows(question.id, answerValues);
   const seed = seeds[0];
   const minimumSampleSize = liveInsightMinimumSampleSize;
-  const statsRows = await getStatsRows(question.id, answerValues, minimumSampleSize);
+  const statsRows =
+    question.id === "anonymous_research_consent"
+      ? await getAllResponseStatsRows(question.id, answerValues)
+      : await getStatsRows(question.id, answerValues, minimumSampleSize);
   const stats = selectBestStats(statsRows, seed);
   const statsAnswerValue = stats?.answer_value ?? seed?.answer_value ?? answerValues[0] ?? answerValue;
   const statsAnswerLabel =
@@ -240,58 +241,19 @@ export async function buildAssessmentAnswerInsight({
   const percent = Number(stats?.response_rate ?? 0);
 
   if (stats?.has_sufficient_sample && sampleSize > 0 && Number.isFinite(percent)) {
-    const template =
-      seed?.insight_template ??
-      "{percent} of opted-in respondents also chose {answer_label}.";
-
-    return {
+    return buildAnswerShareInsight({
       answerCount,
       answerLabel: statsAnswerLabel,
       answerValue: statsAnswerValue,
-      body: interpolateInsightTemplate(template, {
-        answerCount,
-        answerLabel: statsAnswerLabel,
-        percent,
-        sampleSize
-      }),
-      confidence: sampleSize >= 30 ? "medium" : "low",
-      footnote: `Based on ${sampleSize} opted-in anonymous responses.`,
-      isAnonymousAggregate: true,
+      cohortLabel:
+        question.id === "anonymous_research_consent"
+          ? "survey consent responses"
+          : "anonymous community responses",
       percent,
       questionId: question.id,
-      sampleSize,
-      source: "live_aggregate",
-      title: seed?.insight_title ?? "Community pattern"
-    };
+      sampleSize
+    });
   }
 
-  if (seed) {
-    return {
-      answerCount: answerCount || undefined,
-      answerLabel: statsAnswerLabel,
-      answerValue: statsAnswerValue,
-      body: seed.fallback_copy,
-      confidence: "low",
-      footnote: "Live percentage appears once opted-in responses exist for this question.",
-      isAnonymousAggregate: true,
-      questionId: question.id,
-      sampleSize: sampleSize || undefined,
-      source: "curated_guidance",
-      title: seed.insight_title
-    };
-  }
-
-  return {
-    answerCount: answerCount || undefined,
-    answerLabel: statsAnswerLabel,
-    answerValue: statsAnswerValue,
-    body: `${statsAnswerLabel}: your answer is now part of the anonymous benchmark pool for this question.`,
-    confidence: "low",
-    footnote: "Community percentage appears once opted-in responses exist.",
-    isAnonymousAggregate: true,
-    questionId: question.id,
-    sampleSize: sampleSize || undefined,
-    source: "curated_guidance",
-    title: "Community insight warming up"
-  };
+  return buildPendingAnswerShareInsight(question, answerValue, answerLabel);
 }

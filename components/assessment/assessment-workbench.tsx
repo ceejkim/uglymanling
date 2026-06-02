@@ -751,13 +751,30 @@ function QuickAnswerInsight({
   isAnswered: boolean;
   isSaving: boolean;
 }) {
+  const isThinking = isSaving && !insight;
+  const [thinkingPhraseIndex, setThinkingPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isThinking) {
+      setThinkingPhraseIndex(0);
+      return;
+    }
+
+    const phraseInterval = window.setInterval(() => {
+      setThinkingPhraseIndex((currentIndex) => (currentIndex + 1) % insightThinkingPhrases.length);
+    }, 1200);
+
+    return () => window.clearInterval(phraseInterval);
+  }, [isThinking]);
+
   if (!isAnswered && !isSaving) {
     return null;
   }
 
-  const label = insight?.isAnonymousAggregate ? "Community insight" : "Personal insight";
-  const isThinking = isSaving && !insight;
-  const thinkingPhrase = isThinking ? "Flocking the check" : getInsightThinkingPhrase(insight);
+  const label = insight?.isAnonymousAggregate ? "Community answer share" : "Answer saved";
+  const thinkingPhrase = isThinking
+    ? insightThinkingPhrases[thinkingPhraseIndex]
+    : getInsightThinkingPhrase(insight);
 
   return (
     <aside
@@ -778,7 +795,7 @@ function QuickAnswerInsight({
         </div>
         <div className="assessment-answer-insight-labels">
           <span className="assessment-answer-insight-kicker">
-            {isThinking ? "Building insight" : label}
+            {isThinking ? "Checking answer share" : label}
           </span>
           <span className="assessment-answer-insight-thinking">{thinkingPhrase}</span>
         </div>
@@ -788,7 +805,7 @@ function QuickAnswerInsight({
       </strong>
       <p className="assessment-answer-insight-body">
         {isThinking
-          ? "We are saving the response before comparing it with the benchmark pool."
+          ? "We are saving the response, then checking the community answer share."
           : insight?.body ?? "Answer saved. The comparison will appear as the benchmark pool grows."}
       </p>
       {insight?.footnote ? (
@@ -1697,10 +1714,11 @@ export function AssessmentWorkbench() {
             aria-describedby="community-opt-out-description"
           >
             <span>Private mode</span>
-            <h2 id="community-opt-out-title">Community insights will be limited.</h2>
+            <h2 id="community-opt-out-title">You will still see answer shares.</h2>
             <p id="community-opt-out-description">
-              Your personal report still works. We will keep your answers out of grouped
-              community trends, so community insights and trend-based next-step context may be lighter.
+              Your personal report still works, and available community answer-share stats will still
+              show. Your answers stay out of grouped trend reports, so some trend-based next-step
+              context may be lighter.
             </p>
             <div className="assessment-consent-notice-actions">
               <button

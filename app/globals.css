@@ -1682,6 +1682,7 @@ main {
 }
 
 .assessment-answer-insight-duck {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
@@ -1693,14 +1694,31 @@ main {
   box-shadow: 0 8px 18px rgba(15, 31, 46, 0.07);
 }
 
+.assessment-answer-insight-duck::after {
+  content: "";
+  position: absolute;
+  inset: -0.28rem;
+  border: 2px solid rgba(47, 100, 154, 0.12);
+  border-top-color: rgba(47, 100, 154, 0.72);
+  border-radius: 999px;
+  opacity: 0;
+}
+
 .assessment-answer-insight-duck img {
+  position: relative;
+  z-index: 1;
   width: 1.8rem;
   height: 1.8rem;
   object-fit: contain;
 }
 
 .assessment-answer-insight-duck.is-thinking {
-  animation: assessment-duck-think 1.6s ease-in-out infinite;
+  animation: assessment-duck-think 1.7s ease-in-out infinite;
+}
+
+.assessment-answer-insight-duck.is-thinking::after {
+  opacity: 1;
+  animation: assessment-duck-ring 0.95s linear infinite;
 }
 
 .assessment-answer-insight-labels {
@@ -1713,7 +1731,7 @@ main {
   color: var(--blue);
   font-size: 0.74rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -1748,16 +1766,23 @@ main {
 @keyframes assessment-duck-think {
   0%,
   100% {
-    transform: rotate(-4deg) translateY(0);
+    transform: translateY(0) scale(1);
   }
 
   50% {
-    transform: rotate(6deg) translateY(-2px);
+    transform: translateY(-1px) scale(1.02);
+  }
+}
+
+@keyframes assessment-duck-ring {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .assessment-answer-insight-duck.is-thinking {
+  .assessment-answer-insight-duck.is-thinking,
+  .assessment-answer-insight-duck.is-thinking::after {
     animation: none;
   }
 }

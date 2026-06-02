@@ -402,10 +402,8 @@ export async function POST(request: Request) {
         let answerInsight = null;
 
         try {
-          const updatedAnswers = await loadAnswers(body.sessionId);
           answerInsight = await buildAssessmentAnswerInsight({
             answerValue: body.answerValue,
-            answers: updatedAnswers,
             question
           });
         } catch {
