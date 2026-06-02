@@ -327,10 +327,6 @@ function buildPaceScore(answers: AssessmentAnswerMap) {
     score += 6;
   }
 
-  if (answers.covid_illness_link === "yes_covid" || answers.covid_illness_link === "yes_other_illness") {
-    score += 5;
-  }
-
   return clampScore(score);
 }
 
@@ -358,10 +354,6 @@ function buildLifestyleRiskScore(answers: AssessmentAnswerMap) {
 
   if (hasSignal(answers, ["nicotine_use"], ["none"])) {
     score += answers.nicotine_frequency === "daily_heavy" ? 18 : 10;
-  }
-
-  if (answers.diet_pattern === "inconsistent") {
-    score += 10;
   }
 
   if (answerValues(answers, "nutrition_gaps").some((value) => !["none_known", "not_sure"].includes(value))) {
@@ -442,10 +434,6 @@ function buildLifestyleFlags(answers: AssessmentAnswerMap) {
 
   if (answerValues(answers, "nutrition_gaps").some((value) => !["none_known", "not_sure"].includes(value))) {
     flags.push("nutrition");
-  }
-
-  if (answers.diet_pattern === "inconsistent") {
-    flags.push("routine");
   }
 
   return flags;

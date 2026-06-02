@@ -1,4 +1,4 @@
-export const assessmentVersion = "2026-06-community-survey-v6";
+export const assessmentVersion = "2026-06-community-survey-v7";
 
 export type AssessmentInput =
   | "cards"
@@ -594,23 +594,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     ]
   }),
   question("lifestyle_habits", {
-    id: "diet_pattern",
-    analyticsCategory: "lifestyle",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "cards",
-    prompt: "Which eating pattern is closest to normal for you?",
-    responseFormat: "single_choice",
-    tags: ["diet", "nutrition"],
-    options: [
-      { value: "balanced", label: "Balanced mixed diet", description: "No major restrictions." },
-      { value: "high_protein", label: "High protein", description: "Protein is a priority." },
-      { value: "plant_based", label: "Plant-based", description: "Vegetarian, vegan, or mostly plant-based." },
-      { value: "low_carb_keto", label: "Low-carb or keto", description: "Carbs are intentionally limited." },
-      { value: "inconsistent", label: "Inconsistent", description: "Irregular meals, dieting cycles, or low appetite." }
-    ]
-  }),
-  question("lifestyle_habits", {
     id: "nutrition_gaps",
     analyticsCategory: "lifestyle",
     dataType: "multi_nominal",
@@ -808,7 +791,7 @@ export const assessmentQuestions: AssessmentQuestion[] = [
     analyticsCategory: "medical",
     dataType: "multi_nominal",
     input: "multi_select",
-    prompt: "Any metabolic or cardiovascular factors?",
+    prompt: "Any metabolic, sleep, heart, or blood vessel factors?",
     responseFormat: "multi_select",
     tags: ["cardiovascular", "metabolic", "sleep_apnea"],
     options: [
@@ -817,7 +800,7 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "insulin_resistance", label: "Insulin resistance" },
       { value: "obesity", label: "Obesity" },
       { value: "sleep_apnea", label: "Sleep apnea" },
-      { value: "cardiovascular", label: "Cardiovascular condition" }
+      { value: "cardiovascular", label: "Heart, stroke, or blood vessel disease" }
     ]
   }),
   question("medical_history", {
@@ -838,22 +821,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "glp_1", label: "GLP-1 medication" },
       { value: "steroids", label: "Steroids" },
       { value: "blood_pressure", label: "Blood pressure meds" }
-    ]
-  }),
-  question("medical_history", {
-    id: "covid_illness_link",
-    analyticsCategory: "medical",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "cards",
-    prompt: "Did hair loss worsen after COVID, infection, or a significant illness?",
-    responseFormat: "single_choice",
-    tags: ["covid", "infection", "telogen"],
-    options: [
-      { value: "yes_covid", label: "Yes, after COVID", description: "Timing felt connected." },
-      { value: "yes_other_illness", label: "Yes, after another illness", description: "A non-COVID illness came first." },
-      { value: "no_clear_link", label: "No clear link", description: "I do not see a connection." },
-      { value: "not_sure", label: "Not sure", description: "The timing is hard to judge." }
     ]
   }),
   question("medical_history", {
@@ -1172,57 +1139,6 @@ export const assessmentQuestions: AssessmentQuestion[] = [
       { value: "community", label: "Similar profiles", description: "Learn from people like me." },
       { value: "tracking", label: "Progress tracking", description: "Photos, timeline, reminders." },
       { value: "barber", label: "Appearance support", description: "Haircut or styling guidance." }
-    ]
-  }),
-  question("goals_impact", {
-    id: "longitudinal_opt_in",
-    analyticsCategory: "community",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "cards",
-    prompt: "Would you be open to anonymous progress check-ins over time?",
-    helper: "This could support treatment timelines, image comparisons, and better trend reports later.",
-    responseFormat: "single_choice",
-    tags: ["longitudinal", "research", "retention"],
-    options: [
-      { value: "yes", label: "Yes", description: "I would contribute follow-up data." },
-      { value: "maybe", label: "Maybe", description: "I may want this later." },
-      { value: "no", label: "No", description: "One-time survey only." }
-    ]
-  }),
-  question("goals_impact", {
-    id: "photo_upload_consent",
-    analyticsCategory: "media",
-    autoAdvance: true,
-    dataType: "nominal",
-    input: "cards",
-    prompt: "Would you like to attach optional hair photos for progress tracking?",
-    helper: "Photos are optional and should avoid faces when possible. They can support future image comparisons and AI-assisted classification.",
-    responseFormat: "single_choice",
-    tags: ["privacy", "progress_tracking", "uploads"],
-    options: [
-      { value: "yes", label: "Yes, add photos", description: "Hairline, crown, temples, wet hair, or comparison photos." },
-      { value: "later", label: "Maybe later", description: "I want the account/progress flow first." },
-      { value: "no", label: "No", description: "Skip photo uploads." }
-    ]
-  }),
-  question("goals_impact", {
-    id: "photo_uploads",
-    analyticsCategory: "media",
-    conditions: [{ questionId: "photo_upload_consent", operator: "equals", value: "yes" }],
-    dataType: "metadata",
-    input: "upload",
-    prompt: "Add any optional photos you want tracked.",
-    helper: "Accepted views: hairline, crown, top-down, temples, wet hair, and progress comparison. You can skip this and still finish.",
-    responseFormat: "file_upload_metadata",
-    tags: ["crown", "hairline", "progress", "temples", "uploads", "wet_hair"],
-    options: [
-      { value: "hairline", label: "Hairline", description: "Front hairline or temples." },
-      { value: "crown", label: "Crown", description: "Vertex/top-back area." },
-      { value: "top_down", label: "Top-down", description: "Overhead density view." },
-      { value: "temples", label: "Temples", description: "Left or right temple recession." },
-      { value: "wet_hair", label: "Wet hair", description: "Wet or parted density view." },
-      { value: "progress_comparison", label: "Progress comparison", description: "Before/after or timeline image." }
     ]
   })
 ];

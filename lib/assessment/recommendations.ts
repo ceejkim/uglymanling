@@ -38,8 +38,7 @@ function getDrafts(
   const labFlags = parseAnswerValueList(answers.abnormal_labs ?? answers.abnormal_lab_markers).filter(
     (value) => value !== "not_sure"
   );
-  const wantsTracking =
-    answers.longitudinal_opt_in === "yes" || answers.next_step_preference === "tracking";
+  const wantsTracking = answers.next_step_preference === "tracking";
   const hasVisibleConcern = primaryConcerns.some((value) =>
     ["hairline", "temples", "crown", "diffuse", "diffuse_top", "shedding", "top_diffuse", "overall_density", "hairline_temples", "crown_vertex"].includes(value)
   );

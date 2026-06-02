@@ -164,7 +164,7 @@ export function scoreAssessment(answers: AssessmentAnswerMap): AssessmentScores 
     communityReadinessScore += 16;
   }
 
-  if (answers.longitudinal_opt_in === "yes" || answers.next_step_preference === "tracking") {
+  if (answers.next_step_preference === "tracking") {
     communityReadinessScore += 12;
     stabilizationIntentScore += 8;
   }
