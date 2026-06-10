@@ -122,11 +122,15 @@ main {
   overflow: hidden;
 }
 
-.brand-mark-image {
+.brand-mark-monogram {
+  display: inline-grid;
+  place-items: center;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transform: scale(1.08);
+  color: var(--blue);
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
 .brand-mark-copy {
@@ -3453,7 +3457,7 @@ main {
 
 .home-page .brand-mark-icon {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(230, 240, 250, 0.84));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(230, 240, 250, 0.92));
   box-shadow: none;
 }
 
@@ -3901,34 +3905,99 @@ main {
 }
 
 .footer-panel {
+  border-color: rgba(31, 58, 95, 0.24);
   background:
-    linear-gradient(180deg, rgba(255, 216, 77, 0.72), rgba(255, 244, 194, 0.9));
+    linear-gradient(rgba(31, 58, 95, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 58, 95, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 12% 18%, rgba(70, 129, 198, 0.16), transparent 19rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(230, 240, 250, 0.92));
+  background-size: 28px 28px, 28px 28px, auto, auto;
   color: var(--ink-strong);
 }
 
 .footer-cta-layout {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.42fr);
+  align-items: stretch;
 }
 
-.footer-duck-seal {
+.footer-diagnostic-seal {
+  position: relative;
   display: grid;
-  place-items: center;
-  width: 12rem;
-  min-height: 12rem;
+  align-content: space-between;
+  gap: 1rem;
+  min-height: 13rem;
+  padding: 1rem;
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(circle at center, rgba(31, 58, 95, 0.1), transparent 54%),
-    rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(18, 48, 79, 0.08);
+    linear-gradient(rgba(255, 255, 255, 0.72) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.72) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(15, 31, 46, 0.96), rgba(31, 58, 95, 0.92));
+  background-size: 22px 22px, 22px 22px, auto;
+  border: 1px solid rgba(15, 31, 46, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 18px 34px rgba(15, 31, 46, 0.12);
+  color: #fff;
   overflow: hidden;
 }
 
-.footer-duck-image {
-  width: min(100%, 9rem);
-  height: auto;
+.footer-diagnostic-seal::after {
+  content: "";
+  position: absolute;
+  right: -2.8rem;
+  bottom: -2.8rem;
+  width: 8.5rem;
+  height: 8.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+
+.footer-diagnostic-header,
+.footer-diagnostic-readout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.footer-diagnostic-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.55rem;
+  min-height: 5.5rem;
+}
+
+.footer-diagnostic-grid span {
+  display: block;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(255, 216, 77, 0.96), rgba(110, 184, 255, 0.7));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.footer-diagnostic-grid span:nth-child(1) { height: 42%; }
+.footer-diagnostic-grid span:nth-child(2) { height: 74%; }
+.footer-diagnostic-grid span:nth-child(3) { height: 56%; }
+.footer-diagnostic-grid span:nth-child(4) { height: 88%; }
+
+.footer-diagnostic-readout {
+  align-items: flex-end;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.footer-diagnostic-readout strong {
+  color: #fff;
+  font-size: 1.02rem;
 }
 
 .footer-title {
@@ -3937,7 +4006,17 @@ main {
   line-height: 0.95;
   letter-spacing: 0;
   font-weight: 900;
-  max-width: 10ch;
+  max-width: 14ch;
+}
+
+.footer-actions a:first-child {
+  min-height: 3.45rem;
+  padding-right: 1.35rem;
+  padding-left: 1.35rem;
+  background: var(--blue) !important;
+  border-color: var(--blue) !important;
+  color: #fff !important;
+  box-shadow: 0 16px 30px rgba(31, 58, 95, 0.18);
 }
 
 .footer-panel .eyebrow {
@@ -3962,6 +4041,10 @@ main {
   .community-layout,
   .footer-cta-layout {
     grid-template-columns: 1fr;
+  }
+
+  .footer-diagnostic-seal {
+    min-height: 11rem;
   }
 
   .community-checklist {
