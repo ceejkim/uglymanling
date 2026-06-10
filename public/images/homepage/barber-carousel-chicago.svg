@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420" role="img" aria-labelledby="title desc">
+  <title id="title">Chicago barber cartoon</title>
+  <desc id="desc">Cartoon emoji style barber portrait with comb and blueprint accents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="42" y1="32" x2="382" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#eef6ff"/>
+      <stop offset="1" stop-color="#fff4c2"/>
+    </linearGradient>
+    <linearGradient id="cape" x1="104" y1="286" x2="320" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1f3a5f"/>
+      <stop offset="1" stop-color="#102033"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="420" rx="48" fill="url(#bg)"/>
+  <path d="M34 104H386M34 158H386M34 212H386M34 266H386M34 320H386M104 34V386M158 34V386M212 34V386M266 34V386M320 34V386" stroke="#1f3a5f" stroke-opacity=".085" stroke-width="2"/>
+  <circle cx="210" cy="208" r="145" fill="#fff" fill-opacity=".88" stroke="#1f3a5f" stroke-opacity=".15" stroke-width="3"/>
+  <circle cx="210" cy="194" r="89" fill="#d99a72"/>
+  <path d="M127 163c12-48 44-73 88-75 48-2 80 26 91 75-25-12-50-15-78-7-34 10-67 12-101 7Z" fill="#342015"/>
+  <path d="M130 166c35 8 70 3 105-11 24-9 48-4 70 10-1 20-4 42-11 63-13-31-31-46-55-47-26-1-50 14-76 5-15-5-25-11-33-20Z" fill="#4b2b18"/>
+  <circle cx="175" cy="203" r="7" fill="#101c29"/>
+  <circle cx="246" cy="203" r="7" fill="#101c29"/>
+  <path d="M184 244c18 15 48 15 66 0" fill="none" stroke="#101c29" stroke-width="8" stroke-linecap="round"/>
+  <path d="M144 291c33-27 99-27 132 0 32 27 38 60 38 78H106c0-18 6-51 38-78Z" fill="url(#cape)"/>
+  <path d="M152 317h116" stroke="#ffd84d" stroke-width="8" stroke-linecap="round"/>
+  <g transform="translate(63 78) rotate(-15)">
+    <rect width="94" height="24" rx="12" fill="#ffd84d" stroke="#1f3a5f" stroke-opacity=".18" stroke-width="3"/>
+    <path d="M17 24v21M34 24v26M51 24v21M68 24v26M85 24v21" stroke="#1f3a5f" stroke-opacity=".55" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <path d="M314 101h48M338 77v48" stroke="#e14b4b" stroke-width="9" stroke-linecap="round"/>
+  <text x="210" y="366" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff">CHI</text>
+</svg>

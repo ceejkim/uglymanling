@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 type BrandMarkProps = {
   compact?: boolean;
 };
@@ -7,15 +5,8 @@ type BrandMarkProps = {
 export function BrandMark({ compact = false }: BrandMarkProps) {
   return (
     <div className={`brand-mark${compact ? " is-compact" : ""}`}>
-      <div className="brand-mark-icon">
-        <Image
-          src="/brand/mascots/uglymanlings-duck-primary.png"
-          alt="Ugly Manling duck mascot"
-          width={72}
-          height={72}
-          className="brand-mark-image"
-          priority
-        />
+      <div className="brand-mark-icon" aria-hidden="true">
+        <span className="brand-mark-monogram">UM</span>
       </div>
       <div className="brand-mark-copy">
         <p className="brand-mark-title">Ugly Manling</p>

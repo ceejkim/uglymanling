@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420" role="img" aria-labelledby="title desc">
+  <title id="title">Los Angeles barber cartoon</title>
+  <desc id="desc">Cartoon emoji style barber portrait with sun badge and clinical grid accents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="48" y1="30" x2="370" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff8dc"/>
+      <stop offset="1" stop-color="#e2f1ff"/>
+    </linearGradient>
+    <linearGradient id="coat" x1="120" y1="275" x2="310" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfeefb"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="420" rx="48" fill="url(#bg)"/>
+  <path d="M38 106H382M38 160H382M38 214H382M38 268H382M38 322H382M106 38V382M160 38V382M214 38V382M268 38V382M322 38V382" stroke="#1f3a5f" stroke-opacity=".08" stroke-width="2"/>
+  <circle cx="326" cy="96" r="38" fill="#ffd84d"/>
+  <path d="M326 42v-22M326 172v-22M272 96h-22M402 96h-22M288 58l-16-16M380 150l-16-16M364 58l16-16M272 150l16-16" stroke="#f0b72f" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="210" cy="207" r="142" fill="#fff" fill-opacity=".84" stroke="#1f3a5f" stroke-opacity=".14" stroke-width="3"/>
+  <circle cx="210" cy="194" r="88" fill="#c9855c"/>
+  <path d="M128 164c10-47 48-76 91-76 46 0 76 27 86 73-32-19-61-20-88-7-27 13-58 15-89 10Z" fill="#211a16"/>
+  <path d="M150 169c41 12 70 8 101-6 17-8 35-6 53 3-2 23-5 43-12 61-13-33-32-48-57-46-18 1-41 11-64 5-8-2-15-7-21-17Z" fill="#31251e"/>
+  <circle cx="175" cy="203" r="7" fill="#151a20"/>
+  <circle cx="246" cy="203" r="7" fill="#151a20"/>
+  <path d="M184 245c18 14 48 14 66 0" fill="none" stroke="#151a20" stroke-width="8" stroke-linecap="round"/>
+  <path d="M146 290c32-26 96-26 128 0 32 27 39 60 39 78H107c0-18 7-51 39-78Z" fill="url(#coat)" stroke="#1f3a5f" stroke-opacity=".18" stroke-width="3"/>
+  <path d="M119 303l65 65M301 303l-65 65" stroke="#1f3a5f" stroke-opacity=".16" stroke-width="4"/>
+  <rect x="273" y="261" width="30" height="88" rx="15" fill="#1f3a5f" transform="rotate(27 273 261)"/>
+  <circle cx="284" cy="249" r="22" fill="#6eb8ff" stroke="#1f3a5f" stroke-opacity=".2" stroke-width="3"/>
+  <text x="210" y="366" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="900" fill="#1f3a5f">LA</text>
+</svg>

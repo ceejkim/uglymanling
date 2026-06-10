@@ -41,10 +41,10 @@ export default async function HomePage() {
       </div>
 
       <Hero ctaVariant={variant} heroHeadline={heroHeadline} visitorType={visitorType} />
+      <FooterCta />
       <div id="community">
         <CommunityBand />
       </div>
-      <FooterCta />
     </main>
   );
 }

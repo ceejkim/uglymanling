@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420" role="img" aria-labelledby="title desc">
+  <title id="title">New York barber cartoon</title>
+  <desc id="desc">Cartoon emoji style barber portrait with clippers and blueprint grid accents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="55" y1="35" x2="365" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fbff"/>
+      <stop offset="1" stop-color="#dcecfb"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="102" y1="88" x2="300" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe483"/>
+      <stop offset="1" stop-color="#f0b72f"/>
+    </linearGradient>
+  </defs>
+  <rect width="420" height="420" rx="48" fill="url(#bg)"/>
+  <path d="M36 96H384M36 150H384M36 204H384M36 258H384M36 312H384M96 36V384M150 36V384M204 36V384M258 36V384M312 36V384" stroke="#1f3a5f" stroke-opacity=".09" stroke-width="2"/>
+  <circle cx="210" cy="210" r="143" fill="#fff" stroke="#1f3a5f" stroke-opacity=".16" stroke-width="3"/>
+  <circle cx="210" cy="197" r="90" fill="#f1bd93"/>
+  <path d="M128 171c12-52 49-78 96-74 39 3 67 25 78 63-27-18-49-19-70-11-26 10-61 7-104 22Z" fill="#18283a"/>
+  <path d="M129 172c23 9 58 10 91-6 28-14 56-7 83 9 2 15 1 34-3 53-13-29-27-47-53-50-28-3-58 14-92 3-11-3-19-6-26-9Z" fill="#253b54"/>
+  <circle cx="175" cy="203" r="7" fill="#152637"/>
+  <circle cx="245" cy="203" r="7" fill="#152637"/>
+  <path d="M184 244c19 16 47 16 66 0" fill="none" stroke="#152637" stroke-width="8" stroke-linecap="round"/>
+  <path d="M148 291c31-26 95-27 126 0 33 28 40 61 40 77H108c0-17 7-50 40-77Z" fill="url(#gold)" stroke="#1f3a5f" stroke-opacity=".2" stroke-width="3"/>
+  <rect x="62" y="252" width="86" height="30" rx="15" fill="#1f3a5f" transform="rotate(-18 62 252)"/>
+  <rect x="49" y="246" width="25" height="42" rx="8" fill="#6eb8ff" transform="rotate(-18 49 246)"/>
+  <path d="M307 90l18 18 31-31" fill="none" stroke="#1b7c43" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="210" y="366" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="900" fill="#1f3a5f">NYC</text>
+</svg>
