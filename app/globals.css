@@ -4240,14 +4240,6 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .barber-carousel-copy .section-title {
-    max-width: 14ch;
-  }
-
-  .barber-carousel-controls {
-    justify-content: flex-start;
-  }
-
   .footer-diagnostic-seal {
     min-height: 11rem;
   }
